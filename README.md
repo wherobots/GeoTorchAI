@@ -5,12 +5,10 @@ GeoTorch is a deep learning and scalable data processing framework for raster an
 ## GeoTorch Modules
 GeoTorch contains following modules for various types of functionalities:
 
-| Name  | Introduction|
-|---|---|---|
-|Datasets  | Conatins processed popular datasets for raster data models and grid based spatio-temporal models. Datasets are available as ready-to-use PyTorch datasets.|
-|Models  | PyTorch wrapper for popular raster data models and grid based spatio-temporal models.|
-|Transforms |  Various tranformations operations that can be applied to dataset samples during model training.|
-|Preprocessing | Supports preprocessing of raster and spatio-temporal datasets in a scalable settings on top of Apache Spark and Apache Sedona. Users don't require the coding concepts of Apache Sedona and Apache Spark.|
+* Datasets: Conatins processed popular datasets for raster data models and grid based spatio-temporal models. Datasets are available as ready-to-use PyTorch datasets.
+* Models: PyTorch wrapper for popular raster data models and grid based spatio-temporal models.|
+* Transforms: Various tranformations operations that can be applied to dataset samples during model training.|
+* Preprocessing: Supports preprocessing of raster and spatio-temporal datasets in a scalable settings on top of Apache Spark and Apache Sedona. Users don't require the coding concepts of Apache Sedona and Apache Spark.|
 
 ## Dependency Set up
 Following libraries need to be set up before using GeoTorch.

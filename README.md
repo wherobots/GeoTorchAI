@@ -19,4 +19,7 @@ Following libraries need to be set up before using GeoTorch.
 ## Documentation
 Details documentation on installation, API, and programming guide is available in geoTorch website.
 
+## Other Contributions of this Project
+We also contributed to [Apache Sedona](https://sedona.apache.org/) to add transformation and write supports to GeoTiff raster images. This contribution is also a part of this project. Contribution reference: [Commits](https://github.com/apache/incubator-sedona/commits?author=kanchanchy)
+
 

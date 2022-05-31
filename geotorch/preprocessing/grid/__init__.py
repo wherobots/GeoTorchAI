@@ -1,5 +1,5 @@
 from .adjacency import Adjacency
-from .feature_aggregation import FeatureAggregation
+from .st_manager import STManager
 from .space_partition import SpacePartition
 
-__all__ = ["Adjacency", "FeatureAggregation", "SpacePartition"]
+__all__ = ["Adjacency", "STManager", "SpacePartition"]

@@ -1,4 +1,4 @@
-from sedona.utils.adapter import Adapter
+from sedona.utils.adapter import Adapter as adp
 from geotorch.preprocessing.spark_registration import SparkRegistration
 
 
@@ -29,7 +29,7 @@ class Adapter(object):
 
 	@classmethod
 	def df_to_spatial_rdd(cls, df, geometry):
-		return Adapter.toSpatialRdd(df, geometry)
+		return adp.toSpatialRdd(df, geometry)
 
 
 	@classmethod
@@ -40,7 +40,7 @@ class Adapter(object):
 	@classmethod
 	def rdd_to_spatial_df(cls, rdd):
 		spark = SparkRegistration._get_spark_session()
-		return Adapter.toDf(rdd, spark)
+		return adp.toDf(rdd, spark)
 
 
 	@classmethod

@@ -4,6 +4,7 @@ from sedona.core.formatMapper import WktReader
 from sedona.core.formatMapper import GeoJsonReader
 from .utility.exceptions import InvalidParametersException
 from .spark_registration import SparkRegistration
+from geotorch.preprocessing.enums import GeoFileType
 
 
 def load_geo_data(path_to_dataset, geo_file_type):
@@ -38,7 +39,7 @@ def load_geo_data(path_to_dataset, geo_file_type):
 
 def load_data(path_to_dataset, data_format, delimeiter = ",", header = "false"):
 	spark = SparkRegistration._get_spark_session()
-	df = spark.read.format(data_format).option("delimiter", delimeiter).option("header", header).load(path_to_dataset)
+	return spark.read.format(data_format).option("delimiter", delimeiter).option("header", header).load(path_to_dataset)
 
 
 def load_geotiff_image(path_to_dataset, options_dict = None):

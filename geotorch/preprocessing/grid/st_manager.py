@@ -160,7 +160,7 @@ class STManager:
 
 
 	@classmethod
-	def aggregate_two_spatial_dataframes(cls, dataset1, dataset2, geometry1, geometry2, id1, geo_relationship, columns_to_aggregate, column_aggregatioin_types, column_alias_list = None):
+	def aggregate_spatial_dfs(cls, dataset1, dataset2, geometry1, geometry2, id1, geo_relationship, columns_to_aggregate, column_aggregatioin_types, column_alias_list = None):
 		'''
 		Joins two geo-datasets based on spatial relationships such as contains, intersects, touches, etc.
 		For each polygon in dataset1, it finds those tuples from dataset2 which satisfy the geo_relationship with the corresponding polygon in dataset1.\

@@ -12,12 +12,11 @@ from torch.utils.data import Dataset, DataLoader, sampler
 from PIL import Image
 
 
-# This dataset is based on https://github.com/FIBLAB/DeepSTN/tree/master/BikeNYC/DATA
-## Gri map_height and map_width = 21 and 12
-class NYC_Bike_DeepSTN_Dataset(Dataset):
+# This dataset is based on https://github.com/jwwthu/DL4Traffic/tree/main/TaxiBJ21
+## Gri map_height and map_width = 32 and 32
+class BJ_Taxi_21_Dataset(Dataset):
 
-    DATA_URL = "https://raw.githubusercontent.com/FIBLAB/DeepSTN/master/BikeNYC/DATA/dataBikeNYC/flow_data.npy"
-    POI_URL = "https://raw.githubusercontent.com/FIBLAB/DeepSTN/master/BikeNYC/DATA/dataBikeNYC/poi_data.npy"
+    DATA_URL = "https://raw.githubusercontent.com/jwwthu/DL4Traffic/main/TaxiBJ21/TaxiBJ21.npy"
 
     def __init__(self, root, is_training_data=True, download=False, len_test = 24*14, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
         super().__init__()
@@ -29,17 +28,11 @@ class NYC_Bike_DeepSTN_Dataset(Dataset):
             with open(file_name, 'wb') as output_file:
                 output_file.write(req.content)
 
-            req2 = requests.get(self.POI_URL)
-            file_name_poi = root + "/" + self.POI_URL.split('/')[-1]
-            with open(file_name_poi, 'wb') as output_file:
-                output_file.write(req2.content)
-
         data_dir = self._getPath(root)
 
-        flow_data = np.load(open(data_dir + "/flow_data.npy", "rb"))
-        poi_data = np.load(open(data_dir + "/poi_data.npy", "rb"))
+        flow_data = np.load(open(data_dir + "/TaxiBJ21.npy", "rb"))
 
-        self._create_feature_vector(flow_data, poi_data, len_test, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend)
+        self._create_feature_vector(flow_data, len_test, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend)
         
 
 
@@ -57,7 +50,6 @@ class NYC_Bike_DeepSTN_Dataset(Dataset):
         "x_period": self.X_period[index], \
         "x_trend": self.X_trend[index], \
         "t_data": self.T_data[index], \
-        "p_data": self.P_data[index], \
         "y_data": self.Y_data[index]}
 
         return sample
@@ -66,7 +58,7 @@ class NYC_Bike_DeepSTN_Dataset(Dataset):
     def _getPath(self, data_dir):
         while True:
             folders = os.listdir(data_dir)
-            if "flow_data.npy" in folders and "poi_data.npy" in folders:
+            if "TaxiBJ21.npy" in folders:
                 return data_dir
 
             for folder in folders:
@@ -76,7 +68,7 @@ class NYC_Bike_DeepSTN_Dataset(Dataset):
 
 
     # This is replication of lzq_load_data method proposed by authors here: https://github.com/FIBLAB/DeepSTN/blob/master/BikeNYC/DATA/lzq_read_data_time_poi.py
-    def _create_feature_vector(self, all_data, poi, len_test, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend):
+    def _create_feature_vector(self, all_data, len_test, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend):
         max_data = np.max(all_data)
         min_data = np.min(all_data)
         self.min_max_diff = max_data-min_data
@@ -145,15 +137,10 @@ class NYC_Bike_DeepSTN_Dataset(Dataset):
         len_data=self.X_closeness.shape[0]
         print('len_data='+str(len_data))
 
-        for i in range(poi.shape[0]):
-            poi[i]=poi[i]/np.max(poi[i])
-        self.P_data=np.repeat(poi.reshape(1,poi.shape[0],map_height,map_width),len_data,axis=0)
-
         self.X_closeness = torch.tensor(self.X_closeness)
         self.X_period = torch.tensor(self.X_period)
         self.X_trend = torch.tensor(self.X_trend)
         self.T_data = torch.tensor(self.T_data)
-        self.P_data = torch.tensor(self.P_data)
         self.Y_data = torch.tensor(self.Y_data)
 
 

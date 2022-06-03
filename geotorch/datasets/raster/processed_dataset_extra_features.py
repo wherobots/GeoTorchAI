@@ -59,5 +59,27 @@ class ProcessedDatasetWithExtraFeatures(Dataset):
 
 
 
+'''import time
+t1 = time.time()
+myData = ProcessedDatasetWithExtraFeatures(root = "data/euro-sat/EuroSATallBands/ds/images/remote_sensing/otherDatasets/sentinel_2/tif")
+dataloader = DataLoader(myData, batch_size = 32)
+
+i = 0
+for inputs, labels, features in dataloader:
+	print(inputs.shape, labels, features.shape)
+	i += 1
+	if i > 5:
+		break
+t2 = time.time()
+print("Time:", t2- t1, "seconds")'''
+
+
+#print(myData._class_to_idx)
+
+
+
+#download_url("https://madm.dfki.de/files/sentinel/EuroSATallBands.zip", "data/")
+#pathExtracted = extract_archive("dataset/EuroSATallBands.zip", "dataset/EuroSATallBands")
+
 
 

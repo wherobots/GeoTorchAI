@@ -279,3 +279,20 @@ class NYC_Taxi_STDN_Dataset(Dataset):
         self.labels = torch.tensor(self.labels)
 
 
+'''myData = NYC_Taxi_STDN_Dataset(root="data3", att_lstm_num=3,
+                               long_term_lstm_seq_len=3,
+                               short_term_lstm_seq_len=7,
+                               nbhd_size=2,
+                               cnn_nbhd_size=3)
+print(len(myData))
+sample1= myData[50]
+print(sample1["att_cnnx"].shape, sample1["att_flow"].shape, sample1["att_x"].shape, sample1["cnnx"].shape, sample1["flow"].shape, sample1["x"].shape, sample1["label"].shape)'''
+
+
+'''train_ds, valid_ds = torch.utils.data.random_split(myData, (6000, 2400))
+train_dl = DataLoader(train_ds, batch_size=12, shuffle=True)
+valid_dl = DataLoader(valid_ds, batch_size=12, shuffle=True)'''
+
+'''myData_loader = DataLoader(myData, batch_size=16)
+sample2 = next(iter(myData_loader))
+print(sample2["att_cnnx"].shape, sample2["att_flow"].shape, sample2["att_x"].shape, sample2["cnnx"].shape, sample2["flow"].shape, sample2["x"].shape, sample2["label"].shape)'''

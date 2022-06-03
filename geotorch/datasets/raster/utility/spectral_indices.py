@@ -26,7 +26,7 @@ def get_builtup_index(band_swir, band_nir):
     return _get_normalized_difference_index(band_swir, band_nir)
 
 def get_RVI(band_nir, band_red):
-    band_red[band_red == 0] = EPS
+    band_red[band_red == 0] = 1e-9
     return band_nir/band_red
 
 def get_mean_index(normalized_difference_index, height, width):

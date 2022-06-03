@@ -13,7 +13,7 @@ from kaggle.api.kaggle_api_extended import KaggleApi
 from PIL import Image
 
 
-## Please cite https://www.kaggle.com/code/cordmaur/38-cloud-data-preparation?scriptVersionId=31357028
+## Please cite https://www.kaggle.com/datasets/sorour/38cloud-cloud-segmentation-in-satellite-images
 class Cloud38Dataset(Dataset):
 
 	SPECTRAL_BANDS = ["red", "green", "blue", "nir"]
@@ -35,8 +35,8 @@ class Cloud38Dataset(Dataset):
 		if download:
 			api = KaggleApi()
 			api.authenticate()
-			api.dataset_download_files('sorour/38cloud-cloud-segmentation-in-satellite-images', '38-Cloud_training', root)
-			extract_archive(root + "/38-Cloud_training/38cloud-cloud-segmentation-in-satellite-images.zip", root + "/38-Cloud_training")
+			api.dataset_download_files('sorour/38cloud-cloud-segmentation-in-satellite-images', root)
+			extract_archive(root + "/38cloud-cloud-segmentation-in-satellite-images.zip", root + "/38cloud-cloud-segmentation-in-satellite-images")
 
 		image_folders = ["train_red", "train_green", "train_blue", "train_nir"]
 		label_folder = "train_gt"
@@ -92,6 +92,19 @@ class Cloud38Dataset(Dataset):
 		return True
 
 
+
+'''myData = Cloud38Dataset(root = "data/segmentation", download = True)
+print(len(myData))
+x, y = myData[1000]
+print(x.shape, y.shape)
+
+
+train_ds, valid_ds = torch.utils.data.random_split(myData, (6000, 2400))
+train_dl = DataLoader(train_ds, batch_size=12, shuffle=True)
+valid_dl = DataLoader(valid_ds, batch_size=12, shuffle=True)
+
+xb, yb = next(iter(train_dl))
+print(xb.shape, yb.shape)'''
 
 
 

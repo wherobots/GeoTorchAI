@@ -1,15 +1,9 @@
 
 import os
 import requests
-from typing import Optional, Callable
 import numpy as np
-import rasterio
 import torch
-from torch import Tensor
-from torchvision.datasets.utils import download_url
-from torchvision.datasets.utils import extract_archive
-from torch.utils.data import Dataset, DataLoader, sampler
-from PIL import Image
+from torch.utils.data import Dataset
 
 
 # This dataset is based on https://github.com/FIBLAB/DeepSTN/tree/master/BikeNYC/DATA
@@ -19,7 +13,7 @@ class NYC_Bike_DeepSTN_Dataset(Dataset):
     DATA_URL = "https://raw.githubusercontent.com/FIBLAB/DeepSTN/master/BikeNYC/DATA/dataBikeNYC/flow_data.npy"
     POI_URL = "https://raw.githubusercontent.com/FIBLAB/DeepSTN/master/BikeNYC/DATA/dataBikeNYC/poi_data.npy"
 
-    def __init__(self, root, is_training_data=True, download=False, len_test = 24*14, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
+    def __init__(self, root, download = False, is_training_data=True, len_test = 24*14, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
         super().__init__()
         self.is_training_data = is_training_data
 

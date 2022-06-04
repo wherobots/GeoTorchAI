@@ -1,11 +1,7 @@
-import click
-import logging
-from pathlib import Path
 import torch
 import torch.nn as nn
-from torchsummary import summary
-from collections import OrderedDict
 import numpy as np
+
 
 ##This implementation follows the Keras implementation available here: https://github.com/FIBLAB/DeepSTN
 class _Conv_unit0(nn.Module):
@@ -49,14 +45,20 @@ class _Conv_unit1(nn.Module):
 
 ## The following implementation of _Multiply class was proposed here: https://discuss.pytorch.org/t/how-to-create-a-_Multiply-layer-which-supports-backprop/56220
 class _Multiply(nn.Module):
-  def __init__(self):
-    super(_Multiply, self).__init__()
+    def __init__(self):
+        super(_Multiply, self).__init__()
 
-  def forward(self, x):
-    result = torch.ones(x[0].size())
-    for t in x:
-      result *= t
-    return t
+    def forward(self, x):
+        result = torch.ones(x[0].size()).to(self._device)
+
+        for t in x:
+            result *= t
+
+        return t
+
+    def _set_device(self, _device):
+        self._device = _device
+
 
 
 class _Res_plus(nn.Module):
@@ -139,6 +141,9 @@ class _PT_trans(nn.Module):
     def __init__(self, P_N, PT_F, T, T_F, H, W, isPT_F):
         super(_PT_trans, self).__init__()
         self.P_N = P_N
+        self.T = T
+        self.H = H
+        self.W = W
         self.isPT_F = isPT_F
 
         self.t_trans = _T_trans(T, T_F, H, W)
@@ -146,18 +151,21 @@ class _PT_trans(nn.Module):
         self.conv = nn.Conv2d(P_N, PT_F, kernel_size=1, padding = "same")
 
     def forward(self, x):
-        poi_in = x[0].view(-1, P_N, H, W)
-        time_in = x[1].view(-1, T+7, H, W)
+        poi_in = x[0].view(-1, self.P_N, self.H, self.W)
+        time_in = x[1].view(-1, self.T+7, self.H, self.W)
 
         t_x = self.t_trans(time_in)
         if self.P_N >= 2:
-            t_x = torch.cat(tuple([t_x]*P_N), axis=1)
+            t_x = torch.cat(tuple([t_x]*self.P_N), axis=1)
 
-        poi_time = self.multiply([poi_in, t_x])
-        if isPT_F:
+        poi_time = self.multiply(torch.stack([poi_in, t_x]))
+        if self.isPT_F:
             poi_time = self.conv(poi_time)
 
         return poi_time
+
+    def _set_device(self, _device):
+        self.multiply._set_device(_device)
 
 
 
@@ -175,6 +183,8 @@ class DeepSTN(nn.Module):
         isPT_F=1):
         super(DeepSTN, self).__init__()
 
+        self._device = None
+
         self.H = H
         self.W = W
         self.T = T
@@ -188,7 +198,6 @@ class DeepSTN(nn.Module):
         self.channel_c = channel*c
         self.channel_p = channel*p
         self.channel_t = channel*t
-
 
         self.conv1 = nn.Conv2d(self.channel_c, pre_F, kernel_size=1, padding = "same")
         self.conv2 = nn.Conv2d(self.channel_p, pre_F, kernel_size=1, padding = "same")
@@ -211,7 +220,14 @@ class DeepSTN(nn.Module):
         self.tanh = torch.tanh
         
 
-    def forward(self, c_input, p_input, t_input, poi_in = None, time_in = None):
+    def forward(self, c_input, p_input, t_input, time_in = None, poi_in = None):
+        if self._device == None:
+            if c_input.get_device() == 0:
+                self._device = torch.device("cuda")
+            else:
+                self._device = torch.device("cpu")
+            self.ptTrans._set_device(self._device)
+
         c_input = c_input.view(-1, self.channel_c, self.H, self.W)
         p_input = p_input.view(-1, self.channel_p, self.H, self.W)
         t_input = t_input.view(-1, self.channel_t, self.H, self.W)
@@ -221,8 +237,8 @@ class DeepSTN(nn.Module):
         t_out1 = self.conv3(t_input)
 
         if self.is_pt:
-            poi_in = poi_in.view(-1, self.P_N, self.H, self.W)
             time_in = time_in.view(-1, self.T+7, self.H, self.W)
+            poi_in = poi_in.view(-1, self.P_N, self.H, self.W)
             poi_time = self.ptTrans([poi_in,time_in])
             cpt_con1 = torch.cat((c_out1, p_out1, t_out1, poi_time), axis=1)
 

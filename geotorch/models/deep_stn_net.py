@@ -148,17 +148,26 @@ class _PT_trans(nn.Module):
 
         self.t_trans = _T_trans(T, T_F, H, W)
         self.multiply = _Multiply()
-        self.conv = nn.Conv2d(P_N, PT_F, kernel_size=1, padding = "same")
+        if P_N > 0:
+            self.conv = nn.Conv2d(P_N, PT_F, kernel_size=1, padding = "same")
+        else:
+            self.conv = nn.Conv2d(1, PT_F, kernel_size=1, padding = "same")
 
-    def forward(self, x):
-        poi_in = x[0].view(-1, self.P_N, self.H, self.W)
-        time_in = x[1].view(-1, self.T+7, self.H, self.W)
+    def forward(self, time_in, poi_in = None):
+        time_in = time_in.view(-1, self.T+7, self.H, self.W)
 
         t_x = self.t_trans(time_in)
-        if self.P_N >= 2:
-            t_x = torch.cat(tuple([t_x]*self.P_N), axis=1)
 
-        poi_time = self.multiply(torch.stack([poi_in, t_x]))
+        if poi_in != None:
+            poi_in = poi_in.view(-1, self.P_N, self.H, self.W)
+
+            if self.P_N >= 2:
+                t_x = torch.cat(tuple([t_x]*self.P_N), axis=1)
+
+            poi_time = self.multiply(torch.stack([poi_in, t_x]))
+        else:
+            poi_time = self.multiply(torch.stack([t_x]))
+
         if self.isPT_F:
             poi_time = self.conv(poi_time)
 
@@ -238,8 +247,12 @@ class DeepSTN(nn.Module):
 
         if self.is_pt:
             time_in = time_in.view(-1, self.T+7, self.H, self.W)
-            poi_in = poi_in.view(-1, self.P_N, self.H, self.W)
-            poi_time = self.ptTrans([poi_in,time_in])
+
+            if poi_in != None:
+                poi_in = poi_in.view(-1, self.P_N, self.H, self.W)
+            
+            poi_time = self.ptTrans(time_in, poi_in)
+
             cpt_con1 = torch.cat((c_out1, p_out1, t_out1, poi_time), axis=1)
 
             if self.kernel1:

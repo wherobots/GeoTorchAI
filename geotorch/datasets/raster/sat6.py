@@ -61,14 +61,14 @@ class SAT6Dataset(Dataset):
 		data_dir = self._getPath(root)
 		if is_train_data:
 			df = pd.read_csv(data_dir + '/X_train_sat6.csv', header=None)
-			self.x_data = torch.tensor(df.values.reshape((324000, 28, 28, 4)))
+			self.x_data = torch.tensor(df.values.reshape((324000, 28, 28, 4)), dtype=torch.float)
 			self.x_data = torch.moveaxis(self.x_data, -1, 1)
 
 			df = pd.read_csv(data_dir + '/y_train_sat6.csv', header=None)
 			self.y_data = torch.argmax(torch.tensor(df.values), axis=1)
 		else:
 			df = pd.read_csv(data_dir + '/X_test_sat6.csv', header=None)
-			self.x_data = torch.tensor(df.values.reshape((81000, 28, 28, 4)))
+			self.x_data = torch.tensor(df.values.reshape((81000, 28, 28, 4)), dtype=torch.float)
 			self.x_data = torch.moveaxis(self.x_data, -1, 1)
 
 			df = pd.read_csv(data_dir + '/y_test_sat6.csv', header=None)

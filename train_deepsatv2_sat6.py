@@ -18,24 +18,21 @@ from datetime import datetime
 from geotorch.models import DeepSatV2
 from utils import weight_init, EarlyStopping, compute_errors
 
-from geotorch.datasets.raster import EuroSATDataset
+from geotorch.datasets.raster import SAT6Dataset
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 
 epoch_nums = 50#350
 learning_rate = 0.0002
 batch_size = 16
-params = {'batch_size': batch_size, 'shuffle': False, 'drop_last':False, 'num_workers': 0}
 
-validation_split = 0.2
 early_stop_patience = 30
-shuffle_dataset = True
 
 epoch_save = [0, epoch_nums - 1] + list(range(0, epoch_nums, 10))  # 1*1000
 
 out_dir = 'reports'
 checkpoint_dir = out_dir+'/checkpoint'
-model_name = 'deepsatv2'
+model_name = 'deepsatv2_sat6'
 model_dir = checkpoint_dir + "/" + model_name
 os.makedirs(model_dir, exist_ok=True)
 
@@ -76,11 +73,20 @@ def valid(model, val_generator, criterion, device):
 
 def createModelAndTrain():
 
-    fullData = EuroSATDataset(root = "data/eurosat", include_additional_features = False)
+    train_data = SAT6Dataset(root = "data/sat6", download = False, is_train_data = True, include_additional_features = False)
+    test_data = SAT6Dataset(root = "data/sat6", download = False, is_train_data = False, include_additional_features = False)
 
-    full_loader = DataLoader(fullData, batch_size= batch_size)
+    train_loader = DataLoader(train_data, batch_size= batch_size)
+    test_loader = DataLoader(test_data, batch_size= batch_size)
+
     channels_sum, channels_squared_sum, num_batches = 0, 0, 0
-    for i, sample in enumerate(full_loader):
+    for i, sample in enumerate(train_loader):
+        data_temp, _ = sample
+        channels_sum += torch.mean(data_temp, dim=[0, 2, 3])
+        channels_squared_sum += torch.mean(data_temp**2, dim=[0, 2, 3])
+        num_batches += 1
+
+    for i, sample in enumerate(test_loader):
         data_temp, _ = sample
         channels_sum += torch.mean(data_temp, dim=[0, 2, 3])
         channels_squared_sum += torch.mean(data_temp**2, dim=[0, 2, 3])
@@ -90,25 +96,14 @@ def createModelAndTrain():
     std = (channels_squared_sum / num_batches - mean ** 2) ** 0.5
 
     sat_transform = transforms.Normalize(mean, std)
-    fullData = EuroSATDataset(root = "data/eurosat", include_additional_features = True, transform = sat_transform)
-    
-    dataset_size = len(fullData)
-    indices = list(range(dataset_size))
+    train_data = SAT6Dataset(root = "data/sat6", download = False, is_train_data = True, include_additional_features = True, transform = sat_transform)
+    test_data = SAT6Dataset(root = "data/sat6", download = False, is_train_data = False, include_additional_features = True, transform = sat_transform)
 
-    split = int(np.floor(validation_split * dataset_size))
-    if shuffle_dataset:
-        np.random.seed(random_seed)
-        np.random.shuffle(indices)
-    train_indices, val_indices = indices[split:], indices[:split]
-    print('training size:', len(train_indices))
-    print('val size:', len(val_indices))
+    print('training size:', len(train_data))
+    print('val size:', len(test_data))
 
-    # Creating PT data samplers and loaders:
-    train_sampler = SubsetRandomSampler(train_indices)
-    valid_sampler = SubsetRandomSampler(val_indices)
-
-    training_generator = DataLoader(fullData, **params, sampler=train_sampler)
-    val_generator = DataLoader(fullData, **params, sampler=valid_sampler)
+    training_generator = DataLoader(train_data, batch_size = batch_size)
+    val_generator = DataLoader(test_data, batch_size = batch_size)
 
     # Total iterations
     total_iters = 5
@@ -119,7 +114,7 @@ def createModelAndTrain():
     epoch_runnned = 0
 
     for iteration in range(total_iters):
-        model = DeepSatV2(13, 64, 64, 10, len(fullData.ADDITIONAL_FEATURES))
+        model = DeepSatV2(4, 28, 28, 6, len(train_data.ADDITIONAL_FEATURES))
 
         loss_fn = nn.CrossEntropyLoss() # nn.L1Loss()
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -176,7 +171,7 @@ def createModelAndTrain():
         test_accuracy.append(accuracy)
 
     print("\n************************")
-    print("Test DeepSatv2 model with EuroSAT dataset:")
+    print("Test DeepSatv2 model with SAT6 dataset:")
     print("train and test finished")
     for i in range(total_iters):
         print("Iteration: {0}, Accuracy: {1}%".format(i, test_accuracy[i]))

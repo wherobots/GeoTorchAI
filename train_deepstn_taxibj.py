@@ -19,7 +19,7 @@ import time
 from datetime import datetime
 
 from geotorch.models import DeepSTN
-from geotorch.datasets.grid import NYC_Bike_DeepSTN_Dataset
+from geotorch.datasets.grid import BJ_Taxi_21_Dataset
 from utils import weight_init, EarlyStopping, compute_errors
 #from torch.utils.data import DataLoader
 
@@ -29,11 +29,11 @@ len_period = 4  # length of peroid dependent sequence
 len_trend = 4  # length of trend dependent sequence
 nb_residual_unit = 4   # number of residual units
 
-map_height, map_width = 21, 12#16, 8  # grid size
+map_height, map_width = 32, 32#16, 8  # grid size
 nb_flow = 2  # there are two types of flows: new-flow and end-flow
-nb_area = 81
-m_factor = math.sqrt(1. * map_height * map_width / nb_area)
-print('factor: ', m_factor)
+#nb_area = 81
+#m_factor = math.sqrt(1. * map_height * map_width / nb_area)
+#print('factor: ', m_factor)
 
 epoch_nums = 100#350
 learning_rate = 0.0002
@@ -48,7 +48,7 @@ epoch_save = [0, epoch_nums - 1] + list(range(0, epoch_nums, 50))  # 1*1000
 
 out_dir = 'reports'
 checkpoint_dir = out_dir+'/checkpoint'
-model_name = 'deepstn'
+model_name = 'deepstn-taxibj'
 model_dir = checkpoint_dir + "/" + model_name
 os.makedirs(model_dir, exist_ok=True)
 
@@ -68,11 +68,10 @@ def valid(model, val_generator, criterion, device):
         X_p = sample["x_period"].type(torch.FloatTensor).to(device)
         X_t = sample["x_trend"].type(torch.FloatTensor).to(device)
         t_data = sample["t_data"].type(torch.FloatTensor).to(device)
-        p_data = sample["p_data"].type(torch.FloatTensor).to(device)
         Y_batch = sample["y_data"].type(torch.FloatTensor).to(device)
 
         # Forward pass
-        outputs = model(X_c, X_p, X_t, t_data, p_data)
+        outputs = model(X_c, X_p, X_t, t_data)
         mse, _, _ = criterion(outputs.cpu().data.numpy(), Y_batch.cpu().data.numpy())
 
         mean_loss.append(mse)
@@ -93,15 +92,15 @@ def createModelAndTrain():
     rate=1
        
     is_pt=True
-    P_N=9
+    P_N=0
     T_F=7*8
     PT_F=9
     T = 24
     
     drop=0.1
 
-    train_dataset = NYC_Bike_DeepSTN_Dataset(root = "data/deepstn")
-    test_dataset = NYC_Bike_DeepSTN_Dataset(root = "data/deepstn", is_training_data = False)
+    train_dataset = BJ_Taxi_21_Dataset(root = "data/taxibj")
+    test_dataset = BJ_Taxi_21_Dataset(root = "data/taxibj", is_training_data = False)
 
     min_max_diff = train_dataset.get_min_max_difference()
 
@@ -157,11 +156,10 @@ def createModelAndTrain():
                 X_p = sample["x_period"].type(torch.FloatTensor).to(device)
                 X_t = sample["x_trend"].type(torch.FloatTensor).to(device)
                 t_data = sample["t_data"].type(torch.FloatTensor).to(device)
-                p_data = sample["p_data"].type(torch.FloatTensor).to(device)
                 Y_batch = sample["y_data"].type(torch.FloatTensor).to(device)
 
                 # Forward pass
-                outputs = model(X_c, X_p, X_t, t_data, p_data)
+                outputs = model(X_c, X_p, X_t, t_data)
                 loss = loss_fn(outputs, Y_batch)
 
                 # Backward and optimize
@@ -189,11 +187,10 @@ def createModelAndTrain():
             X_p = sample["x_period"].type(torch.FloatTensor).to(device)
             X_t = sample["x_trend"].type(torch.FloatTensor).to(device)
             t_data = sample["t_data"].type(torch.FloatTensor).to(device)
-            p_data = sample["p_data"].type(torch.FloatTensor).to(device)
             Y_batch = sample["y_data"].type(torch.FloatTensor).to(device)
 
             # Forward pass
-            outputs = model(X_c, X_p, X_t, t_data, p_data)
+            outputs = model(X_c, X_p, X_t, t_data)
             mse, mae, rmse = compute_errors(outputs.cpu().data.numpy(), Y_batch.cpu().data.numpy())
 
             rmse_list.append(rmse)
@@ -212,16 +209,25 @@ def createModelAndTrain():
         test_rmse.append(rmse)
 
     print("\n************************")
-    print("Test DeepSTN+ model with NYC_Bike_DeepSTN_Dataset:")
+    print("Test DeepSTN model with TaxiBJ21 dataset:")
     print("train and test finished")
     for i in range(total_iters):
         print("Iteration: {0}, MAE: {1}, RMSE: {2}, Real MAE: {3}, Real RMSE: {4}".format(i, test_mae[i], test_rmse[i], test_mae[i]*min_max_diff/2, test_rmse[i]*min_max_diff/2))
 
     test_mae_mean = np.mean(test_mae)
-    test_rmse_mean = np.mean(test_rmse)
+    mae_mean = test_mae_mean**min_max_diff/2
+    mae_max = np.max(test_mae)*min_max_diff/2
+    mae_min = np.min(test_mae)*min_max_diff/2
+    mae_diff = max(mae_max - mae_mean, mae_mean - mae_min)
 
-    print("\nMean MAE: {0}, Mean Real MAE: {1}".format(test_mae_mean, test_mae_mean*min_max_diff/2))
-    print("Mean RMSE: {0}, Mean Real RMSE: {1}".format(test_rmse_mean, test_rmse_mean * min_max_diff/2))
+    test_rmse_mean = np.mean(test_rmse)
+    rmse_mean = test_rmse_mean**min_max_diff/2
+    rmse_max = np.max(test_rmse)
+    rmse_min = np.min(test_rmse)
+    rmse_diff = max(rmse_max - rmse_mean, rmse_mean - rmse_min)
+
+    print("\nMean MAE: {0}, Mean Real MAE: {1}, Variation of MAE: {2}".format(test_mae_mean, mae_mean, mae_diff))
+    print("Mean RMSE: {0}, Mean Real RMSE: {1}, Variation of RMSE: {2}".format(test_rmse_mean, rmse_mean, rmse_diff))
 
 
 
@@ -229,6 +235,20 @@ if __name__ == '__main__':
 
     createModelAndTrain()
 
+    '''test_dataset = BJ_Taxi_21_Dataset(root = "data/taxibj", is_training_data = False)
+    test_generator = data.DataLoader(test_dataset, batch_size=batch_size)
+
+    for i, sample in enumerate(test_generator):
+        X_c = sample["x_closeness"].type(torch.FloatTensor)
+        X_p = sample["x_period"].type(torch.FloatTensor)
+        X_t = sample["x_trend"].type(torch.FloatTensor)
+        t_data = sample["t_data"].type(torch.FloatTensor)
+        Y_batch = sample["y_data"].type(torch.FloatTensor)
+
+        print(X_c.shape, X_p.shape, X_t.shape, t_data.shape, Y_batch.shape)
+
+        if i == 0:
+            break'''
 
 
 

@@ -7,17 +7,18 @@ from torchsummary import summary
 from collections import OrderedDict
 
 ## This implementation follows the implementation available here: https://github.com/BruceBinBoxing/ST-ResNet-Pytorch
-def _conv3x3(in_channels, out_channels, stride=1):
-    return nn.Conv2d(in_channels, out_channels, kernel_size=3,
-                     stride=stride, padding=1, bias= True)
+def _conv3x3(in_channels, out_channels):
+    return nn.Conv2d(in_channels, out_channels, kernel_size=3, padding = "same")
 
 class _Bn_relu_conv(nn.Module):
     def __init__(self, nb_filter):
         super(_Bn_relu_conv, self).__init__()
+        self.batchNorm2d = nn.BatchNorm2d(num_features=nb_filter, eps=0.001, momentum=0.99, affine=False)
         self.relu = torch.relu
         self.conv1 = _conv3x3(nb_filter, nb_filter)
 
     def forward(self, x):
+        x = self.batchNorm2d(x)
         x = self.relu(x)
         x = self.conv1(x)
 

@@ -15,12 +15,11 @@ import numpy as np
 import time
 from datetime import datetime
 
-from geotorch.models import DeepSatV2
+from geotorch.models import Fully_Convolutional_Neural_Net
 from utils import weight_init, EarlyStopping, compute_errors
 
 from geotorch.datasets.raster import EuroSATDataset
 from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
 
 epoch_nums = 50#350
 learning_rate = 0.0002
@@ -35,7 +34,7 @@ epoch_save = [0, epoch_nums - 1] + list(range(0, epoch_nums, 10))  # 1*1000
 
 out_dir = 'reports'
 checkpoint_dir = out_dir+'/checkpoint'
-model_name = 'deepsatv2'
+model_name = 'fcn'
 model_dir = checkpoint_dir + "/" + model_name
 os.makedirs(model_dir, exist_ok=True)
 
@@ -48,49 +47,34 @@ random_seed = int(time.time())
 def valid(model, val_generator, criterion, device):
     model.eval()
     total_sample = 0
-    #loss_list = []
+    loss_list = []
     correct = 0
     for i, sample in enumerate(val_generator):
-        inputs, labels, features = sample
+        inputs, labels = sample
         inputs = inputs.to(device)
-        features = features.type(torch.FloatTensor).to(device)
         labels = labels.to(device)
 
         # Forward pass
-        outputs = model(inputs, features)
+        outputs = model(inputs)
         total_sample += len(labels)
 
-        #loss = criterion(outputs, labels)
-        #loss_list.append(loss.item())
+        loss = criterion(outputs, labels)
+        loss_list.append(loss.item())
 
         _, predicted = outputs.max(1)
         correct += predicted.eq(labels).sum().item()
 
-    #mean_loss = np.mean(loss_list)
+    mean_loss = np.mean(loss_list)
     accuracy = 100 * correct / total_sample
-    print("Validation Accuracy: ", accuracy, "%")
+    print('Mean valid loss:', mean_loss, "  Accuracy: ", accuracy, "%")
 
-    return accuracy
+    return mean_loss
 
 
 
 def createModelAndTrain():
 
-    fullData = EuroSATDataset(root = "data/eurosat", include_additional_features = False)
-
-    full_loader = DataLoader(fullData, batch_size= batch_size)
-    channels_sum, channels_squared_sum, num_batches = 0, 0, 0
-    for i, sample in enumerate(full_loader):
-        data_temp, _ = sample
-        channels_sum += torch.mean(data_temp, dim=[0, 2, 3])
-        channels_squared_sum += torch.mean(data_temp**2, dim=[0, 2, 3])
-        num_batches += 1
-
-    mean = channels_sum / num_batches
-    std = (channels_squared_sum / num_batches - mean ** 2) ** 0.5
-
-    sat_transform = transforms.Normalize(mean, std)
-    fullData = EuroSATDataset(root = "data/eurosat", include_additional_features = True, transform = sat_transform)
+    fullData = EuroSATDataset(root = "data/eurosat", download = True, include_additional_features = False)
     
     dataset_size = len(fullData)
     indices = list(range(dataset_size))
@@ -119,24 +103,23 @@ def createModelAndTrain():
     epoch_runnned = 0
 
     for iteration in range(total_iters):
-        model = DeepSatV2(13, 64, 64, 10, len(fullData.ADDITIONAL_FEATURES))
+        model = Fully_Convolutional_Neural_Net(13, 10)
 
         loss_fn = nn.CrossEntropyLoss() # nn.L1Loss()
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
         model.to(device)
         loss_fn.to(device)
 
-        es = EarlyStopping(patience = early_stop_patience, mode='max', model=model, percentage = True, save_path=initial_checkpoint)
+        es = EarlyStopping(patience = early_stop_patience, mode='min', model=model, save_path=initial_checkpoint)
         for e in range(epoch_nums):
             t_start = time.time()
             for i, sample in enumerate(training_generator):
-                inputs, labels, features = sample
+                inputs, labels = sample
                 inputs = inputs.to(device)
-                features = features.type(torch.FloatTensor).to(device)
                 labels = labels.to(device)
 
                 # Forward pass
-                outputs = model(inputs, features)
+                outputs = model(inputs)
                 loss = loss_fn(outputs, labels)
 
                 # Backward and optimize
@@ -149,24 +132,29 @@ def createModelAndTrain():
             epoch_runnned += 1
             print('Epoch [{}/{}], Training Loss: {:.4f}'.format(e + 1, epoch_nums, loss.item()))
 
-            val_accuracy = valid(model, val_generator, loss_fn, device)
+            val_loss = valid(model, val_generator, loss_fn, device)
 
-            if es.step(val_accuracy):
-                print('early stopped! With validation accuracy:', val_accuracy)
+            if es.step(val_loss):
+                print('early stopped! With val loss:', val_loss)
                 break  # early stop criterion is met, we can stop now
 
-        model.load_state_dict(torch.load(initial_checkpoint, map_location=lambda storage, loc: storage))
+            if e in epoch_save:
+                torch.save(model.state_dict(), checkpoint_dir + '/%s/%08d_model.pth' % (model_name, e))
+                torch.save({
+                        'optimizer': optimizer.state_dict(),
+                        'iter': iteration,
+                        'epoch': e,
+                    }, checkpoint_dir + '/%s/%08d_optimizer.pth' % (model_name, e))
 
         total_sample = 0
         correct = 0
         for i, sample in enumerate(val_generator):
-            inputs, labels, features = sample
+            inputs, labels = sample
             inputs = inputs.to(device)
-            features = features.type(torch.FloatTensor).to(device)
             labels = labels.to(device)
 
             # Forward pass
-            outputs = model(inputs, features)
+            outputs = model(inputs)
             total_sample += len(labels)
 
             _, predicted = outputs.max(1)
@@ -176,7 +164,7 @@ def createModelAndTrain():
         test_accuracy.append(accuracy)
 
     print("\n************************")
-    print("Test DeepSatv2 model with EuroSAT dataset:")
+    print("Test FCN model with EuroSAT dataset:")
     print("train and test finished")
     for i in range(total_iters):
         print("Iteration: {0}, Accuracy: {1}%".format(i, test_accuracy[i]))

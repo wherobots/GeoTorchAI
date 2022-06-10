@@ -15,14 +15,15 @@ import numpy as np
 import time
 from datetime import datetime
 
-from geotorch.models import DeepSatV2
+from geotorch.models import SatCNN
 from utils import weight_init, EarlyStopping, compute_errors
 
 from geotorch.datasets.raster import EuroSATDataset
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
+from geotorch.transforms.raster import AppendNormalizedDifferenceIndex, AppendRatioIndex, AppendAWEI
 
-epoch_nums = 50#350
+epoch_nums = 25#350
 learning_rate = 0.0002
 batch_size = 16
 params = {'batch_size': batch_size, 'shuffle': False, 'drop_last':False, 'num_workers': 0}
@@ -35,7 +36,7 @@ epoch_save = [0, epoch_nums - 1] + list(range(0, epoch_nums, 10))  # 1*1000
 
 out_dir = 'reports'
 checkpoint_dir = out_dir+'/checkpoint'
-model_name = 'deepsatv2'
+model_name = 'satcnn_sat6'
 model_dir = checkpoint_dir + "/" + model_name
 os.makedirs(model_dir, exist_ok=True)
 
@@ -51,13 +52,12 @@ def valid(model, val_generator, criterion, device):
     #loss_list = []
     correct = 0
     for i, sample in enumerate(val_generator):
-        inputs, labels, features = sample
+        inputs, labels = sample
         inputs = inputs.to(device)
-        features = features.type(torch.FloatTensor).to(device)
         labels = labels.to(device)
 
         # Forward pass
-        outputs = model(inputs, features)
+        outputs = model(inputs)
         total_sample += len(labels)
 
         #loss = criterion(outputs, labels)
@@ -76,9 +76,11 @@ def valid(model, val_generator, criterion, device):
 
 def createModelAndTrain():
 
-    fullData = EuroSATDataset(root = "data/eurosat", include_additional_features = False)
+    t_full_start = time.time()
 
+    fullData = EuroSATDataset(root = "data/eurosat", download = False)
     full_loader = DataLoader(fullData, batch_size= batch_size)
+
     channels_sum, channels_squared_sum, num_batches = 0, 0, 0
     for i, sample in enumerate(full_loader):
         data_temp, _ = sample
@@ -89,9 +91,18 @@ def createModelAndTrain():
     mean = channels_sum / num_batches
     std = (channels_squared_sum / num_batches - mean ** 2) ** 0.5
 
-    sat_transform = transforms.Normalize(mean, std)
-    fullData = EuroSATDataset(root = "data/eurosat", include_additional_features = True, transform = sat_transform)
-    
+    transform1 = transforms.Normalize(mean, std)
+    transform2 = AppendNormalizedDifferenceIndex(2, 7)
+    #transform3 = AppendNormalizedDifferenceIndex(2, 11)
+    #transform4 = AppendNormalizedDifferenceIndex(7, 11)
+    #transform5 = AppendNormalizedDifferenceIndex(7, 3)
+    #transform6 = AppendNormalizedDifferenceIndex(11, 7)
+    #transform7 = AppendRatioIndex(3, 7)
+    #transform8 = AppendAWEI(2, 7, 11, 12)
+    sat_transform = transforms.Compose([transform1, transform2])
+
+    fullData = EuroSATDataset(root = "data/eurosat", download = False, transform = sat_transform)
+
     dataset_size = len(fullData)
     indices = list(range(dataset_size))
 
@@ -111,7 +122,7 @@ def createModelAndTrain():
     val_generator = DataLoader(fullData, **params, sampler=valid_sampler)
 
     # Total iterations
-    total_iters = 5
+    total_iters = 1
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     test_accuracy = []
@@ -119,7 +130,7 @@ def createModelAndTrain():
     epoch_runnned = 0
 
     for iteration in range(total_iters):
-        model = DeepSatV2(13, 64, 64, 10, len(fullData.ADDITIONAL_FEATURES))
+        model = SatCNN(14, 64, 64, 10)
 
         loss_fn = nn.CrossEntropyLoss() # nn.L1Loss()
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -130,13 +141,12 @@ def createModelAndTrain():
         for e in range(epoch_nums):
             t_start = time.time()
             for i, sample in enumerate(training_generator):
-                inputs, labels, features = sample
+                inputs, labels = sample
                 inputs = inputs.to(device)
-                features = features.type(torch.FloatTensor).to(device)
                 labels = labels.to(device)
 
                 # Forward pass
-                outputs = model(inputs, features)
+                outputs = model(inputs)
                 loss = loss_fn(outputs, labels)
 
                 # Backward and optimize
@@ -152,7 +162,7 @@ def createModelAndTrain():
             val_accuracy = valid(model, val_generator, loss_fn, device)
 
             if es.step(val_accuracy):
-                print('early stopped! With validation accuracy:', val_accuracy)
+                print('early stopped! With validation accuracy: ', val_accuracy, '%')
                 break  # early stop criterion is met, we can stop now
 
         model.load_state_dict(torch.load(initial_checkpoint, map_location=lambda storage, loc: storage))
@@ -160,13 +170,12 @@ def createModelAndTrain():
         total_sample = 0
         correct = 0
         for i, sample in enumerate(val_generator):
-            inputs, labels, features = sample
+            inputs, labels = sample
             inputs = inputs.to(device)
-            features = features.type(torch.FloatTensor).to(device)
             labels = labels.to(device)
 
             # Forward pass
-            outputs = model(inputs, features)
+            outputs = model(inputs)
             total_sample += len(labels)
 
             _, predicted = outputs.max(1)
@@ -175,8 +184,10 @@ def createModelAndTrain():
         accuracy = 100 * correct / total_sample
         test_accuracy.append(accuracy)
 
+    t_full_end = time.time()
+
     print("\n************************")
-    print("Test DeepSatv2 model with EuroSAT dataset:")
+    print("Test SatCNN model with EuroSAT dataset along with 1 transformation:")
     print("train and test finished")
     for i in range(total_iters):
         print("Iteration: {0}, Accuracy: {1}%".format(i, test_accuracy[i]))
@@ -187,7 +198,7 @@ def createModelAndTrain():
     accuracy_diff = max(test_accuracy_max - test_accuracy_mean, test_accuracy_mean - test_accuracy_min)
     print("\nMean Accuracy: {0}, Variation of Accuracy: {1}".format(test_accuracy_mean, accuracy_diff))
 
-    print("Total time: {0} seconds, Average epoch time: {1} seconds".format(total_time, total_time/epoch_runnned))
+    print("Total time: {0} seconds, Average epoch time: {1} seconds, End-to-end time: {2} seconds".format(total_time, total_time/epoch_runnned, t_full_end - t_full_start))
 
 
 

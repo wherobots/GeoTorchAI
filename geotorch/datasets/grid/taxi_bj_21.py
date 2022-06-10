@@ -18,7 +18,7 @@ class BJ_Taxi_21_Dataset(Dataset):
 
     DATA_URL = "https://raw.githubusercontent.com/jwwthu/DL4Traffic/main/TaxiBJ21/TaxiBJ21.npy"
 
-    def __init__(self, root, is_training_data=True, download=False, len_test = 24*14, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
+    def __init__(self, root, is_training_data=True, download=False, test_ratio = 0.1, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
         super().__init__()
         self.is_training_data = is_training_data
 
@@ -31,6 +31,8 @@ class BJ_Taxi_21_Dataset(Dataset):
         data_dir = self._getPath(root)
 
         flow_data = np.load(open(data_dir + "/TaxiBJ21.npy", "rb"))
+
+        len_test = int(np.floor(test_ratio * len(flow_data)))
 
         self._create_feature_vector(flow_data, len_test, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend)
         

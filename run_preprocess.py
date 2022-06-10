@@ -62,7 +62,7 @@ from geotorch.preprocessing import Adapter
 
 
 
-spark = SparkSession.builder.master("local[*]").appName("Sedona App").config("spark.serializer", KryoSerializer.getName).config("spark.kryo.registrator", SedonaKryoRegistrator.getName).config("spark.jars.packages", "org.apache.sedona:sedona-python-adapter-2.4_2.11:1.2.0-incubating,org.datasyslab:geotools-wrapper:geotools-24.0").getOrCreate()
+spark = SparkSession.builder.master("local[*]").appName("Sedona App").config("spark.serializer", KryoSerializer.getName).config("spark.kryo.registrator", SedonaKryoRegistrator.getName).config("spark.jars.packages", "org.apache.sedona:sedona-python-adapter-3.0_2.12:1.2.0-incubating,org.datasyslab:geotools-wrapper:geotools-24.0").getOrCreate()
 SedonaRegistrator.registerAll(spark)
 sc = spark.sparkContext
 sc.setSystemProperty("sedona.global.charset", "utf8")
@@ -72,16 +72,16 @@ SparkRegistration.set_spark_session(spark)
 raster_df = load_geotiff_image("data/raster_data",  options_dict = {"readToCRS": "EPSG:4326"})
 raster_df.show()
 
-band1_df = get_raster_band(raster_df, 1, "data", "n_bands", new_column_name = "new_band", return_full_dataframe = False)
+band1_df = rp.get_raster_band(raster_df, 1, "data", "nBands", new_column_name = "new_band", return_full_dataframe = False)
 band1_df.show()
 
-norm_diff_df = get_normalized_difference_index(raster_df, 2, 1, "data", "n_bands", new_column_name = "norm_band", return_full_dataframe = False)
+norm_diff_df = rp.get_normalized_difference_index(raster_df, 2, 1, "data", "nBands", new_column_name = "norm_band", return_full_dataframe = False)
 norm_diff_df.show()
 
-appended_df = rp.append_normalized_difference_index(raster_df, 2, 1, "data", "n_bands")
+appended_df = rp.append_normalized_difference_index(raster_df, 2, 1, "data", "nBands")
 appended_df.show()
 
-write_geotiff_image(appended_df, "data/raster_data_written", options_dict = {"fieldNBands": "n_bands", "writeToCRS": "EPSG:4326"}, num_partitions = 1)
+'''write_geotiff_image(appended_df, "data/raster_data_written", options_dict = {"fieldNBands": "nBands", "writeToCRS": "EPSG:4326"}, num_partitions = 1)
 
 
 taxi_csv_path = "data/taxi_trip/yellow_tripdata_2009-01.csv"
@@ -122,4 +122,4 @@ st_df.show(5, False)
 st_tensor = stm.get_st_grid_array(st_df, "timesteps_id", "cell_id", alias_list, temporal_length = total_temporal_setps, height = 50, width = 50, missing_data = 0)
 print(st_tensor[0])
 print("Tensor shape:")
-print(st_tensor.shape)
+print(st_tensor.shape)'''

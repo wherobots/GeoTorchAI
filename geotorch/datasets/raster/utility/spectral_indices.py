@@ -4,9 +4,10 @@ import torch
 
 def _get_normalized_difference_index(band1, band2):
     sum_band = band1 + band2
-    sum_band[sum_band == 0] = 1e-9
+    sum_band[sum_band == 0] = 1e-12
     return (band1 - band2)/sum_band
 
+# index should be replaced for NDWI
 def get_NDWI(band_green, band_nir):
     return _get_normalized_difference_index(band_green, band_nir)
 
@@ -26,7 +27,7 @@ def get_builtup_index(band_swir, band_nir):
     return _get_normalized_difference_index(band_swir, band_nir)
 
 def get_RVI(band_nir, band_red):
-    band_red[band_red == 0] = 1e-9
+    band_red[band_red == 0] = 1e-12
     return band_nir/band_red
 
 def get_mean_index(normalized_difference_index, height, width):

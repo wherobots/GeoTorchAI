@@ -45,11 +45,12 @@ epoch_save = [0, epoch_nums - 1] + list(range(0, epoch_nums, 50))  # 1*1000
 out_dir = 'reports'
 checkpoint_dir = out_dir+'/checkpoint'
 model_name = 'stresnet'
-os.makedirs(checkpoint_dir+ '/%s'%(model_name), exist_ok=True)
+model_dir = checkpoint_dir + "/" + model_name
+os.makedirs(model_dir, exist_ok=True)
 
 
 #initial_checkpoint = 'reports/checkpoint/stresnet/initial_00000100_model.pth'
-initial_checkpoint = 'reports/checkpoint/stresnet/model.best.pth'
+initial_checkpoint = model_dir + '/model.best.pth'
 LOAD_INITIAL = True
 random_seed = int(time.time())
 
@@ -110,7 +111,6 @@ def train():
                      (len_trend, nb_flow , map_height, map_width),
                      external_dim = None, nb_residual_unit = nb_residual_unit)
     if LOAD_INITIAL:
-        logger.info('\tload initial_checkpoint = %s\n' % initial_checkpoint)
         model.load_state_dict(torch.load(initial_checkpoint, map_location=lambda storage, loc: storage))
     #model.apply(weight_init)
 
@@ -123,7 +123,7 @@ def train():
     loss_fn.to(device)
 
     # Train the model
-    es = EarlyStopping(patience = early_stop_patience, mode='min', model=model, save_path=checkpoint_dir + '/%s/model.best.pth' % (model_name))
+    es = EarlyStopping(patience = early_stop_patience, mode='min', model=model, save_path=initial_checkpoint)
     for e in range(epoch_nums):
         for i, sample in enumerate(training_generator):
             #epoch = i * batch_size / len(train_loader)

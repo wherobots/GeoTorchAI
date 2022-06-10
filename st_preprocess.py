@@ -81,7 +81,7 @@ norm_diff_df.show()
 appended_df = rp.append_normalized_difference_index(raster_df, 2, 1, "data", "nBands")
 appended_df.show()
 
-'''write_geotiff_image(appended_df, "data/raster_data_written", options_dict = {"fieldNBands": "nBands", "writeToCRS": "EPSG:4326"}, num_partitions = 1)
+write_geotiff_image(appended_df, "data/raster_data_written", options_dict = {"fieldNBands": "nBands", "writeToCRS": "EPSG:4326"}, num_partitions = 1)
 
 
 taxi_csv_path = "data/taxi_trip/yellow_tripdata_2009-01.csv"
@@ -122,4 +122,4 @@ st_df.show(5, False)
 st_tensor = stm.get_st_grid_array(st_df, "timesteps_id", "cell_id", alias_list, temporal_length = total_temporal_setps, height = 50, width = 50, missing_data = 0)
 print(st_tensor[0])
 print("Tensor shape:")
-print(st_tensor.shape)'''
+print(st_tensor.shape)

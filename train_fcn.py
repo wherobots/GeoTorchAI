@@ -18,7 +18,7 @@ from datetime import datetime
 from geotorch.models.raster import FullyConvolutionalNetwork
 from utils import weight_init, EarlyStopping, compute_errors
 
-from geotorch.datasets.raster import Cloud38Dataset
+from geotorch.datasets.raster import Cloud38
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 
@@ -69,7 +69,7 @@ def valid(model, val_generator, criterion, device):
 
 def createModelAndTrain():
 
-    fullData = Cloud38Dataset(root = "data/cloud38", download = False)
+    fullData = Cloud38(root = "data/cloud38", download = False)
 
     full_loader = DataLoader(fullData, batch_size= batch_size)
     channels_sum, channels_squared_sum, num_batches = 0, 0, 0
@@ -83,7 +83,7 @@ def createModelAndTrain():
     std = (channels_squared_sum / num_batches - mean ** 2) ** 0.5
 
     sat_transform = transforms.Normalize(mean, std)
-    fullData = Cloud38Dataset(root = "data/cloud38", download = False, transform = sat_transform)
+    fullData = Cloud38(root = "data/cloud38", download = False, transform = sat_transform)
     
     dataset_size = len(fullData)
     indices = list(range(dataset_size))
@@ -188,7 +188,7 @@ if __name__ == '__main__':
     
     createModelAndTrain()
 
-    '''myData = Cloud38Dataset(root = "data/cloud38", download = False)
+    '''myData = Cloud38(root = "data/cloud38", download = False)
     x, y = myData[10]
     print(x.shape, y.shape)'''
 

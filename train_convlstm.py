@@ -19,7 +19,7 @@ import time
 from datetime import datetime
 
 from geotorch.models.grid import ConvLSTM
-from geotorch.datasets.grid import NYC_Bike_DeepSTN_Dataset
+from geotorch.datasets.grid import BikeNYCDeepSTN
 from utils import weight_init, EarlyStopping, compute_errors
 #from torch.utils.data import DataLoader
 
@@ -96,9 +96,9 @@ def createModelAndTrain():
     T = 24
     drop=0.1
 
-    train_dataset = NYC_Bike_DeepSTN_Dataset(root = "data/deepstn")
+    train_dataset = BikeNYCDeepSTN(root = "data/deepstn")
     train_dataset.merge_closeness_period_trend(len_history, len_predict)
-    test_dataset = NYC_Bike_DeepSTN_Dataset(root = "data/deepstn", is_training_data = False)
+    test_dataset = BikeNYCDeepSTN(root = "data/deepstn", is_training_data = False)
     test_dataset.merge_closeness_period_trend(len_history, len_predict)
 
     min_max_diff = train_dataset.get_min_max_difference()
@@ -196,7 +196,7 @@ def createModelAndTrain():
         test_rmse.append(rmse)
 
     print("\n************************")
-    print("Test ConvLSTM model with NYC_Bike_DeepSTN_Dataset:")
+    print("Test ConvLSTM model with BikeNYCDeepSTN:")
     print("train and test finished")
     for i in range(total_iters):
         print("Iteration: {0}, MAE: {1}, RMSE: {2}, Real MAE: {3}, Real RMSE: {4}".format(i, test_mae[i], test_rmse[i], test_mae[i]*min_max_diff/2, test_rmse[i]*min_max_diff/2))
@@ -213,7 +213,7 @@ if __name__ == '__main__':
 
     createModelAndTrain()
 
-    '''train_dataset = NYC_Bike_DeepSTN_Dataset(root = "data/deepstn")
+    '''train_dataset = BikeNYCDeepSTN(root = "data/deepstn")
     print(len(train_dataset))
 
     sample = train_dataset[0]

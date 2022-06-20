@@ -18,7 +18,7 @@ from datetime import datetime
 from geotorch.models.raster import SatCNN
 from utils import weight_init, EarlyStopping, compute_errors
 
-from geotorch.datasets.raster import EuroSATDataset
+from geotorch.datasets.raster import EuroSAT
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 
@@ -75,7 +75,7 @@ def valid(model, val_generator, criterion, device):
 
 def createModelAndTrain():
 
-    fullData = EuroSATDataset(root = "data/eurosat", download = False, include_additional_features = False)
+    fullData = EuroSAT(root = "data/eurosat", download = False, include_additional_features = False)
 
     full_loader = DataLoader(fullData, batch_size= batch_size)
     channels_sum, channels_squared_sum, num_batches = 0, 0, 0
@@ -89,7 +89,7 @@ def createModelAndTrain():
     std = (channels_squared_sum / num_batches - mean ** 2) ** 0.5
 
     sat_transform = transforms.Normalize(mean, std)
-    fullData = EuroSATDataset(root = "data/eurosat", download = False, include_additional_features = False, transform = sat_transform)
+    fullData = EuroSAT(root = "data/eurosat", download = False, include_additional_features = False, transform = sat_transform)
     
     dataset_size = len(fullData)
     indices = list(range(dataset_size))

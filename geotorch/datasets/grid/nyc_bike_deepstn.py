@@ -13,10 +13,9 @@ class BikeNYCDeepSTN(Dataset):
     DATA_URL = "https://raw.githubusercontent.com/FIBLAB/DeepSTN/master/BikeNYC/DATA/dataBikeNYC/flow_data.npy"
     POI_URL = "https://raw.githubusercontent.com/FIBLAB/DeepSTN/master/BikeNYC/DATA/dataBikeNYC/poi_data.npy"
 
-    def __init__(self, root, download = False, is_training_data=True, len_test = 24*14, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
+    def __init__(self, root, download = False, is_training_data=True, test_ratio = 0.1, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
         super().__init__()
         self.is_training_data = is_training_data
-        self.len_test = len_test
 
         if download:
             req = requests.get(self.DATA_URL)
@@ -34,6 +33,7 @@ class BikeNYCDeepSTN(Dataset):
         flow_data = np.load(open(data_dir + "/flow_data.npy", "rb"))
         poi_data = np.load(open(data_dir + "/poi_data.npy", "rb"))
 
+        self.len_test  = int(np.floor(test_ratio * len(flow_data)))
         self.merged_data = np.copy(flow_data)
         self.is_merged = False
 
@@ -128,7 +128,6 @@ class BikeNYCDeepSTN(Dataset):
 
         matrix_T=np.concatenate((matrix_hour,matrix_day),axis=1)
         all_data=(2.0*all_data-(max_data+min_data))/(max_data-min_data)
-        #print('mean=',np.mean(all_data),' variance=',np.std(all_data))
 
         if len_trend>0:
             number_of_skip_hours=T_trend*len_trend
@@ -137,8 +136,7 @@ class BikeNYCDeepSTN(Dataset):
         elif len_closeness>0:
             number_of_skip_hours=T_closeness*len_closeness
         else:
-            print("wrong")
-        #print('number_of_skip_hours:',number_of_skip_hours)
+            print("wrong parameters")
 
         Y=all_data[number_of_skip_hours:len_total]
 
@@ -172,10 +170,7 @@ class BikeNYCDeepSTN(Dataset):
 
             self.Y_data=Y[-self.len_test:]
 
-        #X_data=[self.X_closeness, self.X_period, self.X_trend]
-
         len_data=self.X_closeness.shape[0]
-        print('len_data='+str(len_data))
 
         for i in range(poi.shape[0]):
             poi[i]=poi[i]/np.max(poi[i])
@@ -188,25 +183,3 @@ class BikeNYCDeepSTN(Dataset):
         self.P_data = torch.tensor(self.P_data)
         self.Y_data = torch.tensor(self.Y_data)
 
-
-
-'''trainData = NYC_Bike_DeepSTN_Dataset(root="data4", download = False)
-testData = NYC_Bike_DeepSTN_Dataset(root="data4", is_training_data=False, download = False)
-
-print("Training Data")
-print(len(trainData))
-sample1= trainData[50]
-print(sample1["x_closeness"].shape, sample1["x_period"].shape, sample1["x_trend"].shape, sample1["t_data"].shape, sample1["p_data"].shape, sample1["y_data"].shape)
-
-trainData_loader = DataLoader(trainData, batch_size=16)
-sample2 = next(iter(trainData_loader))
-print(sample2["x_closeness"].shape, sample2["x_period"].shape, sample2["x_trend"].shape, sample2["t_data"].shape, sample2["p_data"].shape, sample2["y_data"].shape)
-
-print("\nTest Data")
-print(len(testData))
-sample1= testData[50]
-print(sample1["x_closeness"].shape, sample1["x_period"].shape, sample1["x_trend"].shape, sample1["t_data"].shape, sample1["p_data"].shape, sample1["y_data"].shape)
-
-testData_loader = DataLoader(testData, batch_size=16)
-sample2 = next(iter(testData_loader))
-print(sample2["x_closeness"].shape, sample2["x_period"].shape, sample2["x_trend"].shape, sample2["t_data"].shape, sample2["p_data"].shape, sample2["y_data"].shape)'''

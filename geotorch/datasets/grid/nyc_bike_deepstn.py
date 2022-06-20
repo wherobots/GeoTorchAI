@@ -7,8 +7,8 @@ from torch.utils.data import Dataset
 
 
 # This dataset is based on https://github.com/FIBLAB/DeepSTN/tree/master/BikeNYC/DATA
-## Gri map_height and map_width = 21 and 12
-class NYC_Bike_DeepSTN_Dataset(Dataset):
+## Grid map_height and map_width = 21 and 12
+class BikeNYCDeepSTN(Dataset):
 
     DATA_URL = "https://raw.githubusercontent.com/FIBLAB/DeepSTN/master/BikeNYC/DATA/dataBikeNYC/flow_data.npy"
     POI_URL = "https://raw.githubusercontent.com/FIBLAB/DeepSTN/master/BikeNYC/DATA/dataBikeNYC/poi_data.npy"
@@ -16,6 +16,7 @@ class NYC_Bike_DeepSTN_Dataset(Dataset):
     def __init__(self, root, download = False, is_training_data=True, len_test = 24*14, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
         super().__init__()
         self.is_training_data = is_training_data
+        self.len_test = len_test
 
         if download:
             req = requests.get(self.DATA_URL)
@@ -33,12 +34,45 @@ class NYC_Bike_DeepSTN_Dataset(Dataset):
         flow_data = np.load(open(data_dir + "/flow_data.npy", "rb"))
         poi_data = np.load(open(data_dir + "/poi_data.npy", "rb"))
 
-        self._create_feature_vector(flow_data, poi_data, len_test, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend)
+        self.merged_data = np.copy(flow_data)
+        self.is_merged = False
+
+        self._create_feature_vector(flow_data, poi_data, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend)
         
 
 
     def get_min_max_difference(self):
         return self.min_max_diff
+
+
+    def merge_closeness_period_trend(self, history_length, predict_length):
+        max_data = np.max(self.merged_data)
+        min_data = np.min(self.merged_data)
+        self.min_max_diff = max_data-min_data
+        self.merged_data=(2.0*self.merged_data-(max_data+min_data))/(max_data-min_data)
+
+        history_data = []
+        predict_data = []
+        total_length = self.merged_data.shape[0]
+        for end_idx in range(history_length + predict_length, total_length):
+            predict_frames = self.merged_data[end_idx-predict_length:end_idx]
+            history_frames = self.merged_data[end_idx-predict_length-history_length:end_idx-predict_length]
+            history_data.append(history_frames)
+            predict_data.append(predict_frames)
+        history_data = np.stack(history_data)
+        predict_data = np.stack(predict_data)
+
+        if self.is_training_data:
+            self.X_data = history_data[:-self.len_test]
+            self.Y_data = predict_data[:-self.len_test]
+        else:
+            self.X_data = history_data[-self.len_test:]
+            self.Y_data = predict_data[-self.len_test:]
+
+        self.X_data = torch.tensor(self.X_data)
+        self.Y_data = torch.tensor(self.Y_data)
+
+        self.is_merged = True
 
 
     def __len__(self) -> int:
@@ -47,12 +81,16 @@ class NYC_Bike_DeepSTN_Dataset(Dataset):
 
     def __getitem__(self, index: int):
 
-        sample = {"x_closeness": self.X_closeness[index], \
-        "x_period": self.X_period[index], \
-        "x_trend": self.X_trend[index], \
-        "t_data": self.T_data[index], \
-        "p_data": self.P_data[index], \
-        "y_data": self.Y_data[index]}
+        if self.is_merged:
+            sample = {"x_data": self.X_data[index], \
+            "y_data": self.Y_data[index]}
+        else:
+            sample = {"x_closeness": self.X_closeness[index], \
+            "x_period": self.X_period[index], \
+            "x_trend": self.X_trend[index], \
+            "t_data": self.T_data[index], \
+            "p_data": self.P_data[index], \
+            "y_data": self.Y_data[index]}
 
         return sample
 
@@ -70,7 +108,7 @@ class NYC_Bike_DeepSTN_Dataset(Dataset):
 
 
     # This is replication of lzq_load_data method proposed by authors here: https://github.com/FIBLAB/DeepSTN/blob/master/BikeNYC/DATA/lzq_read_data_time_poi.py
-    def _create_feature_vector(self, all_data, poi, len_test, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend):
+    def _create_feature_vector(self, all_data, poi, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend):
         max_data = np.max(all_data)
         min_data = np.min(all_data)
         self.min_max_diff = max_data-min_data
@@ -120,19 +158,19 @@ class NYC_Bike_DeepSTN_Dataset(Dataset):
         matrix_T=matrix_T[number_of_skip_hours:]
 
         if self.is_training_data:
-            self.X_closeness=self.X_closeness[:-len_test]
-            self.X_period=self.X_period[:-len_test]
-            self.X_trend=self.X_trend[:-len_test]
-            self.T_data=matrix_T[:-len_test]
+            self.X_closeness=self.X_closeness[:-self.len_test]
+            self.X_period=self.X_period[:-self.len_test]
+            self.X_trend=self.X_trend[:-self.len_test]
+            self.T_data=matrix_T[:-self.len_test]
 
-            self.Y_data=Y[:-len_test]
+            self.Y_data=Y[:-self.len_test]
         else:
-            self.X_closeness=self.X_closeness[-len_test:]
-            self.X_period=self.X_period[-len_test:]
-            self.X_trend=self.X_trend[-len_test:]
-            self.T_data=matrix_T[-len_test:]
+            self.X_closeness=self.X_closeness[-self.len_test:]
+            self.X_period=self.X_period[-self.len_test:]
+            self.X_trend=self.X_trend[-self.len_test:]
+            self.T_data=matrix_T[-self.len_test:]
 
-            self.Y_data=Y[-len_test:]
+            self.Y_data=Y[-self.len_test:]
 
         #X_data=[self.X_closeness, self.X_period, self.X_trend]
 

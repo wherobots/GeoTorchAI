@@ -15,16 +15,16 @@ import numpy as np
 import time
 from datetime import datetime
 
-from geotorch.models.raster import SatCNN
+from geotorch.models.raster import FullyConvolutionalNetwork
 from utils import weight_init, EarlyStopping, compute_errors
 
-from geotorch.datasets.raster import SAT6Dataset
+from geotorch.datasets.raster import Cloud38Dataset
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 
 epoch_nums = 50#350
 learning_rate = 0.0002
-batch_size = 16
+batch_size = 8
 params = {'batch_size': batch_size, 'shuffle': False, 'drop_last':False, 'num_workers': 0}
 
 validation_split = 0.2
@@ -35,38 +35,32 @@ epoch_save = [0, epoch_nums - 1] + list(range(0, epoch_nums, 10))  # 1*1000
 
 out_dir = 'reports'
 checkpoint_dir = out_dir+'/checkpoint'
-model_name = 'satcnn_sat6'
+model_name = 'fcn'
 model_dir = checkpoint_dir + "/" + model_name
 os.makedirs(model_dir, exist_ok=True)
 
 
 initial_checkpoint = model_dir + '/model.best.pth'
-LOAD_INITIAL = False
+LOAD_INITIAL = True
 random_seed = int(time.time())
+
 
 
 def valid(model, val_generator, criterion, device):
     model.eval()
     total_sample = 0
-    #loss_list = []
-    correct = 0
+    running_acc = 0.0
     for i, sample in enumerate(val_generator):
         inputs, labels = sample
         inputs = inputs.to(device)
         labels = labels.to(device)
 
-        # Forward pass
         outputs = model(inputs)
+        predicted = outputs.argmax(dim=1)
+        running_acc += (predicted == labels).float().mean().item()*len(labels)
         total_sample += len(labels)
 
-        #loss = criterion(outputs, labels)
-        #loss_list.append(loss.item())
-
-        _, predicted = outputs.max(1)
-        correct += predicted.eq(labels).sum().item()
-
-    #mean_loss = np.mean(loss_list)
-    accuracy = 100 * correct / total_sample
+    accuracy = 100 * running_acc / total_sample
     print("Validation Accuracy: ", accuracy, "%")
 
     return accuracy
@@ -75,20 +69,11 @@ def valid(model, val_generator, criterion, device):
 
 def createModelAndTrain():
 
-    train_data = SAT6Dataset(root = "data/sat6", download = True, is_train_data = True, include_additional_features = False)
-    test_data = SAT6Dataset(root = "data/sat6", download = False, is_train_data = False, include_additional_features = False)
+    fullData = Cloud38Dataset(root = "data/cloud38", download = False)
 
-    train_loader = DataLoader(train_data, batch_size= batch_size)
-    test_loader = DataLoader(test_data, batch_size= batch_size)
-
+    full_loader = DataLoader(fullData, batch_size= batch_size)
     channels_sum, channels_squared_sum, num_batches = 0, 0, 0
-    for i, sample in enumerate(train_loader):
-        data_temp, _ = sample
-        channels_sum += torch.mean(data_temp, dim=[0, 2, 3])
-        channels_squared_sum += torch.mean(data_temp**2, dim=[0, 2, 3])
-        num_batches += 1
-
-    for i, sample in enumerate(test_loader):
+    for i, sample in enumerate(full_loader):
         data_temp, _ = sample
         channels_sum += torch.mean(data_temp, dim=[0, 2, 3])
         channels_squared_sum += torch.mean(data_temp**2, dim=[0, 2, 3])
@@ -98,17 +83,28 @@ def createModelAndTrain():
     std = (channels_squared_sum / num_batches - mean ** 2) ** 0.5
 
     sat_transform = transforms.Normalize(mean, std)
-    train_data = SAT6Dataset(root = "data/sat6", download = False, is_train_data = True, include_additional_features = False, transform = sat_transform)
-    test_data = SAT6Dataset(root = "data/sat6", download = False, is_train_data = False, include_additional_features = False, transform = sat_transform)
+    fullData = Cloud38Dataset(root = "data/cloud38", download = False, transform = sat_transform)
+    
+    dataset_size = len(fullData)
+    indices = list(range(dataset_size))
 
-    print('training size:', len(train_data))
-    print('val size:', len(test_data))
+    split = int(np.floor(validation_split * dataset_size))
+    if shuffle_dataset:
+        np.random.seed(random_seed)
+        np.random.shuffle(indices)
+    train_indices, val_indices = indices[split:], indices[:split]
+    print('training size:', len(train_indices))
+    print('val size:', len(val_indices))
 
-    training_generator = DataLoader(train_data, batch_size = batch_size)
-    val_generator = DataLoader(test_data, batch_size = batch_size)
+    # Creating PT data samplers and loaders:
+    train_sampler = SubsetRandomSampler(train_indices)
+    valid_sampler = SubsetRandomSampler(val_indices)
+
+    training_generator = DataLoader(fullData, **params, sampler=train_sampler)
+    val_generator = DataLoader(fullData, **params, sampler=valid_sampler)
 
     # Total iterations
-    total_iters = 5
+    total_iters = 1
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     test_accuracy = []
@@ -116,7 +112,10 @@ def createModelAndTrain():
     epoch_runnned = 0
 
     for iteration in range(total_iters):
-        model = SatCNN(4, 28, 28, 6)
+        model = FullyConvolutionalNetwork(4, 2)
+
+        if LOAD_INITIAL:
+            model.load_state_dict(torch.load(initial_checkpoint, map_location=lambda storage, loc: storage))
 
         loss_fn = nn.CrossEntropyLoss() # nn.L1Loss()
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -152,9 +151,9 @@ def createModelAndTrain():
                 break  # early stop criterion is met, we can stop now
 
         model.load_state_dict(torch.load(initial_checkpoint, map_location=lambda storage, loc: storage))
-
+        
         total_sample = 0
-        correct = 0
+        running_acc = 0.0
         for i, sample in enumerate(val_generator):
             inputs, labels = sample
             inputs = inputs.to(device)
@@ -162,16 +161,15 @@ def createModelAndTrain():
 
             # Forward pass
             outputs = model(inputs)
+            predicted = outputs.argmax(dim=1)
+            running_acc += (predicted == labels).float().mean().item()*len(labels)
             total_sample += len(labels)
 
-            _, predicted = outputs.max(1)
-            correct += predicted.eq(labels).sum().item()
-
-        accuracy = 100 * correct / total_sample
+        accuracy = 100 * running_acc / total_sample
         test_accuracy.append(accuracy)
 
     print("\n************************")
-    print("Test SatCNN model with SAT6 dataset:")
+    print("Test FCN model with Cloud38 dataset:")
     print("train and test finished")
     for i in range(total_iters):
         print("Iteration: {0}, Accuracy: {1}%".format(i, test_accuracy[i]))
@@ -189,5 +187,9 @@ def createModelAndTrain():
 if __name__ == '__main__':
     
     createModelAndTrain()
+
+    '''myData = Cloud38Dataset(root = "data/cloud38", download = False)
+    x, y = myData[10]
+    print(x.shape, y.shape)'''
 
 

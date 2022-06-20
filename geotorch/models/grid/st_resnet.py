@@ -73,7 +73,7 @@ class _TrainableEltwiseLayer(nn.Module):
 
 
 
-class ST_ResNet(nn.Module):
+class STResNet(nn.Module):
     def __init__(self, c_conf=(3, 2, 32, 32), p_conf=(3, 2, 32, 32),
         t_conf=(3, 2, 32, 32), external_dim=8, nb_residual_unit=3, CF=64):
         '''
@@ -84,7 +84,7 @@ class ST_ResNet(nn.Module):
             external_dim
         '''
 
-        super(ST_ResNet, self).__init__()
+        super(STResNet, self).__init__()
         self.external_dim = external_dim
         self.nb_residual_unit = nb_residual_unit
         self.c_conf = c_conf

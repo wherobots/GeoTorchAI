@@ -18,7 +18,7 @@ import numpy as np
 import time
 from datetime import datetime
 
-from geotorch.models.grid import DeepSTN
+from geotorch.models.grid import ConvLSTM
 from geotorch.datasets.grid import NYC_Bike_DeepSTN_Dataset
 from utils import weight_init, EarlyStopping, compute_errors
 #from torch.utils.data import DataLoader
@@ -35,6 +35,9 @@ nb_area = 81
 m_factor = math.sqrt(1. * map_height * map_width / nb_area)
 print('factor: ', m_factor)
 
+len_history = 24
+len_predict = 1
+
 epoch_nums = 100#350
 learning_rate = 0.0002
 batch_size = 32
@@ -48,15 +51,25 @@ epoch_save = [0, epoch_nums - 1] + list(range(0, epoch_nums, 50))  # 1*1000
 
 out_dir = 'reports'
 checkpoint_dir = out_dir+'/checkpoint'
-model_name = 'deepstn'
+model_name = 'convlstm'
 model_dir = checkpoint_dir + "/" + model_name
 os.makedirs(model_dir, exist_ok=True)
 
 
 #initial_checkpoint = 'reports/checkpoint/stresnet/initial_00000100_model.pth'
 initial_checkpoint = model_dir + '/model.best.pth'
-LOAD_INITIAL = False
+LOAD_INITIAL = True
 random_seed = int(time.time())
+
+class GeoTorchConvLSTM(nn.Module):
+    def __init__(self, input_size, hidden_dim, num_layers):
+        super().__init__()
+        self.lstm = ConvLSTM(input_size, hidden_dim = hidden_dim, num_layers = num_layers)
+
+    def forward(self, input_seq):
+        lstm_out, _ = self.lstm(input_seq)
+        return lstm_out
+
 
 def valid(model, val_generator, criterion, device):
     model.eval()
@@ -64,16 +77,12 @@ def valid(model, val_generator, criterion, device):
     for i, sample in enumerate(val_generator):
     #for i, (X_c, X_p, X_t, X_meta, Y_batch) in enumerate(val_generator):
         # Move tensors to the configured device
-        X_c = sample["x_closeness"].type(torch.FloatTensor).to(device)
-        X_p = sample["x_period"].type(torch.FloatTensor).to(device)
-        X_t = sample["x_trend"].type(torch.FloatTensor).to(device)
-        t_data = sample["t_data"].type(torch.FloatTensor).to(device)
-        p_data = sample["p_data"].type(torch.FloatTensor).to(device)
+        X_batch = sample["x_data"].type(torch.FloatTensor).to(device)
         Y_batch = sample["y_data"].type(torch.FloatTensor).to(device)
 
         # Forward pass
-        outputs = model(X_c, X_p, X_t, t_data, p_data)
-        mse, _, _ = criterion(outputs.cpu().data.numpy(), Y_batch.cpu().data.numpy())
+        outputs = model(X_batch)
+        mse, _, _ = criterion(outputs[:, len_history-1:len_history, :, :, :].cpu().data.numpy(), Y_batch.cpu().data.numpy())
 
         mean_loss.append(mse)
 
@@ -84,24 +93,13 @@ def valid(model, val_generator, criterion, device):
 
 
 def createModelAndTrain():
-    pre_F=64
-    conv_F=64
-    R_N=2
-       
-    is_plus=True
-    plus=8
-    rate=1
-       
-    is_pt=True
-    P_N=9
-    T_F=7*8
-    PT_F=9
     T = 24
-    
     drop=0.1
 
     train_dataset = NYC_Bike_DeepSTN_Dataset(root = "data/deepstn")
+    train_dataset.merge_closeness_period_trend(len_history, len_predict)
     test_dataset = NYC_Bike_DeepSTN_Dataset(root = "data/deepstn", is_training_data = False)
+    test_dataset.merge_closeness_period_trend(len_history, len_predict)
 
     min_max_diff = train_dataset.get_min_max_difference()
 
@@ -124,20 +122,14 @@ def createModelAndTrain():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Total iterations
-    total_iters = 5
+    total_iters = 1
 
     test_mae = []
     test_mse = []
     test_rmse = []
 
     for iteration in range(total_iters):
-        model = DeepSTN(H=map_height, W=map_width,channel=2,
-                          c=len_closeness,p=len_period, t = len_trend,
-                          pre_F=pre_F,conv_F=conv_F,R_N=R_N,
-                          is_plus=is_plus,
-                          plus=plus,rate=rate,
-                          is_pt=is_pt,P_N=P_N,T_F=T_F,PT_F=PT_F,T=T,
-                          dropVal=drop)
+        model = GeoTorchConvLSTM(nb_flow, [64, 64, 2], 3)
 
         if LOAD_INITIAL:
             model.load_state_dict(torch.load(initial_checkpoint, map_location=lambda storage, loc: storage))
@@ -147,22 +139,18 @@ def createModelAndTrain():
         model.to(device)
         loss_fn.to(device)
 
-        es = EarlyStopping(patience = early_stop_patience, mode='min', model=model, save_path=initial_checkpoint)
+        '''es = EarlyStopping(patience = early_stop_patience, mode='min', model=model, save_path=initial_checkpoint)
         for e in range(epoch_nums):
             for i, sample in enumerate(training_generator):
                 #epoch = i * batch_size / len(train_loader)
 
                 # Move tensors to the configured device
-                X_c = sample["x_closeness"].type(torch.FloatTensor).to(device)
-                X_p = sample["x_period"].type(torch.FloatTensor).to(device)
-                X_t = sample["x_trend"].type(torch.FloatTensor).to(device)
-                t_data = sample["t_data"].type(torch.FloatTensor).to(device)
-                p_data = sample["p_data"].type(torch.FloatTensor).to(device)
+                X_batch = sample["x_data"].type(torch.FloatTensor).to(device)
                 Y_batch = sample["y_data"].type(torch.FloatTensor).to(device)
 
                 # Forward pass
-                outputs = model(X_c, X_p, X_t, t_data, p_data)
-                loss = loss_fn(outputs, Y_batch)
+                outputs = model(X_batch)
+                loss = loss_fn(outputs[:, len_history-1:len_history, :, :, :], Y_batch)
 
                 # Backward and optimize
                 optimizer.zero_grad()
@@ -176,7 +164,7 @@ def createModelAndTrain():
 
             if es.step(val_loss):
                 print('early stopped! With val loss:', val_loss)
-                break  # early stop criterion is met, we can stop now
+                break  # early stop criterion is met, we can stop now'''
 
         model.load_state_dict(torch.load(initial_checkpoint, map_location=lambda storage, loc: storage))
 
@@ -185,16 +173,12 @@ def createModelAndTrain():
         mae_list=[]
         for i, sample in enumerate(test_generator):
             # Move tensors to the configured device
-            X_c = sample["x_closeness"].type(torch.FloatTensor).to(device)
-            X_p = sample["x_period"].type(torch.FloatTensor).to(device)
-            X_t = sample["x_trend"].type(torch.FloatTensor).to(device)
-            t_data = sample["t_data"].type(torch.FloatTensor).to(device)
-            p_data = sample["p_data"].type(torch.FloatTensor).to(device)
+            X_batch = sample["x_data"].type(torch.FloatTensor).to(device)
             Y_batch = sample["y_data"].type(torch.FloatTensor).to(device)
 
             # Forward pass
-            outputs = model(X_c, X_p, X_t, t_data, p_data)
-            mse, mae, rmse = compute_errors(outputs.cpu().data.numpy(), Y_batch.cpu().data.numpy())
+            outputs = model(X_batch)
+            mse, mae, rmse = compute_errors(outputs[:, len_history-1:len_history, :, :, :].cpu().data.numpy(), Y_batch.cpu().data.numpy())
 
             rmse_list.append(rmse)
             mse_list.append(mse)
@@ -205,14 +189,14 @@ def createModelAndTrain():
         mae = np.mean(mae_list)
 
         print("Iteration:", iteration)
-        print('Test mse: %.6f mae: %.6f rmse (norm): %.6f, mae (real): %.6f, rmse (real): %.6f' % (mse, mae, rmse, mae * min_max_diff / 2, rmse * min_max_diff / 2))
+        print('Test mse: %.6f mae: %.6f rmse (norm): %.6f, mae (real): %.6f, rmse (real): %.6f' % (mse, mae, rmse, mae * min_max_diff/2, rmse*min_max_diff/2))
 
         test_mae.append(mae)
         test_mse.append(mse)
         test_rmse.append(rmse)
 
     print("\n************************")
-    print("Test DeepSTN+ model with NYC_Bike_DeepSTN_Dataset:")
+    print("Test ConvLSTM model with NYC_Bike_DeepSTN_Dataset:")
     print("train and test finished")
     for i in range(total_iters):
         print("Iteration: {0}, MAE: {1}, RMSE: {2}, Real MAE: {3}, Real RMSE: {4}".format(i, test_mae[i], test_rmse[i], test_mae[i]*min_max_diff/2, test_rmse[i]*min_max_diff/2))
@@ -228,6 +212,17 @@ def createModelAndTrain():
 if __name__ == '__main__':
 
     createModelAndTrain()
+
+    '''train_dataset = NYC_Bike_DeepSTN_Dataset(root = "data/deepstn")
+    print(len(train_dataset))
+
+    sample = train_dataset[0]
+    X_c = sample["x_closeness"]
+    X_p = sample["x_period"]
+    X_t = sample["x_trend"]
+    Y_batch = sample["y_data"]
+
+    print(X_c.shape, X_p.shape, X_t.shape, Y_batch.shape)'''
 
 
 

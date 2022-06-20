@@ -18,7 +18,7 @@ import numpy as np
 import time
 from datetime import datetime
 
-from geotorch.models import DeepSTN
+from geotorch.models.grid import DeepSTN
 from geotorch.datasets.grid import BJ_Taxi_21_Dataset
 from utils import weight_init, EarlyStopping, compute_errors
 #from torch.utils.data import DataLoader

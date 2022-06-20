@@ -9,9 +9,10 @@ from torch.utils.data import Dataset, DataLoader, sampler
 import pandas as pd
 
 
-class ProcessedDataset(Dataset):
+class Processed(Dataset):
 
 	def __init__(self, root, transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
+		super().__init__()
 
 		self.transform = transform
 		self.target_transform = target_transform

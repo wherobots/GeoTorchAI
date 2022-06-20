@@ -14,7 +14,7 @@ from geotorch.datasets.raster.utility import textural_features as ttf
 from geotorch.datasets.raster.utility import spectral_indices as si
 
 
-class EuroSATDataset(Dataset):
+class EuroSAT(Dataset):
 
 	SPECTRAL_BANDS = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B08A", "B09", "B10", "B11", "B12"]
 	RGB_BANDS = ["B04", "B03", "B02"]

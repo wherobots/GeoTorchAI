@@ -3,14 +3,14 @@ import torch
 
 class AppendNormalizedDifferenceIndex(object):
 
-	def __init__(self, band_index_1, band_index_2):
-		self.band_index_1 = band_index_1
-		self.band_index_2 = band_index_2
+	def __init__(self, band_index1, band_index2):
+		self.band_index1 = band_index1
+		self.band_index2 = band_index2
 
 
 	def __call__(self, sample):
-		band1 = sample[self.band_index_1]
-		band2 = sample[self.band_index_2]
+		band1 = sample[self.band_index1]
+		band2 = sample[self.band_index2]
 
 		ndi = self._get_normalized_difference_index(band1, band2)
 
@@ -26,14 +26,14 @@ class AppendNormalizedDifferenceIndex(object):
 
 class AppendRatioIndex(object):
 
-	def __init__(self, band_index_1, band_index_2):
-		self.band_index_1 = band_index_1
-		self.band_index_2 = band_index_2
+	def __init__(self, band_index1, band_index2):
+		self.band_index1 = band_index1
+		self.band_index2 = band_index2
 
 
 	def __call__(self, sample):
-		band1 = sample[self.band_index_1]
-		band2 = sample[self.band_index_2]
+		band1 = sample[self.band_index1]
+		band2 = sample[self.band_index2]
 
 		ratio = self._get_ratio_index(band1, band2)
 

@@ -14,7 +14,7 @@ from PIL import Image
 
 
 ## Please cite https://www.kaggle.com/datasets/sorour/38cloud-cloud-segmentation-in-satellite-images
-class Cloud38Dataset(Dataset):
+class Cloud38(Dataset):
 
 	SPECTRAL_BANDS = ["red", "green", "blue", "nir"]
 	RGB_BANDS = ["red", "green", "blue"]
@@ -61,9 +61,11 @@ class Cloud38Dataset(Dataset):
 	def __getitem__(self, index: int):
 		img = []
 		for band_index in self.selectedBandIndices.numpy():
-			img.append(np.array(Image.open(self.image_paths[index][self.SPECTRAL_BANDS[band_index]])))
-		img = torch.tensor(img, dtype=torch.float32)
-		label = torch.tensor(np.array(Image.open(self.image_paths[index]['gt'])), dtype=torch.torch.int64)
+			img.append(np.array(Image.open(self.image_paths[index][self.SPECTRAL_BANDS[band_index]]), dtype=np.float32))
+		img = torch.tensor(np.array(img), dtype=torch.float32)
+		label = np.array(Image.open(self.image_paths[index]['gt']))
+		label = np.where(label==255, 1, 0)
+		label = torch.tensor(label , dtype=torch.int64)
 
 		if self.transform is not None:
 			img = self.transform(img)
@@ -72,15 +74,17 @@ class Cloud38Dataset(Dataset):
 
 		return img, label
 
-	def _getPath(self, data_dir):
-		while True:
+	def _getPath(self, root_dir):
+		queue = [root_dir]
+		while queue:
+			data_dir = queue.pop(0)
 			folders = os.listdir(data_dir)
 			if "train_red" in folders or "train_green" in folders or "train_blue" in folders:
 				return data_dir
 
 			for folder in folders:
 				if os.path.isdir(data_dir + "/" + folder):
-					data_dir = data_dir + "/" + folder
+					queue.append(data_dir + "/" + folder)
 
 		return None
 

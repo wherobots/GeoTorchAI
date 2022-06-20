@@ -18,7 +18,7 @@ import numpy as np
 import time
 from datetime import datetime
 
-from geotorch.models import ST_ResNet
+from geotorch.models.grid import STResNet
 from geotorch.datasets.grid import NYC_Bike_DeepSTN_Dataset
 from utils import weight_init, EarlyStopping, compute_errors
 #from torch.utils.data import DataLoader
@@ -116,7 +116,7 @@ def createModelAndTrain():
     test_rmse = []
 
     for iteration in range(total_iters):
-        model = ST_ResNet((len_closeness, nb_flow, map_height, map_width),
+        model = STResNet((len_closeness, nb_flow, map_height, map_width),
                      (len_period, nb_flow, map_height, map_width),
                      (len_trend, nb_flow , map_height, map_width),
                      external_dim = None, nb_residual_unit = nb_residual_unit)

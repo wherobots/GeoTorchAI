@@ -17,7 +17,7 @@ from geotorch.datasets.raster.utility import spectral_indices as si
 
 
 ## Please cite https://www.kaggle.com/datasets/crawford/deepsat-sat6
-class SAT6Dataset(Dataset):
+class SAT6(Dataset):
 
 
 	SPECTRAL_BANDS = ["red", "green", "blue", "nir"]

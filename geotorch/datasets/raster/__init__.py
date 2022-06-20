@@ -1,9 +1,9 @@
-from .euro_sat import EuroSATDataset
-from .sat6 import SAT6Dataset
-from .sat4 import SAT4Dataset
-from .slum_detection import SlumDetectionDataset
-from .segmentation import Cloud38Dataset
-from .processed_dataset import ProcessedDataset
-from .processed_dataset_extra_features import ProcessedDatasetWithExtraFeatures
+from .euro_sat import EuroSAT
+from .sat6 import SAT6
+from .sat4 import SAT4
+from .slum_detection import SlumDetection
+from .cloud_38 import Cloud38
+from .processed import Processed
+from .processed_extra_features import ProcessedWithExtraFeatures
 
-__all__ = ["EuroSATDataset", "SAT6Dataset", "SAT4Dataset", "SlumDetectionDataset", "Cloud38Dataset", "ProcessedDataset", "ProcessedDatasetWithExtraFeatures"]
+__all__ = ["EuroSAT", "SAT6", "SAT4", "SlumDetection", "Cloud38", "Processed", "ProcessedWithExtraFeatures"]

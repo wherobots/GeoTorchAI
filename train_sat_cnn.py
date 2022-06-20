@@ -15,7 +15,7 @@ import numpy as np
 import time
 from datetime import datetime
 
-from geotorch.models import SatCNN
+from geotorch.models.raster import SatCNN
 from utils import weight_init, EarlyStopping, compute_errors
 
 from geotorch.datasets.raster import EuroSATDataset

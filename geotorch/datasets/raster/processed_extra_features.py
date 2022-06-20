@@ -9,9 +9,10 @@ from torch import Tensor
 from torch.utils.data import Dataset, DataLoader, sampler
 
 
-class ProcessedDatasetWithExtraFeatures(Dataset):
+class ProcessedWithExtraFeatures(Dataset):
 
 	def __init__(self, path_to_features, origin, class_label, feature_list = None, transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
+		super().__init__()
 
 		self.transform = transform
 		self.target_transform = target_transform

@@ -13,11 +13,11 @@ from PIL import Image
 
 
 # This dataset is based on https://github.com/tangxianfeng/STDN/blob/master/file_loader.py
-class NYC_Bike_STDN_Dataset(Dataset):
+class BikeNYCSTDN(Dataset):
 
     DATA_URL = "https://raw.githubusercontent.com/tangxianfeng/STDN/master/data.zip"
 
-    def __init__(self, root="dataset", is_training_data=True, download=False, att_lstm_num=3, long_term_lstm_seq_len=3, short_term_lstm_seq_len=7,
+    def __init__(self, root, is_training_data=True, download=False, att_lstm_num=3, long_term_lstm_seq_len=3, short_term_lstm_seq_len=7,
                  hist_feature_daynum=7, last_feature_num=48, nbhd_size=1, cnn_nbhd_size=3):
         super().__init__()
 

@@ -14,7 +14,7 @@ from PIL import Image
 
 # This dataset is based on https://github.com/jwwthu/DL4Traffic/tree/main/TaxiBJ21
 ## Gri map_height and map_width = 32 and 32
-class BJ_Taxi_21_Dataset(Dataset):
+class TaxiBJ21(Dataset):
 
     DATA_URL = "https://raw.githubusercontent.com/jwwthu/DL4Traffic/main/TaxiBJ21/TaxiBJ21.npy"
 
@@ -89,7 +89,7 @@ class BJ_Taxi_21_Dataset(Dataset):
             matrix_day[i,time_day[i],:,:]=1
 
         matrix_T=np.concatenate((matrix_hour,matrix_day),axis=1)
-        all_data=(2.0*all_data-(max_data+min_data))/(max_data-min_data)
+        #all_data=(2.0*all_data-(max_data+min_data))/(max_data-min_data)
         #print('mean=',np.mean(all_data),' variance=',np.std(all_data))
 
         if len_trend>0:

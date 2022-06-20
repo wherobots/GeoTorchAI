@@ -17,7 +17,7 @@ from geotorch.datasets.raster.utility import spectral_indices as si
 
 
 ## Please cite https://www.kaggle.com/datasets/fedebayle/slums-argentina
-class SlumDetectionDataset(Dataset):
+class SlumDetection(Dataset):
 
 
 	SPECTRAL_BANDS = ["blue", "green", "red", "nir"]

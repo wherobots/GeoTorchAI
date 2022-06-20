@@ -18,7 +18,7 @@ import numpy as np
 import time
 from datetime import datetime
 
-from geotorch.models import ST_ResNet
+from geotorch.models.grid import STResNet
 from geotorch.datasets.grid import BJ_Taxi_21_Dataset
 from utils import weight_init, EarlyStopping, compute_errors
 #from torch.utils.data import DataLoader
@@ -55,7 +55,7 @@ os.makedirs(model_dir, exist_ok=True)
 
 #initial_checkpoint = 'reports/checkpoint/stresnet/initial_00000100_model.pth'
 initial_checkpoint = model_dir + '/model.best.pth'
-LOAD_INITIAL = False
+LOAD_INITIAL = True
 random_seed = int(time.time())
 
 def valid(model, val_generator, criterion, device):
@@ -109,14 +109,14 @@ def createModelAndTrain():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Total iterations
-    total_iters = 5
+    total_iters = 1
 
     test_mae = []
     test_mse = []
     test_rmse = []
 
     for iteration in range(total_iters):
-        model = ST_ResNet((len_closeness, nb_flow, map_height, map_width),
+        model = STResNet((len_closeness, nb_flow, map_height, map_width),
                      (len_period, nb_flow, map_height, map_width),
                      (len_trend, nb_flow , map_height, map_width),
                      external_dim = None, nb_residual_unit = nb_residual_unit)

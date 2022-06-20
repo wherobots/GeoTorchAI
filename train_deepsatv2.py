@@ -15,7 +15,7 @@ import numpy as np
 import time
 from datetime import datetime
 
-from geotorch.models import DeepSatV2
+from geotorch.models.raster import DeepSatV2
 from utils import weight_init, EarlyStopping, compute_errors
 
 from geotorch.datasets.raster import EuroSATDataset

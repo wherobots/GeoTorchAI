@@ -1,53 +1,33 @@
-# -*- coding: utf-8 -*-
-import sys
-import math
-#sys.path.append('.')
 import os
-import click
-import logging
-from pathlib import Path
-#from dotenv import find_dotenv, load_dotenv
-import torch.nn as nn
-import torch
-from torch.utils import data
-
-#from helper.make_dataset import make_dataloader
-from torch.utils.data.sampler import SubsetRandomSampler
-
-import numpy as np
 import time
-from datetime import datetime
-
+import numpy as np
+import torch
+from torch.utils.data import DataLoader
+from torch.utils.data.sampler import SubsetRandomSampler
+import torch.nn as nn
 from geotorch.models.grid import ConvLSTM
 from geotorch.datasets.grid import BikeNYCDeepSTN
-from utils import weight_init, EarlyStopping, compute_errors
-#from torch.utils.data import DataLoader
 
 
-len_closeness = 3  # length of closeness dependent sequence
-len_period = 4  # length of peroid dependent sequence
-len_trend = 4  # length of trend dependent sequence
-nb_residual_unit = 4   # number of residual units
+len_closeness = 3
+len_period = 4
+len_trend = 4
+nb_residual_unit = 4
 
-map_height, map_width = 21, 12#16, 8  # grid size
-nb_flow = 2  # there are two types of flows: new-flow and end-flow
+map_height, map_width = 21, 12
+nb_flow = 2
 nb_area = 81
-m_factor = math.sqrt(1. * map_height * map_width / nb_area)
-print('factor: ', m_factor)
 
 len_history = 24
 len_predict = 1
 
-epoch_nums = 100#350
+epoch_nums = 100
 learning_rate = 0.0002
 batch_size = 32
 params = {'batch_size': batch_size, 'shuffle': False, 'drop_last':False, 'num_workers': 0}
 
 validation_split = 0.1
-early_stop_patience = 30
 shuffle_dataset = False
-
-epoch_save = [0, epoch_nums - 1] + list(range(0, epoch_nums, 50))  # 1*1000
 
 out_dir = 'reports'
 checkpoint_dir = out_dir+'/checkpoint'
@@ -55,11 +35,10 @@ model_name = 'convlstm'
 model_dir = checkpoint_dir + "/" + model_name
 os.makedirs(model_dir, exist_ok=True)
 
-
-#initial_checkpoint = 'reports/checkpoint/stresnet/initial_00000100_model.pth'
 initial_checkpoint = model_dir + '/model.best.pth'
-LOAD_INITIAL = True
+LOAD_INITIAL = False
 random_seed = int(time.time())
+
 
 class GeoTorchConvLSTM(nn.Module):
     def __init__(self, input_size, hidden_dim, num_layers):
@@ -71,30 +50,7 @@ class GeoTorchConvLSTM(nn.Module):
         return lstm_out
 
 
-def valid(model, val_generator, criterion, device):
-    model.eval()
-    mean_loss = []
-    for i, sample in enumerate(val_generator):
-    #for i, (X_c, X_p, X_t, X_meta, Y_batch) in enumerate(val_generator):
-        # Move tensors to the configured device
-        X_batch = sample["x_data"].type(torch.FloatTensor).to(device)
-        Y_batch = sample["y_data"].type(torch.FloatTensor).to(device)
-
-        # Forward pass
-        outputs = model(X_batch)
-        mse, _, _ = criterion(outputs[:, len_history-1:len_history, :, :, :].cpu().data.numpy(), Y_batch.cpu().data.numpy())
-
-        mean_loss.append(mse)
-
-    mean_loss = np.mean(mean_loss)
-    print('Mean valid loss:', mean_loss)
-
-    return mean_loss
-
-
 def createModelAndTrain():
-    T = 24
-    drop=0.1
 
     train_dataset = BikeNYCDeepSTN(root = "data/deepstn")
     train_dataset.merge_closeness_period_trend(len_history, len_predict)
@@ -110,19 +66,18 @@ def createModelAndTrain():
         np.random.seed(random_seed)
         np.random.shuffle(indices)
     train_indices, val_indices = indices[split:], indices[:split]
-    print('training size:', len(train_indices))
-    print('val size:', len(val_indices))
+
 
     train_sampler = SubsetRandomSampler(train_indices)
     valid_sampler = SubsetRandomSampler(val_indices)
 
-    training_generator = data.DataLoader(train_dataset, **params, sampler=train_sampler)
-    val_generator = data.DataLoader(train_dataset, **params, sampler=valid_sampler)
-    test_generator = data.DataLoader(test_dataset, batch_size=batch_size)
+    training_generator = DataLoader(train_dataset, **params, sampler=train_sampler)
+    val_generator = DataLoader(train_dataset, **params, sampler=valid_sampler)
+    test_generator = DataLoader(test_dataset, batch_size=batch_size)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Total iterations
-    total_iters = 1
+    total_iters = 5
 
     test_mae = []
     test_mse = []
@@ -134,17 +89,14 @@ def createModelAndTrain():
         if LOAD_INITIAL:
             model.load_state_dict(torch.load(initial_checkpoint, map_location=lambda storage, loc: storage))
 
-        loss_fn = nn.MSELoss()  # nn.L1Loss()
+        loss_fn = nn.MSELoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
         model.to(device)
         loss_fn.to(device)
 
-        '''es = EarlyStopping(patience = early_stop_patience, mode='min', model=model, save_path=initial_checkpoint)
+        min_val_loss = None
         for e in range(epoch_nums):
             for i, sample in enumerate(training_generator):
-                #epoch = i * batch_size / len(train_loader)
-
-                # Move tensors to the configured device
                 X_batch = sample["x_data"].type(torch.FloatTensor).to(device)
                 Y_batch = sample["y_data"].type(torch.FloatTensor).to(device)
 
@@ -159,12 +111,13 @@ def createModelAndTrain():
 
             print('Epoch [{}/{}], Loss: {:.4f}'.format(e + 1, epoch_nums, loss.item()))
 
-            # valid after each training epoch
-            val_loss = valid(model, val_generator, compute_errors, device)
+            val_loss = get_validation_loss(model, val_generator, loss_fn, device)
+            print('Mean validation loss:', val_loss)
 
-            if es.step(val_loss):
-                print('early stopped! With val loss:', val_loss)
-                break  # early stop criterion is met, we can stop now'''
+            if min_val_loss == None or val_loss < min_val_loss:
+            	min_val_loss = val_loss
+            	torch.save(model.state_dict(), initial_checkpoint)
+            	print('best model saved!')
 
         model.load_state_dict(torch.load(initial_checkpoint, map_location=lambda storage, loc: storage))
 
@@ -172,11 +125,9 @@ def createModelAndTrain():
         mse_list=[]
         mae_list=[]
         for i, sample in enumerate(test_generator):
-            # Move tensors to the configured device
             X_batch = sample["x_data"].type(torch.FloatTensor).to(device)
             Y_batch = sample["y_data"].type(torch.FloatTensor).to(device)
 
-            # Forward pass
             outputs = model(X_batch)
             mse, mae, rmse = compute_errors(outputs[:, len_history-1:len_history, :, :, :].cpu().data.numpy(), Y_batch.cpu().data.numpy())
 
@@ -196,7 +147,7 @@ def createModelAndTrain():
         test_rmse.append(rmse)
 
     print("\n************************")
-    print("Test ConvLSTM model with BikeNYCDeepSTN:")
+    print("Test ConvLSTM model with BikeNYCDeepSTN Dataset:")
     print("train and test finished")
     for i in range(total_iters):
         print("Iteration: {0}, MAE: {1}, RMSE: {2}, Real MAE: {3}, Real RMSE: {4}".format(i, test_mae[i], test_rmse[i], test_mae[i]*min_max_diff/2, test_rmse[i]*min_max_diff/2))
@@ -208,21 +159,36 @@ def createModelAndTrain():
     print("Mean RMSE: {0}, Mean Real RMSE: {1}".format(test_rmse_mean, test_rmse_mean * min_max_diff/2))
 
 
+def compute_errors(preds, y_true):
+    pred_mean = preds[:, 0:2]
+    diff = y_true - pred_mean
+
+    mse = np.mean(diff ** 2)
+    rmse = np.sqrt(mse)
+    mae = np.mean(np.abs(diff))
+
+    return mse, mae, rmse
+
+
+def get_validation_loss(model, val_generator, criterion, device):
+    model.eval()
+    mean_loss = []
+    for i, sample in enumerate(val_generator):
+        X_batch = sample["x_data"].type(torch.FloatTensor).to(device)
+        Y_batch = sample["y_data"].type(torch.FloatTensor).to(device)
+
+        outputs = model(X_batch)
+        mse = criterion(outputs[:, len_history-1:len_history, :, :, :], Y_batch).item()
+        mean_loss.append(mse)
+
+    mean_loss = np.mean(mean_loss)
+    return mean_loss
+
+
 
 if __name__ == '__main__':
 
     createModelAndTrain()
-
-    '''train_dataset = BikeNYCDeepSTN(root = "data/deepstn")
-    print(len(train_dataset))
-
-    sample = train_dataset[0]
-    X_c = sample["x_closeness"]
-    X_p = sample["x_period"]
-    X_t = sample["x_trend"]
-    Y_batch = sample["y_data"]
-
-    print(X_c.shape, X_p.shape, X_t.shape, Y_batch.shape)'''
 
 
 

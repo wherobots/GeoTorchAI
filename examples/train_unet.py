@@ -1,82 +1,39 @@
 
 import sys
-import math
 import os
-import click
-import logging
-from pathlib import Path
-import torch.nn as nn
-import torch
-from torch.utils import data
-
-from torch.utils.data.sampler import SubsetRandomSampler
-
 import numpy as np
 import time
-from datetime import datetime
-
-from geotorch.models.raster import DeepSatV2
-from utils import weight_init, EarlyStopping, compute_errors
-
-from geotorch.datasets.raster import EuroSAT
+import torch
+import torch.nn as nn
+from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
+from geotorch.models.raster import UNet
+from geotorch.datasets.raster import Cloud38
 
 epoch_nums = 50#350
 learning_rate = 0.0002
-batch_size = 16
+batch_size = 8
 params = {'batch_size': batch_size, 'shuffle': False, 'drop_last':False, 'num_workers': 0}
 
 validation_split = 0.2
-early_stop_patience = 30
 shuffle_dataset = True
-
-epoch_save = [0, epoch_nums - 1] + list(range(0, epoch_nums, 10))  # 1*1000
 
 out_dir = 'reports'
 checkpoint_dir = out_dir+'/checkpoint'
-model_name = 'deepsatv2'
+model_name = 'unet'
 model_dir = checkpoint_dir + "/" + model_name
 os.makedirs(model_dir, exist_ok=True)
-
 
 initial_checkpoint = model_dir + '/model.best.pth'
 LOAD_INITIAL = False
 random_seed = int(time.time())
 
 
-def valid(model, val_generator, criterion, device):
-    model.eval()
-    total_sample = 0
-    #loss_list = []
-    correct = 0
-    for i, sample in enumerate(val_generator):
-        inputs, labels, features = sample
-        inputs = inputs.to(device)
-        features = features.type(torch.FloatTensor).to(device)
-        labels = labels.to(device)
-
-        # Forward pass
-        outputs = model(inputs, features)
-        total_sample += len(labels)
-
-        #loss = criterion(outputs, labels)
-        #loss_list.append(loss.item())
-
-        _, predicted = outputs.max(1)
-        correct += predicted.eq(labels).sum().item()
-
-    #mean_loss = np.mean(loss_list)
-    accuracy = 100 * correct / total_sample
-    print("Validation Accuracy: ", accuracy, "%")
-
-    return accuracy
-
-
 
 def createModelAndTrain():
 
-    fullData = EuroSAT(root = "data/eurosat", include_additional_features = False)
+    fullData = Cloud38(root = "data/cloud38", download = False)
 
     full_loader = DataLoader(fullData, batch_size= batch_size)
     channels_sum, channels_squared_sum, num_batches = 0, 0, 0
@@ -90,7 +47,7 @@ def createModelAndTrain():
     std = (channels_squared_sum / num_batches - mean ** 2) ** 0.5
 
     sat_transform = transforms.Normalize(mean, std)
-    fullData = EuroSAT(root = "data/eurosat", include_additional_features = True, transform = sat_transform)
+    fullData = Cloud38(root = "data/cloud38", download = False, transform = sat_transform)
     
     dataset_size = len(fullData)
     indices = list(range(dataset_size))
@@ -100,10 +57,7 @@ def createModelAndTrain():
         np.random.seed(random_seed)
         np.random.shuffle(indices)
     train_indices, val_indices = indices[split:], indices[:split]
-    print('training size:', len(train_indices))
-    print('val size:', len(val_indices))
 
-    # Creating PT data samplers and loaders:
     train_sampler = SubsetRandomSampler(train_indices)
     valid_sampler = SubsetRandomSampler(val_indices)
 
@@ -119,24 +73,23 @@ def createModelAndTrain():
     epoch_runnned = 0
 
     for iteration in range(total_iters):
-        model = DeepSatV2(13, 64, 64, 10, len(fullData.ADDITIONAL_FEATURES))
+        model = UNet(4, 2)
 
-        loss_fn = nn.CrossEntropyLoss() # nn.L1Loss()
+        loss_fn = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
         model.to(device)
         loss_fn.to(device)
 
-        es = EarlyStopping(patience = early_stop_patience, mode='max', model=model, percentage = True, save_path=initial_checkpoint)
+        max_val_accuracy = None
         for e in range(epoch_nums):
             t_start = time.time()
             for i, sample in enumerate(training_generator):
-                inputs, labels, features = sample
+                inputs, labels = sample
                 inputs = inputs.to(device)
-                features = features.type(torch.FloatTensor).to(device)
                 labels = labels.to(device)
 
                 # Forward pass
-                outputs = model(inputs, features)
+                outputs = model(inputs)
                 loss = loss_fn(outputs, labels)
 
                 # Backward and optimize
@@ -149,34 +102,34 @@ def createModelAndTrain():
             epoch_runnned += 1
             print('Epoch [{}/{}], Training Loss: {:.4f}'.format(e + 1, epoch_nums, loss.item()))
 
-            val_accuracy = valid(model, val_generator, loss_fn, device)
+            val_accuracy = get_validation_accuracy(model, val_generator, device)
+            print("Validation Accuracy: ", val_accuracy, "%")
 
-            if es.step(val_accuracy):
-                print('early stopped! With validation accuracy:', val_accuracy)
-                break  # early stop criterion is met, we can stop now
+            if max_val_accuracy == None or val_accuracy > max_val_accuracy:
+                max_val_accuracy = val_accuracy
+                torch.save(model.state_dict(), initial_checkpoint)
+                print('best model saved!')
 
         model.load_state_dict(torch.load(initial_checkpoint, map_location=lambda storage, loc: storage))
 
         total_sample = 0
-        correct = 0
+        running_acc = 0.0
         for i, sample in enumerate(val_generator):
-            inputs, labels, features = sample
+            inputs, labels = sample
             inputs = inputs.to(device)
-            features = features.type(torch.FloatTensor).to(device)
             labels = labels.to(device)
 
             # Forward pass
-            outputs = model(inputs, features)
+            outputs = model(inputs)
+            predicted = outputs.argmax(dim=1)
+            running_acc += (predicted == labels).float().mean().item()*len(labels)
             total_sample += len(labels)
 
-            _, predicted = outputs.max(1)
-            correct += predicted.eq(labels).sum().item()
-
-        accuracy = 100 * correct / total_sample
+        accuracy = 100 * running_acc / total_sample
         test_accuracy.append(accuracy)
 
     print("\n************************")
-    print("Test DeepSatv2 model with EuroSAT dataset:")
+    print("Test UNet model with Cloud38 dataset:")
     print("train and test finished")
     for i in range(total_iters):
         print("Iteration: {0}, Accuracy: {1}%".format(i, test_accuracy[i]))
@@ -188,6 +141,26 @@ def createModelAndTrain():
     print("\nMean Accuracy: {0}, Variation of Accuracy: {1}".format(test_accuracy_mean, accuracy_diff))
 
     print("Total time: {0} seconds, Average epoch time: {1} seconds".format(total_time, total_time/epoch_runnned))
+
+
+
+def get_validation_accuracy(model, val_generator, device):
+    model.eval()
+    total_sample = 0
+    running_acc = 0.0
+    for i, sample in enumerate(val_generator):
+        inputs, labels = sample
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+
+        outputs = model(inputs)
+        predicted = outputs.argmax(dim=1)
+        running_acc += (predicted == labels).float().mean().item()*len(labels)
+        total_sample += len(labels)
+
+    accuracy = 100 * running_acc / total_sample
+
+    return accuracy
 
 
 

@@ -1,49 +1,8 @@
 from pyspark.sql import SparkSession
-from pyspark import StorageLevel
-import pandas as pd
-import numpy as np
-import math
-import random
-import os
-from datetime import datetime
-import time
-from pyspark.sql.types import StructType
-from pyspark.sql.types import StructField
-from pyspark.sql.types import StringType
-from pyspark.sql.types import LongType
-from pyspark.sql.types import IntegerType, DoubleType
 from sedona.register import SedonaRegistrator
-from sedona.core.SpatialRDD import SpatialRDD
-from sedona.core.SpatialRDD import PointRDD
-from sedona.core.SpatialRDD import PolygonRDD
-from sedona.core.SpatialRDD import LineStringRDD
-from sedona.core.enums import FileDataSplitter
-from sedona.core.spatialOperator import KNNQuery
-from sedona.core.spatialOperator import JoinQuery
-from sedona.core.spatialOperator import JoinQueryRaw
-from sedona.core.spatialOperator import RangeQuery
-from sedona.core.spatialOperator import RangeQueryRaw
-from sedona.core.formatMapper.shapefileParser import ShapefileReader
-from sedona.core.formatMapper import WkbReader
-from sedona.core.formatMapper import WktReader
-from sedona.core.formatMapper import GeoJsonReader
-from sedona.sql.types import GeometryType
-from sedona.core.SpatialRDD import RectangleRDD
-from sedona.core.geom.envelope import Envelope
 from sedona.utils import SedonaKryoRegistrator, KryoSerializer
-from sedona.core.enums import GridType
-from sedona.core.enums import IndexType
-from pyspark.sql.functions import col
-from pyspark.sql.functions import when
-from pyspark.sql.functions import monotonically_increasing_id
-from pyspark.sql.functions import unix_timestamp
-from pyspark.sql.functions import lit
-from pyspark.sql.functions import expr
-from pyspark.ml.linalg import Vectors
-from pyspark.ml.feature import ElementwiseProduct
-from pyspark.mllib.linalg.distributed import IndexedRow, IndexedRowMatrix
 
-from geotorch.preprocessing import SparkRegistration, load_geo_data, load_geotiff_image, write_geotiff_image, load_data
+from geotorch.preprocessing import SparkRegistration, load_geo_data, load_data, load_geotiff_image, write_geotiff_image
 from geotorch.preprocessing.enums import GeoFileType
 from geotorch.preprocessing.enums import AggregationType
 from geotorch.preprocessing.enums import GeoRelationship

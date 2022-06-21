@@ -5,7 +5,7 @@ import torch.nn as nn
 
 class ConvLSTM(nn.Module):
 
-    def __init__(self, input_dim, hidden_dim = [128, 64, 64], kernel_size = (3, 3), num_layers = 3, bias=True, return_all_layers=False):
+    def __init__(self, input_dim, hidden_dim = [128, 64, 64], kernel_size = (3, 3), num_layers = 3, bias=True):
         super(ConvLSTM, self).__init__()
 
         if not isinstance(kernel_size, list):
@@ -22,7 +22,6 @@ class ConvLSTM(nn.Module):
         self.kernel_size = kernel_size
         self.num_layers = num_layers
         self.bias = bias
-        self.return_all_layers = return_all_layers
 
         self.device = None
 

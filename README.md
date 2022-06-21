@@ -17,7 +17,7 @@ Following libraries need to be set up before using GeoTorch.
 3. Apache Sedona 1.2.0-incubating
 
 ## Documentation
-Details documentation on installation, API, and programming guide is available in geoTorch website.
+Details documentation on installation, API, and programming guide is available on [GeoTorch Website](https://kanchanchy.github.io/geotorch/).
 
 ## Other Contributions of this Project
 We also contributed to [Apache Sedona](https://sedona.apache.org/) to add transformation and write supports for GeoTiff raster images. This contribution is also a part of this project. Contribution reference: [Commits](https://github.com/apache/incubator-sedona/commits?author=kanchanchy)

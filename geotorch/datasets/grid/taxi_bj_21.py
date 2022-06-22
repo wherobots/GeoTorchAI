@@ -77,11 +77,15 @@ class TaxiBJ21(Dataset):
 
     def __getitem__(self, index: int):
 
-        sample = {"x_closeness": self.X_closeness[index], \
-        "x_period": self.X_period[index], \
-        "x_trend": self.X_trend[index], \
-        "t_data": self.T_data[index], \
-        "y_data": self.Y_data[index]}
+        if self.is_merged:
+            sample = {"x_data": self.X_data[index], \
+            "y_data": self.Y_data[index]}
+        else:
+            sample = {"x_closeness": self.X_closeness[index], \
+            "x_period": self.X_period[index], \
+            "x_trend": self.X_trend[index], \
+            "t_data": self.T_data[index], \
+            "y_data": self.Y_data[index]}
 
         return sample
 

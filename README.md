@@ -12,9 +12,15 @@ GeoTorch contains following modules for various types of functionalities:
 
 ## Dependency Set up
 Following libraries need to be set up before using GeoTorch.
+
+### Dependencies for Deep Learning Module:
 1. PyTorch 1.10
-2. PySpark 3.0.0
-3. Apache Sedona 1.2.0-incubating
+2. Rasterio
+3. Scikit-image
+
+### Dependencies for Preprocessing Module:
+1. PySpark 3.0.0
+2. Apache Sedona 1.2.0-incubating
 
 ## Documentation
 Details documentation on installation, API, and programming guide is available on [GeoTorch Website](https://kanchanchy.github.io/geotorch/).

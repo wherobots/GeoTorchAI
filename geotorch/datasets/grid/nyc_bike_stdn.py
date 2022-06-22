@@ -9,7 +9,6 @@ from torch import Tensor
 from torchvision.datasets.utils import download_url
 from torchvision.datasets.utils import extract_archive
 from torch.utils.data import Dataset, DataLoader, sampler
-from PIL import Image
 
 
 # This dataset is based on https://github.com/tangxianfeng/STDN/blob/master/file_loader.py

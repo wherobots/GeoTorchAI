@@ -14,7 +14,7 @@ from pyspark.sql.types import DoubleType
 from sedona.sql.types import GeometryType
 
 
-class TestAdjacency:
+class TestFeatureAggregation:
 
 
 

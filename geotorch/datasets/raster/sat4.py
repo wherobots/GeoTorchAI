@@ -6,17 +6,14 @@ import numpy as np
 import rasterio
 import torch
 from torch import Tensor
-from torchvision.datasets.utils import download_url
 from torchvision.datasets.utils import extract_archive
-from torch.utils.data import Dataset, DataLoader, sampler
-from torchvision.datasets import ImageFolder
+from torch.utils.data import Dataset
 from kaggle.api.kaggle_api_extended import KaggleApi
-from PIL import Image
 from geotorch.datasets.raster.utility import textural_features as ttf
 from geotorch.datasets.raster.utility import spectral_indices as si
 
 
-## Please cite https://www.kaggle.com/datasets/crawford/deepsat-sat4
+## Dataset collectd from https://www.kaggle.com/datasets/crawford/deepsat-sat4
 class SAT4(Dataset):
 
 
@@ -39,12 +36,12 @@ class SAT4(Dataset):
 	def __init__(self, root, download = False, is_train_data = True, bands = SPECTRAL_BANDS, include_additional_features = False, additional_features_list = ADDITIONAL_FEATURES,  transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
 		super().__init__()
 		# first check if selected bands are valid. Trow exception otherwise
-		if not self._isValidBands(bands):
+		if not self._is_valid_bands(bands):
 			# Throw error instead of printing
 			print("Invalid band names")
 			return
 
-		self.selectedBandIndices = torch.tensor([self.SPECTRAL_BANDS.index(band) for band in bands])
+		self.selected_band_indices = torch.tensor([self.SPECTRAL_BANDS.index(band) for band in bands])
 		self.transform = transform
 		self.target_transform = target_transform
 
@@ -58,7 +55,7 @@ class SAT4(Dataset):
 			api.dataset_download_files('crawford/deepsat-sat4', root)
 			extract_archive(root + "/deepsat-sat4.zip", root + "/deepsat-sat4")
 
-		data_dir = self._getPath(root)
+		data_dir = self._get_path(root)
 		if is_train_data:
 			df = pd.read_csv(data_dir + '/X_train_sat4.csv', header=None)
 			self.x_data = torch.tensor(df.values.reshape((400000, 28, 28, 4)))
@@ -109,7 +106,7 @@ class SAT4(Dataset):
 
 	def __getitem__(self, index: int):
 		img = self.x_data[index]
-		img = torch.index_select(img, dim = 0, index = self.selectedBandIndices)
+		img = torch.index_select(img, dim = 0, index = self.selected_band_indices)
 		label = self.y_data[index]
 
 		if self.transform is not None:
@@ -123,20 +120,22 @@ class SAT4(Dataset):
 			return img, label
 
 
-	def _getPath(self, data_dir):
-		while True:
+	def _get_path(self, root_dir):
+		queue = [root_dir]
+		while queue:
+			data_dir = queue.pop(0)
 			folders = os.listdir(data_dir)
 			if "X_train_sat4.csv" in folders and "y_train_sat4.csv" in folders and "X_test_sat4.csv" in folders  and "y_test_sat4.csv" in folders and "sat4annotations.csv" in folders:
 				return data_dir
 
 			for folder in folders:
 				if os.path.isdir(data_dir + "/" + folder):
-					data_dir = data_dir + "/" + folder
+					queue.append(data_dir + "/" + folder)
 
 		return None
 
 
-	def _isValidBands(self, bands):
+	def _is_valid_bands(self, bands):
 		for band in bands:
 			if band not in self.SPECTRAL_BANDS:
 				return False

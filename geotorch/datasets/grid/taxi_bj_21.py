@@ -1,15 +1,10 @@
 
 import os
 import requests
-from typing import Optional, Callable
 import numpy as np
-import rasterio
 import torch
 from torch import Tensor
-from torchvision.datasets.utils import download_url
-from torchvision.datasets.utils import extract_archive
-from torch.utils.data import Dataset, DataLoader, sampler
-from PIL import Image
+from torch.utils.data import Dataset
 
 
 # This dataset is based on https://github.com/jwwthu/DL4Traffic/tree/main/TaxiBJ21
@@ -28,7 +23,7 @@ class TaxiBJ21(Dataset):
             with open(file_name, 'wb') as output_file:
                 output_file.write(req.content)
 
-        data_dir = self._getPath(root)
+        data_dir = self._get_path(root)
 
         flow_data = np.load(open(data_dir + "/TaxiBJ21.npy", "rb"))
 
@@ -90,15 +85,18 @@ class TaxiBJ21(Dataset):
         return sample
 
 
-    def _getPath(self, data_dir):
-        while True:
+    def _get_path(self, root_dir):
+        queue = [root_dir]
+        while queue:
+            data_dir = queue.pop(0)
             folders = os.listdir(data_dir)
             if "TaxiBJ21.npy" in folders:
                 return data_dir
 
             for folder in folders:
                 if os.path.isdir(data_dir + "/" + folder):
-                    data_dir = data_dir + "/" + folder
+                    queue.append(data_dir + "/" + folder)
+
         return None
 
 

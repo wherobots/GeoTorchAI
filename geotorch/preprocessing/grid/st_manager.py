@@ -10,7 +10,9 @@ class STManager:
 
 
 	@classmethod
-	def convert_date_format(cls, df, date_column, new_format, new_column_alias):
+	def convert_date_format(cls, df, date_column, new_format, new_column_alias = None):
+		if new_column_alias == None:
+			new_column_alias = "reformatted_" + date_column
 		return df.withColumn(new_column_alias, date_format(date_column, new_format))
 
 

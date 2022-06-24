@@ -5,7 +5,7 @@ import numpy as np
 import rasterio
 import torch
 from torch import Tensor
-from torch.utils.data import Dataset, DataLoader, sampler
+from torch.utils.data import Dataset
 import pandas as pd
 
 
@@ -35,7 +35,7 @@ class Processed(Dataset):
 		return len(self.image_paths)
 
 	def __getitem__(self, index: int):
-		img = self._tiffLoader(self.image_paths[index])
+		img = self._tiff_loader(self.image_paths[index])
 		label = torch.tensor(self.labels[index])
 
 		if self.transform is not None:
@@ -46,37 +46,12 @@ class Processed(Dataset):
 		return img, label
 
 
-	def _tiffLoader(self, path: str):
+	def _tiff_loader(self, path: str):
 		with rasterio.open(path) as f:
-			tiffData = f.read().astype(np.float32)
-		return torch.tensor(tiffData)
+			tiff_data = f.read().astype(np.float32)
+		return torch.tensor(tiff_data)
 
 
-
-'''import time
-from ...transforms.raster_transformer import AppendNormalizedDifferenceIndex
-
-t1 = time.time()
-appender = AppendNormalizedDifferenceIndex(1, 2)
-myData = ProcessedDataset(root = "data/euro-sat/EuroSATallBands/ds/images/remote_sensing/otherDatasets/sentinel_2/tif", transform = appender)
-dataloader = DataLoader(myData, batch_size = 32)
-
-i = 0
-for inputs, labels in dataloader:
-	print(inputs.shape, labels.shape)
-	i += 1
-	if i > 5:
-		break
-t2 = time.time()
-print("Time:", t2- t1, "seconds")'''
-
-
-#print(myData._class_to_idx)
-
-
-
-#download_url("https://madm.dfki.de/files/sentinel/EuroSATallBands.zip", "data/")
-#pathExtracted = extract_archive("dataset/EuroSATallBands.zip", "dataset/EuroSATallBands")
 
 
 

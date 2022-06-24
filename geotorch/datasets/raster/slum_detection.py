@@ -6,12 +6,9 @@ import numpy as np
 import rasterio
 import torch
 from torch import Tensor
-from torchvision.datasets.utils import download_url
 from torchvision.datasets.utils import extract_archive
-from torch.utils.data import Dataset, DataLoader, sampler
-from torchvision.datasets import ImageFolder
+from torch.utils.data import Dataset
 from kaggle.api.kaggle_api_extended import KaggleApi
-from PIL import Image
 from geotorch.datasets.raster.utility import textural_features as ttf
 from geotorch.datasets.raster.utility import spectral_indices as si
 
@@ -39,12 +36,12 @@ class SlumDetection(Dataset):
 	def __init__(self, root, download = False, bands = SPECTRAL_BANDS, include_additional_features = False, additional_features_list = ADDITIONAL_FEATURES,  transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
 		super().__init__()
 		# first check if selected bands are valid. Trow exception otherwise
-		if not self._isValidBands(bands):
+		if not self._is_valid_bands(bands):
 			# Throw error instead of printing
 			print("Invalid band names")
 			return
 
-		self.selectedBandIndices = torch.tensor([self.SPECTRAL_BANDS.index(band) for band in bands])
+		self.selected_band_indices = torch.tensor([self.SPECTRAL_BANDS.index(band) for band in bands])
 		self.transform = transform
 		self.target_transform = target_transform
 
@@ -58,7 +55,7 @@ class SlumDetection(Dataset):
 			api.dataset_download_files('fedebayle/slums-argentina', root)
 			extract_archive(root + "/slums-argentina.zip", root + "/slums-argentina")
 
-		data_dir = self._getPath(root)
+		data_dir = self._get_path(root)
 
 		self.image_paths = []
 		self._get_image_paths(data_dir)
@@ -69,7 +66,7 @@ class SlumDetection(Dataset):
 			len_textural_features = len(self.TEXTURAL_FEATURES)
 			all_features = np.array(self.ADDITIONAL_FEATURES)
 			for i in range(len(self.x_data)):
-				full_img = self._tiffLoader(self.image_paths[i])
+				full_img = self._tiff_loader(self.image_paths[i])
 				rgb_img = torch.index_select(full_img, dim = 0, index = self._rgb_band_indices)
 				rgb_norm_img = ttf._normalize(rgb_img)
 				gray_img = ttf._rgb_to_grayscale(rgb_norm_img)
@@ -99,8 +96,8 @@ class SlumDetection(Dataset):
 	def __getitem__(self, index: int):
 		img_path = self.image_paths[index]
 
-		img = self._tiffLoader(img_path)
-		img = torch.index_select(img, dim = 0, index = self.selectedBandIndices)
+		img = self._tiff_loader(img_path)
+		img = torch.index_select(img, dim = 0, index = self.selected_band_indices)
 
 		file_name = img_path.split('/')[-1]
 		if file_name.startswith("vya_"):
@@ -119,7 +116,7 @@ class SlumDetection(Dataset):
 			return img, label
 
 
-	def _getPath(self, root_dir):
+	def _get_path(self, root_dir):
 		queue = [root_dir]
 		while queue:
 			data_dir = queue.pop(0)
@@ -149,14 +146,14 @@ class SlumDetection(Dataset):
 
 
 
-	def _tiffLoader(self, path: str):
+	def _tiff_loader(self, path: str):
 		with rasterio.open(path) as f:
-			tiffData = f.read().astype(np.float32)
-		return torch.tensor(tiffData)
+			tiff_data = f.read().astype(np.float32)
+		return torch.tensor(tiff_data)
 
 
 
-	def _isValidBands(self, bands):
+	def _is_valid_bands(self, bands):
 		for band in bands:
 			if band not in self.SPECTRAL_BANDS:
 				return False

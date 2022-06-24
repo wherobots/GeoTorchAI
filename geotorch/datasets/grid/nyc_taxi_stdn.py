@@ -1,15 +1,11 @@
 
 import os
 import requests
-from typing import Optional, Callable
 import numpy as np
-import rasterio
 import torch
 from torch import Tensor
-from torchvision.datasets.utils import download_url
 from torchvision.datasets.utils import extract_archive
-from torch.utils.data import Dataset, DataLoader, sampler
-from PIL import Image
+from torch.utils.data import Dataset
 
 
 # This dataset is based on https://github.com/tangxianfeng/STDN/blob/master/file_loader.py
@@ -29,7 +25,7 @@ class TaxiNYCSTDN(Dataset):
 
             extract_archive(file_name, root + "/data")
 
-        data_dir = self._getPath(root)
+        data_dir = self._get_path(root)
 
         if is_training_data:
             flow_data = np.load(
@@ -62,15 +58,17 @@ class TaxiNYCSTDN(Dataset):
 
         return sample
 
-    def _getPath(self, data_dir):
-        while True:
+    def _get_path(self, root_dir):
+        queue = [root_dir]
+        while queue:
+            data_dir = queue.pop(0)
             folders = os.listdir(data_dir)
             if "flow_train.npz" in folders and "flow_test.npz" in folders and "volume_train.npz" in folders and "volume_test.npz" in folders:
                 return data_dir
 
             for folder in folders:
                 if os.path.isdir(data_dir + "/" + folder):
-                    data_dir = data_dir + "/" + folder
+                    queue.append(data_dir + "/" + folder)
 
         return None
 

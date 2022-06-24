@@ -2,18 +2,15 @@
 import os
 from typing import Optional, Callable
 import numpy as np
-import rasterio
 import torch
 from torch import Tensor
-from torchvision.datasets.utils import download_url
 from torchvision.datasets.utils import extract_archive
-from torch.utils.data import Dataset, DataLoader, sampler
-from torchvision.datasets import ImageFolder
+from torch.utils.data import Dataset
 from kaggle.api.kaggle_api_extended import KaggleApi
-from PIL import Image
+import rasterio
 
 
-## Please cite https://www.kaggle.com/datasets/sorour/38cloud-cloud-segmentation-in-satellite-images
+## Dataset collected from https://www.kaggle.com/datasets/sorour/38cloud-cloud-segmentation-in-satellite-images
 class Cloud38(Dataset):
 
 	SPECTRAL_BANDS = ["red", "green", "blue", "nir"]
@@ -22,12 +19,12 @@ class Cloud38(Dataset):
 	def __init__(self, root, download = False, bands = SPECTRAL_BANDS, transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
 		super().__init__()
 		# first check if selected bands are valid. Trow exception otherwise
-		if not self._isValidBands(bands):
+		if not self._is_valid_bands(bands):
 			# Trow error instead of printing
 			print("Invalid band names")
 			return
 
-		self.selectedBandIndices = torch.tensor([self.SPECTRAL_BANDS.index(band) for band in bands])
+		self.selected_band_indices = torch.tensor([self.SPECTRAL_BANDS.index(band) for band in bands])
 		self.transform = transform
 		self.target_transform = target_transform
 		self.image_paths = []
@@ -40,8 +37,8 @@ class Cloud38(Dataset):
 
 		image_folders = ["train_red", "train_green", "train_blue", "train_nir"]
 		label_folder = "train_gt"
-		data_dir = self._getPath(root)
-		band_indices = self.selectedBandIndices.numpy()
+		data_dir = self._get_path(root)
+		band_indices = self.selected_band_indices.numpy()
 		folder_band_1 = data_dir + "/" + image_folders[band_indices[0]]
 		files = os.listdir(folder_band_1)
 		for i in range(len(files)):
@@ -60,12 +57,12 @@ class Cloud38(Dataset):
 
 	def __getitem__(self, index: int):
 		img = []
-		for band_index in self.selectedBandIndices.numpy():
-			img.append(np.array(Image.open(self.image_paths[index][self.SPECTRAL_BANDS[band_index]]), dtype=np.float32))
-		img = torch.tensor(np.array(img), dtype=torch.float32)
-		label = np.array(Image.open(self.image_paths[index]['gt']))
-		label = np.where(label==255, 1, 0)
-		label = torch.tensor(label , dtype=torch.int64)
+		for band_index in self.selected_band_indices.numpy():
+			img.append(self._tiff_loader(self.image_paths[index][self.SPECTRAL_BANDS[band_index]]))
+		img = torch.stack(img)
+
+		label = self._tiff_loader_int64(self.image_paths[index]['gt'])
+		label = torch.where(label==255, 1, 0)
 
 		if self.transform is not None:
 			img = self.transform(img)
@@ -74,7 +71,7 @@ class Cloud38(Dataset):
 
 		return img, label
 
-	def _getPath(self, root_dir):
+	def _get_path(self, root_dir):
 		queue = [root_dir]
 		while queue:
 			data_dir = queue.pop(0)
@@ -89,26 +86,25 @@ class Cloud38(Dataset):
 		return None
 
 
-	def _isValidBands(self, bands):
+	def _is_valid_bands(self, bands):
 		for band in bands:
 			if band not in self.SPECTRAL_BANDS:
 				return False
 		return True
 
 
+	def _tiff_loader(self, path: str):
+		with rasterio.open(path) as f:
+			tiff_data = f.read().astype(np.float32)
+		return torch.tensor(tiff_data[0])
 
-'''myData = Cloud38Dataset(root = "data/segmentation", download = True)
-print(len(myData))
-x, y = myData[1000]
-print(x.shape, y.shape)
+
+	def _tiff_loader_int64(self, path: str):
+		with rasterio.open(path) as f:
+			tiff_data = f.read().astype(np.int64)
+		return torch.tensor(tiff_data[0])
 
 
-train_ds, valid_ds = torch.utils.data.random_split(myData, (6000, 2400))
-train_dl = DataLoader(train_ds, batch_size=12, shuffle=True)
-valid_dl = DataLoader(valid_ds, batch_size=12, shuffle=True)
-
-xb, yb = next(iter(train_dl))
-print(xb.shape, yb.shape)'''
 
 
 

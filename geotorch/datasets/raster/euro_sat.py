@@ -7,8 +7,7 @@ import torch
 from torch import Tensor
 from torchvision.datasets.utils import download_url
 from torchvision.datasets.utils import extract_archive
-from torch.utils.data import Dataset, DataLoader, sampler
-from torchvision.datasets import ImageFolder
+from torch.utils.data import Dataset
 import pandas as pd
 from geotorch.datasets.raster.utility import textural_features as ttf
 from geotorch.datasets.raster.utility import spectral_indices as si
@@ -36,12 +35,12 @@ class EuroSAT(Dataset):
 	def __init__(self, root, download = False, bands = SPECTRAL_BANDS, include_additional_features = False, additional_features_list = ADDITIONAL_FEATURES,  transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
 		super().__init__()
 		# first check if selected bands are valid. Trow exception otherwise
-		if not self._isValidBands(bands):
+		if not self._is_valid_bands(bands):
 			# Throw error instead of printing
 			print("Invalid band names")
 			return
 
-		self.selectedBandIndices = torch.tensor([self.SPECTRAL_BANDS.index(band) for band in bands])
+		self.selected_band_indices = torch.tensor([self.SPECTRAL_BANDS.index(band) for band in bands])
 		self.transform = transform
 		self.target_transform = target_transform
 
@@ -53,13 +52,13 @@ class EuroSAT(Dataset):
 			download_url("https://madm.dfki.de/files/sentinel/EuroSATallBands.zip", root)
 			extract_archive(root + "/EuroSATallBands.zip", root + "/EuroSATallBands")
 
-		dataDir = self._getPath(root)
+		data_dir = self._get_path(root)
 		self.image_paths = []
 
-		folders = os.listdir(dataDir)
+		folders = os.listdir(data_dir)
 		for i in range(len(folders)):
-			if folders[i] in self.EURO_SAT_CLASSES and os.path.isdir(dataDir + "/" + folders[i]):
-				class_dir = dataDir + "/" + folders[i]
+			if folders[i] in self.EURO_SAT_CLASSES and os.path.isdir(data_dir + "/" + folders[i]):
+				class_dir = data_dir + "/" + folders[i]
 				files = os.listdir(class_dir)
 				for file in files:
 					if os.path.isfile(class_dir + "/" + file):
@@ -71,7 +70,7 @@ class EuroSAT(Dataset):
 			len_textural_features = len(self.TEXTURAL_FEATURES)
 			all_features = np.array(self.ADDITIONAL_FEATURES)
 			for i in range(len(self.image_paths)):
-				full_img = self._tiffLoader(self.image_paths[i])
+				full_img = self._tiff_loader(self.image_paths[i])
 				rgb_img = torch.index_select(full_img, dim = 0, index = self._rgb_band_indices)
 				rgb_norm_img = ttf._normalize(rgb_img)
 				gray_img = ttf._rgb_to_grayscale(rgb_norm_img)
@@ -100,8 +99,8 @@ class EuroSAT(Dataset):
 	def __getitem__(self, index: int):
 		img_path = self.image_paths[index]
 
-		img = self._tiffLoader(img_path)
-		img = torch.index_select(img, dim = 0, index = self.selectedBandIndices)
+		img = self._tiff_loader(img_path)
+		img = torch.index_select(img, dim = 0, index = self.selected_band_indices)
 
 		label = img_path.split('/')[-1].split("_")[0]
 		label = torch.tensor(self._class_to_idx[label])
@@ -116,24 +115,27 @@ class EuroSAT(Dataset):
 		else:
 			return img, label
 
-	def _getPath(self, dataDir):
-		while True:
-			folders = os.listdir(dataDir)
+	def _get_path(self, root_dir):
+		queue = [root_dir]
+		while queue:
+			data_dir = queue.pop(0)
+			folders = os.listdir(data_dir)
 			if "Forest" in folders:
-				return dataDir
+				return data_dir
 
 			for folder in folders:
-				if os.path.isdir(dataDir + "/" + folder):
-					dataDir = dataDir + "/" + folder
+				if os.path.isdir(data_dir + "/" + folder):
+					queue.append(data_dir + "/" + folder)
 
 		return None
 
-	def _tiffLoader(self, path: str):
-		with rasterio.open(path) as f:
-			tiffData = f.read().astype(np.float32)
-		return torch.tensor(tiffData)
 
-	def _isValidBands(self, bands):
+	def _tiff_loader(self, path: str):
+		with rasterio.open(path) as f:
+			tiff_data = f.read().astype(np.float32)
+		return torch.tensor(tiff_data)
+
+	def _is_valid_bands(self, bands):
 		for band in bands:
 			if band not in self.SPECTRAL_BANDS:
 				return False
@@ -172,22 +174,6 @@ class EuroSAT(Dataset):
 			return si.get_mean_index(si.get_RVI(band1, band2), self._img_height, self._img_width)
 
 
-
-'''import time
-t1 = time.time()
-cols= ["ndwi", "mdwi", "ndmi", "ndvi", "awei", "bi", "rvi", "glcm_contrast", "glcm_energy", "glcm_homogeneity","glcm_correlation",  "glcm_ASM", "glcm_dissimilarity"]
-myData = EuroSATDataset(root = "data", bands = EuroSATDataset.SPECTRAL_BANDS, include_additional_features = True, additional_features_list = EuroSATDataset.ADDITIONAL_FEATURES)
-dataloader = DataLoader(myData, batch_size = 32)
-
-i = 0
-for inputs, labels, features in dataloader:
-	#final_features_train = np.hstack((inputs, features))
-	print(inputs.shape, labels.shape, features.shape)
-	i += 1
-	if i > 2:
-		break
-t2 = time.time()
-print("Time:", t2- t1, "seconds")'''
 
 
 

@@ -6,7 +6,7 @@ import pandas as pd
 import rasterio
 import torch
 from torch import Tensor
-from torch.utils.data import Dataset, DataLoader, sampler
+from torch.utils.data import Dataset
 
 
 class ProcessedWithExtraFeatures(Dataset):
@@ -38,7 +38,7 @@ class ProcessedWithExtraFeatures(Dataset):
 	
 
 	def __getitem__(self, index: int):
-		img = self._tiffLoader(self.image_paths[index])
+		img = self._tiff_loader(self.image_paths[index])
 		label = torch.tensor(self._class_to_idx[self.image_labels[index]])
 
 		if self.transform is not None:
@@ -49,38 +49,16 @@ class ProcessedWithExtraFeatures(Dataset):
 		return img, label, self.additional_features[index]
 
 
-	def _tiffLoader(self, path: str):
+	def _tiff_loader(self, path: str):
 		with rasterio.open(path) as f:
-			tiffData = f.read().astype(np.float32)
-		return torch.tensor(tiffData)
+			tiff_data = f.read().astype(np.float32)
+		return torch.tensor(tiff_data)
 
 
 	def get_class_labels():
 		return self._class_to_idx
 
 
-
-'''import time
-t1 = time.time()
-myData = ProcessedDatasetWithExtraFeatures(root = "data/euro-sat/EuroSATallBands/ds/images/remote_sensing/otherDatasets/sentinel_2/tif")
-dataloader = DataLoader(myData, batch_size = 32)
-
-i = 0
-for inputs, labels, features in dataloader:
-	print(inputs.shape, labels, features.shape)
-	i += 1
-	if i > 5:
-		break
-t2 = time.time()
-print("Time:", t2- t1, "seconds")'''
-
-
-#print(myData._class_to_idx)
-
-
-
-#download_url("https://madm.dfki.de/files/sentinel/EuroSATallBands.zip", "data/")
-#pathExtracted = extract_archive("dataset/EuroSATallBands.zip", "dataset/EuroSATallBands")
 
 
 

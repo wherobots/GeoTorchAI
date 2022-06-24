@@ -28,7 +28,7 @@ class BikeNYCDeepSTN(Dataset):
             with open(file_name_poi, 'wb') as output_file:
                 output_file.write(req2.content)
 
-        data_dir = self._getPath(root)
+        data_dir = self._get_path(root)
 
         flow_data = np.load(open(data_dir + "/flow_data.npy", "rb"))
         poi_data = np.load(open(data_dir + "/poi_data.npy", "rb"))
@@ -95,15 +95,18 @@ class BikeNYCDeepSTN(Dataset):
         return sample
 
 
-    def _getPath(self, data_dir):
-        while True:
+    def _get_path(self, root_dir):
+        queue = [root_dir]
+        while queue:
+            data_dir = queue.pop(0)
             folders = os.listdir(data_dir)
             if "flow_data.npy" in folders and "poi_data.npy" in folders:
                 return data_dir
 
             for folder in folders:
                 if os.path.isdir(data_dir + "/" + folder):
-                    data_dir = data_dir + "/" + folder
+                    queue.append(data_dir + "/" + folder)
+
         return None
 
 

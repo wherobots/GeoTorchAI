@@ -1,16 +1,16 @@
 
 import os
-from typing import Optional, Callable
+from typing import Optional, Callable, Dict
 import numpy as np
 import rasterio
 import torch
 from torch import Tensor
-from torchvision.datasets.utils import download_url
-from torchvision.datasets.utils import extract_archive
 from torch.utils.data import Dataset
 import pandas as pd
 from geotorch.datasets.raster.utility import textural_features as ttf
 from geotorch.datasets.raster.utility import spectral_indices as si
+from geotorch.utility.exceptions import InvalidParametersException
+from geotorch.utility._download_utils import _download_remote_file, _extract_archive
 
 
 class EuroSAT(Dataset):
@@ -21,26 +21,26 @@ class EuroSAT(Dataset):
 	ADDITIONAL_FEATURES = ["contrast", "dissimilarity", "homogeneity", "energy", "correlation", "ASM", "mean_NDWI", "mean_MNDWI", "mean_NDMI", "mean_NDVI", "mean_AWEI", "mean_builtup_index", "mean_RVI"]
 	TEXTURAL_FEATURES = ["contrast", "dissimilarity", "homogeneity", "energy", "correlation", "ASM"]
 	SPECTRAL_INDICES = ["mean_NDWI", "mean_MNDWI", "mean_NDMI", "mean_NDVI", "mean_AWEI", "mean_builtup_index", "mean_RVI"]
-
-	_feature_callbacks = [ttf._get_GLCM_Contrast, ttf._get_GLCM_Dissimilarity, ttf._get_GLCM_Homogeneity, ttf._get_GLCM_Energy, ttf._get_GLCM_Correlation, ttf._get_GLCM_ASM]
 	
-	_img_height = 64
-	_img_width = 64
-	_band_green = 2
-	_band_red = 3
-	_band_nir = 7
-	_band_swir1 = 11
-	_band_swir2 = 12
+	IMAGE_HEIGHT = 64
+	IMAGE_WIDTH = 64
+	BAND_GREEN_INDEX = 2
+	BAND_RED_INDEX = 3
+	BAND_NIR_INDEX = 7
+	BAND_SWIR_INDEX1 = 11
+	BAND_SWIR_INDEX2 = 12
 
-	def __init__(self, root, download = False, bands = SPECTRAL_BANDS, include_additional_features = False, additional_features_list = ADDITIONAL_FEATURES,  transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
+
+	def __init__(self, root, download = False, bands = SPECTRAL_BANDS, include_additional_features = False, additional_features_list = ADDITIONAL_FEATURES,  user_features_callback: Optional[Dict[str, Callable]] = None, transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
 		super().__init__()
 		# first check if selected bands are valid. Trow exception otherwise
 		if not self._is_valid_bands(bands):
-			# Throw error instead of printing
-			print("Invalid band names")
-			return
+			raise InvalidParametersException("Invalid band names")
+
+		self._feature_callbacks = [ttf._get_GLCM_Contrast, ttf._get_GLCM_Dissimilarity, ttf._get_GLCM_Homogeneity, ttf._get_GLCM_Energy, ttf._get_GLCM_Correlation, ttf._get_GLCM_ASM]
 
 		self.selected_band_indices = torch.tensor([self.SPECTRAL_BANDS.index(band) for band in bands])
+		self.user_features_callback = user_features_callback
 		self.transform = transform
 		self.target_transform = target_transform
 
@@ -49,8 +49,8 @@ class EuroSAT(Dataset):
 		self._rgb_band_indices = torch.tensor([self.SPECTRAL_BANDS.index(band) for band in self.RGB_BANDS])
 
 		if download:
-			download_url("https://madm.dfki.de/files/sentinel/EuroSATallBands.zip", root)
-			extract_archive(root + "/EuroSATallBands.zip", root + "/EuroSATallBands")
+			_download_remote_file("https://madm.dfki.de/files/sentinel/EuroSATallBands.zip", root)
+			_extract_archive(root + "/EuroSATallBands.zip", root + "/EuroSATallBands")
 
 		data_dir = self._get_path(root)
 		self.image_paths = []
@@ -78,13 +78,18 @@ class EuroSAT(Dataset):
 
 				features_row = []
 				for ad_feature in additional_features_list:
-					feature_index = np.where(all_features == ad_feature)[0]
-					if len(feature_index) > 0:
-						feature_index = feature_index[0]
-						if feature_index < len_textural_features:
-							features_row.append(self._feature_callbacks[feature_index](digitized_image))
+					if self.user_features_callback != None and ad_feature in self.user_features_callback:
+						features_row.append(self.user_features_callback[ad_feature](digitized_image))
+					else:
+						feature_index = np.where(all_features == ad_feature)[0]
+						if len(feature_index) > 0:
+							feature_index = feature_index[0]
+							if feature_index < len_textural_features:
+								features_row.append(self._feature_callbacks[feature_index](digitized_image))
+							else:
+								features_row.append(self._get_mean_spectral_index(full_img, ad_feature))
 						else:
-							features_row.append(self._get_mean_spectral_index(full_img, ad_feature))
+							raise InvalidParametersException("Callback not found for some user-defined feature: " + ad_feature)
 
 				self.external_features.append(features_row)
 			self.external_features = torch.tensor(self.external_features)
@@ -143,35 +148,35 @@ class EuroSAT(Dataset):
 
 	def _get_mean_spectral_index(self, full_img, feature_name):
 		if feature_name == "mean_NDWI":
-			band1 = full_img[self._band_green]
-			band2 = full_img[self._band_nir]
-			return si.get_mean_index(si.get_NDWI(band1, band2), self._img_height, self._img_width)
+			band1 = full_img[self.BAND_GREEN_INDEX]
+			band2 = full_img[self.BAND_NIR_INDEX]
+			return si.get_mean_index(si.get_NDWI(band1, band2), self.IMAGE_HEIGHT, self.IMAGE_WIDTH)
 		elif feature_name == "mean_MNDWI":
-			band1 = full_img[self._band_green]
-			band2 = full_img[self._band_swir1]
-			return si.get_mean_index(si.get_MNDWI(band1, band2), self._img_height, self._img_width)
+			band1 = full_img[self.BAND_GREEN_INDEX]
+			band2 = full_img[self.BAND_SWIR_INDEX1]
+			return si.get_mean_index(si.get_MNDWI(band1, band2), self.IMAGE_HEIGHT, self.IMAGE_WIDTH)
 		elif feature_name == "mean_NDMI":
-			band1 = full_img[self._band_nir]
-			band2 = full_img[self._band_swir1]
-			return si.get_mean_index(si.get_NDMI(band1, band2), self._img_height, self._img_width)
+			band1 = full_img[self.BAND_NIR_INDEX]
+			band2 = full_img[self.BAND_SWIR_INDEX1]
+			return si.get_mean_index(si.get_NDMI(band1, band2), self.IMAGE_HEIGHT, self.IMAGE_WIDTH)
 		elif feature_name == "mean_NDVI":
-			band1 = full_img[self._band_nir]
-			band2 = full_img[self._band_red]
-			return si.get_mean_index(si.get_NDVI(band1, band2), self._img_height, self._img_width)
+			band1 = full_img[self.BAND_NIR_INDEX]
+			band2 = full_img[self.BAND_RED_INDEX]
+			return si.get_mean_index(si.get_NDVI(band1, band2), self.IMAGE_HEIGHT, self.IMAGE_WIDTH)
 		elif feature_name == "mean_AWEI":
-			band1 = full_img[self._band_green]
-			band2 = full_img[self._band_swir1]
-			band3 = full_img[self._band_nir]
-			band4 = full_img[self._band_swir2]
-			return si.get_mean_index(si.get_AWEI(band1, band2, band3, band4), self._img_height, self._img_width)
+			band1 = full_img[self.BAND_GREEN_INDEX]
+			band2 = full_img[self.BAND_SWIR_INDEX1]
+			band3 = full_img[self.BAND_NIR_INDEX]
+			band4 = full_img[self.BAND_SWIR_INDEX2]
+			return si.get_mean_index(si.get_AWEI(band1, band2, band3, band4), self.IMAGE_HEIGHT, self.IMAGE_WIDTH)
 		elif feature_name == "mean_builtup_index":
-			band1 = full_img[self._band_swir1]
-			band2 = full_img[self._band_nir]
-			return si.get_mean_index(si.get_builtup_index(band1, band2), self._img_height, self._img_width)
+			band1 = full_img[self.BAND_SWIR_INDEX1]
+			band2 = full_img[self.BAND_NIR_INDEX]
+			return si.get_mean_index(si.get_builtup_index(band1, band2), self.IMAGE_HEIGHT, self.IMAGE_WIDTH)
 		elif feature_name == "mean_RVI":
-			band1 = full_img[self._band_nir]
-			band2 = full_img[self._band_red]
-			return si.get_mean_index(si.get_RVI(band1, band2), self._img_height, self._img_width)
+			band1 = full_img[self.BAND_NIR_INDEX]
+			band2 = full_img[self.BAND_RED_INDEX]
+			return si.get_mean_index(si.get_RVI(band1, band2), self.IMAGE_HEIGHT, self.IMAGE_WIDTH)
 
 
 

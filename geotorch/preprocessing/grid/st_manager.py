@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import unix_timestamp, date_format, to_date, expr, col
 from pyspark.sql.types import LongType
 from pyspark.sql.functions import udf
-from geotorch.preprocessing.utility.exceptions import InvalidParametersException
+from geotorch.utility.exceptions import InvalidParametersException
 from geotorch.preprocessing.spark_registration import SparkRegistration
 import numpy as np
 

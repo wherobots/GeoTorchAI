@@ -2,7 +2,7 @@ from sedona.core.formatMapper.shapefileParser import ShapefileReader
 from sedona.core.formatMapper import WkbReader
 from sedona.core.formatMapper import WktReader
 from sedona.core.formatMapper import GeoJsonReader
-from .utility.exceptions import InvalidParametersException
+from geotorch.utility.exceptions import InvalidParametersException
 from .spark_registration import SparkRegistration
 from geotorch.preprocessing.enums import GeoFileType
 

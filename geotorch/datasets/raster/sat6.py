@@ -1,16 +1,17 @@
 
 import os
-from typing import Optional, Callable
+from typing import Optional, Callable, Dict
 import pandas as pd
 import numpy as np
 import rasterio
 import torch
 from torch import Tensor
-from torchvision.datasets.utils import extract_archive
 from torch.utils.data import Dataset
 from kaggle.api.kaggle_api_extended import KaggleApi
 from geotorch.datasets.raster.utility import textural_features as ttf
 from geotorch.datasets.raster.utility import spectral_indices as si
+from geotorch.utility.exceptions import InvalidParametersException
+from geotorch.utility._download_utils import _extract_archive
 
 
 ## Dataset collected from https://www.kaggle.com/datasets/crawford/deepsat-sat6
@@ -23,25 +24,24 @@ class SAT6(Dataset):
 	TEXTURAL_FEATURES = ["contrast", "dissimilarity", "homogeneity", "energy", "correlation", "ASM"]
 	SPECTRAL_INDICES = ["mean_NDWI", "mean_NDVI", "mean_RVI"]
 	SAT6_CLASSES = ["building", "barren_land", "trees", "grassland", "road", "water"]
-
-	_feature_callbacks = [ttf._get_GLCM_Contrast, ttf._get_GLCM_Dissimilarity, ttf._get_GLCM_Homogeneity, ttf._get_GLCM_Energy, ttf._get_GLCM_Correlation, ttf._get_GLCM_ASM]
 	
-	_img_height = 28
-	_img_width = 28
-	_band_green = 1
-	_band_red = 0
-	_band_nir = 3
+	IMAGE_HEIGHT = 28
+	IMAGE_WIDTH = 28
+	BAND_GREEN_INDEX = 1
+	BAND_RED_INDEX = 0
+	BAND_NIR_INDEX = 3
 
 
-	def __init__(self, root, download = False, is_train_data = True, bands = SPECTRAL_BANDS, include_additional_features = False, additional_features_list = ADDITIONAL_FEATURES,  transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
+	def __init__(self, root, download = False, is_train_data = True, bands = SPECTRAL_BANDS, include_additional_features = False, additional_features_list = ADDITIONAL_FEATURES, user_features_callback: Optional[Dict[str, Callable]] = None, transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
 		super().__init__()
 		# first check if selected bands are valid. Trow exception otherwise
 		if not self._is_valid_bands(bands):
-			# Throw error instead of printing
-			print("Invalid band names")
-			return
+			raise InvalidParametersException("Invalid band names")
+
+		self._feature_callbacks = [ttf._get_GLCM_Contrast, ttf._get_GLCM_Dissimilarity, ttf._get_GLCM_Homogeneity, ttf._get_GLCM_Energy, ttf._get_GLCM_Correlation, ttf._get_GLCM_ASM]
 
 		self.selected_band_indices = torch.tensor([self.SPECTRAL_BANDS.index(band) for band in bands])
+		self.user_features_callback = user_features_callback
 		self.transform = transform
 		self.target_transform = target_transform
 
@@ -53,7 +53,7 @@ class SAT6(Dataset):
 			api = KaggleApi()
 			api.authenticate()
 			api.dataset_download_files('crawford/deepsat-sat6', root)
-			extract_archive(root + "/deepsat-sat6.zip", root + "/deepsat-sat6")
+			_extract_archive(root + "/deepsat-sat6.zip", root + "/deepsat-sat6")
 
 		data_dir = self._get_path(root)
 		if is_train_data:
@@ -85,13 +85,18 @@ class SAT6(Dataset):
 
 				features_row = []
 				for ad_feature in additional_features_list:
-					feature_index = np.where(all_features == ad_feature)[0]
-					if len(feature_index) > 0:
-						feature_index = feature_index[0]
-						if feature_index < len_textural_features:
-							features_row.append(self._feature_callbacks[feature_index](digitized_image))
+					if self.user_features_callback != None and ad_feature in self.user_features_callback:
+						features_row.append(self.user_features_callback[ad_feature](digitized_image))
+					else:
+						feature_index = np.where(all_features == ad_feature)[0]
+						if len(feature_index) > 0:
+							feature_index = feature_index[0]
+							if feature_index < len_textural_features:
+								features_row.append(self._feature_callbacks[feature_index](digitized_image))
+							else:
+								features_row.append(self._get_mean_spectral_index(full_img, ad_feature))
 						else:
-							features_row.append(self._get_mean_spectral_index(full_img, ad_feature))
+							raise InvalidParametersException("Callback not found for some user-defined feature: " + ad_feature)
 
 				self.external_features.append(features_row)
 			self.external_features = torch.tensor(self.external_features)
@@ -144,17 +149,17 @@ class SAT6(Dataset):
 
 	def _get_mean_spectral_index(self, full_img, feature_name):
 		if feature_name == "mean_NDWI":
-			band1 = full_img[self._band_green]
-			band2 = full_img[self._band_nir]
-			return si.get_mean_index(si.get_NDWI(band1, band2), self._img_height, self._img_width)
+			band1 = full_img[self.BAND_GREEN_INDEX]
+			band2 = full_img[self.BAND_NIR_INDEX]
+			return si.get_mean_index(si.get_NDWI(band1, band2), self.IMAGE_HEIGHT, self.IMAGE_WIDTH)
 		elif feature_name == "mean_NDVI":
-			band1 = full_img[self._band_nir]
-			band2 = full_img[self._band_red]
-			return si.get_mean_index(si.get_NDVI(band1, band2), self._img_height, self._img_width)
+			band1 = full_img[self.BAND_NIR_INDEX]
+			band2 = full_img[self.BAND_RED_INDEX]
+			return si.get_mean_index(si.get_NDVI(band1, band2), self.IMAGE_HEIGHT, self.IMAGE_WIDTH)
 		elif feature_name == "mean_RVI":
-			band1 = full_img[self._band_nir]
-			band2 = full_img[self._band_red]
-			return si.get_mean_index(si.get_RVI(band1, band2), self._img_height, self._img_width)
+			band1 = full_img[self.BAND_NIR_INDEX]
+			band2 = full_img[self.BAND_RED_INDEX]
+			return si.get_mean_index(si.get_RVI(band1, band2), self.IMAGE_HEIGHT, self.IMAGE_WIDTH)
 
 
 

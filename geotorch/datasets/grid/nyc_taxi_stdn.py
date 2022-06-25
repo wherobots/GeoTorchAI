@@ -1,11 +1,10 @@
 
 import os
-import requests
 import numpy as np
 import torch
 from torch import Tensor
-from torchvision.datasets.utils import extract_archive
 from torch.utils.data import Dataset
+from geotorch.utility._download_utils import _download_remote_file, _extract_archive
 
 
 # This dataset is based on https://github.com/tangxianfeng/STDN/blob/master/file_loader.py
@@ -18,12 +17,8 @@ class TaxiNYCSTDN(Dataset):
         super().__init__()
 
         if download:
-            req = requests.get(DATA_URL)
-            file_name = root + "/" + DATA_URL.split('/')[-1]
-            with open(file_name, 'wb') as output_file:
-                output_file.write(req.content)
-
-            extract_archive(file_name, root + "/data")
+            _download_remote_file(self.DATA_URL, root)
+            _extract_archive(root + "/data.zip", root + "/data")
 
         data_dir = self._get_path(root)
 

@@ -3,6 +3,7 @@ import os
 import numpy as np
 import torch
 from torch.utils.data import Dataset
+from geotorch.utility.exceptions import InvalidParametersException
 
 
 class Processed(Dataset):
@@ -104,7 +105,7 @@ class Processed(Dataset):
         elif len_closeness>0:
             number_of_skip_hours=T_closeness*len_closeness
         else:
-            print("wrong parameters")
+            raise InvalidParametersException("Wrong parameters")
 
         Y=all_data[number_of_skip_hours:len_total]
 

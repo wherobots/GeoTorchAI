@@ -4,10 +4,11 @@ from typing import Optional, Callable
 import numpy as np
 import torch
 from torch import Tensor
-from torchvision.datasets.utils import extract_archive
 from torch.utils.data import Dataset
 from kaggle.api.kaggle_api_extended import KaggleApi
 import rasterio
+from geotorch.utility.exceptions import InvalidParametersException
+from geotorch.utility._download_utils import _extract_archive
 
 
 ## Dataset collected from https://www.kaggle.com/datasets/sorour/38cloud-cloud-segmentation-in-satellite-images
@@ -20,9 +21,7 @@ class Cloud38(Dataset):
 		super().__init__()
 		# first check if selected bands are valid. Trow exception otherwise
 		if not self._is_valid_bands(bands):
-			# Trow error instead of printing
-			print("Invalid band names")
-			return
+			raise InvalidParametersException("Invalid band names")
 
 		self.selected_band_indices = torch.tensor([self.SPECTRAL_BANDS.index(band) for band in bands])
 		self.transform = transform
@@ -33,7 +32,7 @@ class Cloud38(Dataset):
 			api = KaggleApi()
 			api.authenticate()
 			api.dataset_download_files('sorour/38cloud-cloud-segmentation-in-satellite-images', root)
-			extract_archive(root + "/38cloud-cloud-segmentation-in-satellite-images.zip", root + "/38cloud-cloud-segmentation-in-satellite-images")
+			_extract_archive(root + "/38cloud-cloud-segmentation-in-satellite-images.zip", root + "/38cloud-cloud-segmentation-in-satellite-images")
 
 		image_folders = ["train_red", "train_green", "train_blue", "train_nir"]
 		label_folder = "train_gt"

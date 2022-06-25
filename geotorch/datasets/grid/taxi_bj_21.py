@@ -1,10 +1,11 @@
 
 import os
-import requests
 import numpy as np
 import torch
 from torch import Tensor
 from torch.utils.data import Dataset
+from geotorch.utility.exceptions import InvalidParametersException
+from geotorch.utility._download_utils import _download_remote_file
 
 
 # This dataset is based on https://github.com/jwwthu/DL4Traffic/tree/main/TaxiBJ21
@@ -18,10 +19,7 @@ class TaxiBJ21(Dataset):
         self.is_training_data = is_training_data
 
         if download:
-            req = requests.get(self.DATA_URL)
-            file_name = root + "/" + self.DATA_URL.split('/')[-1]
-            with open(file_name, 'wb') as output_file:
-                output_file.write(req.content)
+            _download_remote_file(self.DATA_URL, root)
 
         data_dir = self._get_path(root)
 
@@ -127,7 +125,7 @@ class TaxiBJ21(Dataset):
         elif len_closeness>0:
             number_of_skip_hours=T_closeness*len_closeness
         else:
-            print("wrong parameters")
+            raise InvalidParametersException("Wrong parameters")
 
         Y=all_data[number_of_skip_hours:len_total]
 

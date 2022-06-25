@@ -4,6 +4,15 @@ import torch.nn.functional as torch_f
 
 # This implementation is based on https://github.com/milesial/Pytorch-UNet
 class UNet(nn.Module):
+    '''
+    Implementation of the segmentation model UNet. Paper link: https://link.springer.com/chapter/10.1007/978-3-319-24574-4_28
+
+    Parameters
+    ..........
+    in_channels (Int) - Number of channels in the input images
+    num_classes (Int) - Total number of output classes/channels
+    '''
+
     def __init__(self, in_channels, num_classes):
         super(UNet, self).__init__()
 

@@ -14,8 +14,25 @@ from geotorch.utility.exceptions import InvalidParametersException
 from geotorch.utility._download_utils import _extract_archive
 
 
-## Please cite https://www.kaggle.com/datasets/fedebayle/slums-argentina
 class SlumDetection(Dataset):
+	'''
+    This is a binary classification dtaaset. Link: https://www.kaggle.com/datasets/fedebayle/slums-argentina
+    Image Height and Width: 32 x 32, No of bands: 4, No of classes: 2
+
+    Parameters
+    ..........
+    root (String) - Path to the dataset if it is already downloaded. If not downloaded, it will be downloaded in the given path.
+    download (Boolean, Optional) - Set to True if dataset is not available in the given directory. Default: False
+    bands (List, Optional) - List of all bands that need to be included in the dataset. Default: list of all bands in the EuroSAT images.
+    include_additional_features (Boolean, Optional) - Set to True if you want to include extra image features. Default: False
+    additional_features_list (List, Optional) - List of extra features if previous parameter is set to True. Default: None
+    user_features_callback (Dict[str, Callable], Optional) - User-defined functions for extracting some or all of the features included in the additional feature list.
+                                                             A key in the dictionary is the feature name (exactly similar to what included in the feature list) and value
+                                                             is the function that returns corresponding feature. The function takes an image as input and returns the
+                                                             feature value. Default: None
+    transform (Callable, Optional) - Tranforms to apply to each image. Default: None
+    target_transform (Callable, Optional) - Tranforms to apply to each label. Default: None
+    '''
 
 
 	SPECTRAL_BANDS = ["blue", "green", "red", "nir"]

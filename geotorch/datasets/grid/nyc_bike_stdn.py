@@ -7,8 +7,24 @@ from torch.utils.data import Dataset
 from geotorch.utility._download_utils import _download_remote_file, _extract_archive
 
 
-# This dataset is based on https://github.com/tangxianfeng/STDN/blob/master/file_loader.py
 class BikeNYCSTDN(Dataset):
+    '''
+    This dataset is based on https://github.com/tangxianfeng/STDN/blob/master/file_loader.py
+    Grid map_height and map_width = 10 and 20
+
+    Parameters
+    ..........
+    root (String) - Path to the dataset if it is already downloaded. If not downloaded, it will be downloaded in the given path.
+    download (Boolean, Optional) - Set to True if dataset is not available in the given directory. Default: False
+    is_training_data (Boolean, Optional) - Set to True if you want to create the training dataset, False for testing dataset. Default: True
+    att_lstm_num (Int, Optional) - Number of LSTM attributes. Default: 3
+    long_term_lstm_seq_len (Int, Optional) - Length of long term LSTM sequence. Default: 3
+    short_term_lstm_seq_len (Int, Optional) - Length of short term LSTM sequence. Default: 7
+    hist_feature_daynum (Int, Optional) - Number of days in histogram feature. Default: 7
+    last_feature_num (Int, Optional) - Default: 48
+    nbhd_size (Int, Optional) - Default: 1
+    cnn_nbhd_size (Int, Optional) - Default: 3
+    '''
 
     DATA_URL = "https://raw.githubusercontent.com/tangxianfeng/STDN/master/data.zip"
 

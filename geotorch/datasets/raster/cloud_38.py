@@ -11,8 +11,20 @@ from geotorch.utility.exceptions import InvalidParametersException
 from geotorch.utility._download_utils import _extract_archive
 
 
-## Dataset collected from https://www.kaggle.com/datasets/sorour/38cloud-cloud-segmentation-in-satellite-images
 class Cloud38(Dataset):
+	'''
+    This is a segmentation dtaaset. Link: https://www.kaggle.com/datasets/sorour/38cloud-cloud-segmentation-in-satellite-images
+    Image Height and Width: 384 x 384, No of bands: 4
+
+    Parameters
+    ..........
+    root (String) - Path to the dataset if it is already downloaded. If not downloaded, it will be downloaded in the given path.
+    download (Boolean, Optional) - Set to True if dataset is not available in the given directory. Default: False
+    bands (List, Optional) - List of all bands that need to be included in the dataset. Default: list of all bands in the images of Cloud38.
+    transform (Callable, Optional) - Tranforms to apply to each image. Default: None
+    target_transform (Callable, Optional) - Tranforms to apply to each label. Default: None
+    '''
+
 
 	SPECTRAL_BANDS = ["red", "green", "blue", "nir"]
 	RGB_BANDS = ["red", "green", "blue"]

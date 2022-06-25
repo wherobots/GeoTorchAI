@@ -10,6 +10,18 @@ import pandas as pd
 
 
 class Processed(Dataset):
+	'''
+    This dataset is a custom dataset which can be used for any preprocessed raster image data. Datasets that are not preprocessed
+    can also be used to create a custom PyTorch dataset with this class. All raster images should be put inside multiple folders
+    where each folder represents a class. All folders representing classes should be located inside a root folder.
+
+    Parameters
+    ..........
+    root (String) - Path to the root folder of the dataset where all subfolders representing classes are located.
+    transform (Callable, Optional) - Tranforms to apply to each image. Default: None
+    target_transform (Callable, Optional) - Tranforms to apply to each label. Default: None
+    '''
+
 
 	def __init__(self, root, transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
 		super().__init__()

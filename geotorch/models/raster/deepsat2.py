@@ -10,6 +10,18 @@ import numpy as np
 
 
 class DeepSatV2(nn.Module):
+    '''
+    Implementation of the classification model DeepSatV2. Paper link: https://arxiv.org/abs/1911.07747
+
+    Parameters
+    ..........
+    in_channels (Int) - Number of channels in the input images
+    in_height (Int) - Height of the input images
+    in_width (Int) - Width of the input images
+    num_classes (Int) - Total number of classes/labels in the dataset
+    num_filtered_features (Int) - Number of filtered features. Default: 0
+    '''
+
     def __init__(self, in_channels, in_height, in_width, num_classes, num_filtered_features = 0):
         super(DeepSatV2, self).__init__()
 

@@ -4,6 +4,19 @@ import torch.nn as nn
 ## This implementation follows the implementation available here: https://github.com/ndrplz/ConvLSTM_pytorch
 
 class ConvLSTM(nn.Module):
+    '''
+    Implementation of the model ConvLSTM. Paper link: https://dl.acm.org/doi/10.5555/2969239.2969329
+
+    Parameters
+    ..........
+    input_dim (Int) - Number of input features or channels
+    hidden_dim (Int or List of Int, Optional) - Default: [128, 64, 64]. Indicates the number of nodes or
+                                            filters in all layers. If not a list, same value will be used for each layer.
+    kernel_size (Tuple or List of Tuple, Optional) - Default: (3, 3). Indicates the filter size. If not list,
+                                                     same kernel size will be used in all layers.
+    num_layers (Int, Optional) - Default: 3. Indicates number of layers.
+    bias (Boolean, Optional) - Default: True. Denotes whether bias parameter is True or False.
+    '''
 
     def __init__(self, input_dim, hidden_dim = [128, 64, 64], kernel_size = (3, 3), num_layers = 3, bias=True):
         super(ConvLSTM, self).__init__()
@@ -45,9 +58,6 @@ class ConvLSTM(nn.Module):
         if hidden_state is None:
             hidden_state = self._init_hidden(b, h, w)
 
-        #layer_output_list = []
-        #last_state_list = []
-
         cur_layer_input = input_tensor
 
         for layer_idx in range(self.num_layers):
@@ -61,16 +71,6 @@ class ConvLSTM(nn.Module):
             layer_output = torch.stack(output_inner, dim=1)
             cur_layer_input = layer_output
 
-            #layer_output_list.append(layer_output)
-            #last_state_list.append((h, c))
-
-        '''if not self.return_all_layers:
-            #layer_output_list = layer_output_list[-1:]
-            #last_state_list = last_state_list[-1:]
-            layer_output_list = layer_output
-            last_state_list = (h, c)'''
-
-        #return layer_output_list, last_state_list
         return layer_output, (h, c)
 
     def _init_hidden(self, batch_size, height, width):

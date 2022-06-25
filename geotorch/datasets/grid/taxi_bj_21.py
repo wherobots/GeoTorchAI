@@ -8,9 +8,24 @@ from geotorch.utility.exceptions import InvalidParametersException
 from geotorch.utility._download_utils import _download_remote_file
 
 
-# This dataset is based on https://github.com/jwwthu/DL4Traffic/tree/main/TaxiBJ21
-## Gri map_height and map_width = 32 and 32
 class TaxiBJ21(Dataset):
+    '''
+    This dataset is based on https://github.com/jwwthu/DL4Traffic/tree/main/TaxiBJ21
+    Grid map_height and map_width = 32 and 32
+
+    Parameters
+    ..........
+    root (String) - Path to the dataset if it is already downloaded. If not downloaded, it will be downloaded in the given path.
+    download (Boolean, Optional) - Set to True if dataset is not available in the given directory. Default: False
+    is_training_data (Boolean, Optional) - Set to True if you want to create the training dataset, False for testing dataset. Default: True
+    test_ratio (Float, Optional) - Length fraction of the test dataset. Default: 0.1
+    len_closeness (Int, Optional) - Length of closeness. Default: 3
+    len_period (Int, Optional) - Length of period. Default: 4
+    len_trend (Int, Optional) - Length of trend. Default: 4
+    T_closeness (Int, Optional) - Closeness length of T_data. Default: 1
+    T_period (Int, Optional) - Period length of T_data. Default: 24
+    T_trend (Int, Optional) - Trend length of T_data. Default: 24*7
+    '''
 
     DATA_URL = "https://raw.githubusercontent.com/jwwthu/DL4Traffic/main/TaxiBJ21/TaxiBJ21.npy"
 

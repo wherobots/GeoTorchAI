@@ -7,6 +7,23 @@ from geotorch.utility.exceptions import InvalidParametersException
 
 
 class Processed(Dataset):
+    '''
+    This dataset is used load a grid-based spatiotemporal tensor/dataset that is created through GeoTorch Preprocessing module or any other means.
+    The tensor created through the preprocessing steps should available as an npy file of shape: TxCxHxW
+    T => total number of timesteps, C => number of channels/features, H => Grid Height, W => Grid Width.
+
+    Parameters
+    ..........
+    root (String) - Path to the npy file of the dataset
+    is_training_data (Boolean, Optional) - Set to True if you want to create the training dataset, False for testing dataset. Default: True
+    test_ratio (Float, Optional) - Length fraction of the test dataset. Default: 0.1
+    len_closeness (Int, Optional) - Length of closeness. Default: 3
+    len_period (Int, Optional) - Length of period. Default: 4
+    len_trend (Int, Optional) - Length of trend. Default: 4
+    T_closeness (Int, Optional) - Closeness length of T_data. Default: 1
+    T_period (Int, Optional) - Period length of T_data. Default: 24
+    T_trend (Int, Optional) - Trend length of T_data. Default: 24*7
+    '''
 
     def __init__(self, root, is_training_data=True, test_ratio = 0.1, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
         super().__init__()

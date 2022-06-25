@@ -2,6 +2,15 @@ import torch
 
 
 class AppendNormalizedDifferenceIndex(object):
+	'''
+    This is a tranformation operation that calculates the Normalized Difference Index between two input
+    channels and appends the calculated Normalized Difference Index to the raster image as a new channel. 
+
+    Parameters
+    ..........
+    band_index1 (Int) - Index of the first band.
+    band_index2 (Int) - Index of the second band
+    '''
 
 	def __init__(self, band_index1, band_index2):
 		self.band_index1 = band_index1
@@ -25,6 +34,15 @@ class AppendNormalizedDifferenceIndex(object):
 
 
 class AppendRatioIndex(object):
+	'''
+    This is a tranformation operation that calculates the ratio index between two input channels
+    and appends the calculated Normalized Difference Index to the raster image as a new channel.  
+
+    Parameters
+    ..........
+    band_index1 (Int) - Index of the first band.
+    band_index2 (Int) - Index of the second band
+    '''
 
 	def __init__(self, band_index1, band_index2):
 		self.band_index1 = band_index1
@@ -47,6 +65,17 @@ class AppendRatioIndex(object):
 
 
 class AppendAWEI(object):
+	'''
+    This is a tranformation operation that calculates the ratio index between two input channels
+    and appends the calculated Normalized Difference Index to the raster image as a new channel. 
+
+    Parameters
+    ..........
+    band_index_green (Int) - Index of the green band.
+    band_index_nir (Int) - Index of the NIR band
+    band_index_swir1 (Int) - Index of the first SWIR band.
+    band_index_swir2 (Int) - Index of the second SWIR band
+    '''
 
 	def __init__(self, band_index_green, band_index_nir, band_index_swir1, band_index_swir2):
 		self.band_index_green = band_index_green

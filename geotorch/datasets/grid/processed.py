@@ -39,11 +39,21 @@ class Processed(Dataset):
         
 
 
+    ## This method returns the difference between maximum and minimum values of this dataset
     def get_min_max_difference(self):
         return self.min_max_diff
 
 
     def merge_closeness_period_trend(self, history_length, predict_length):
+        '''
+        Call this method if you want to iterate the dataset as a sequence of histories and predictions instead of closeness, period, and trend.
+
+        Parameters
+        ..........
+        history_length (Int) - Length of history data in sequence of each sample
+        predict_length (Int) - Length of prediction data in sequence of each sample
+        '''
+
         max_data = np.max(self.merged_data)
         min_data = np.min(self.merged_data)
         self.min_max_diff = max_data-min_data

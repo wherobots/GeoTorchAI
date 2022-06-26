@@ -123,6 +123,11 @@ class SAT4(Dataset):
 			self.external_features = None
 
 
+	## This method returns the class labels as a dictionary of key-value pairs. Key-> class name, value-> class index
+	def get_class_labels(self):
+		return self._class_to_idx
+
+
 	def __len__(self) -> int:
 		return len(self.x_data)
 

@@ -1,10 +1,5 @@
-import click
-import logging
-from pathlib import Path
 import torch
 import torch.nn as nn
-from torchsummary import summary
-from collections import OrderedDict
 import numpy as np
 
 
@@ -40,6 +35,12 @@ class FullyConvolutionalNetwork(nn.Module):
         self.modelSequences = nn.Sequential(*moduleList)
 
         
-    def forward(self, x):
-        return self.modelSequences(x)
+    def forward(self, images):
+        '''
+        Parameters
+        ..........
+        images (Tensor) - Tensor containing the sample images
+        '''
+
+        return self.modelSequences(images)
 

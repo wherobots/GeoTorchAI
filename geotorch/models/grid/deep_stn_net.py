@@ -81,29 +81,39 @@ class DeepSTN(nn.Module):
         self.tanh = torch.tanh
         
 
-    def forward(self, c_input, p_input, t_input, time_in = None, poi_in = None):
+    def forward(self, input_c, input_p, input_t, input_time = None, input_poi = None):
+        '''
+        Parameters
+        ..........
+        input_c (Tensor) - Closeness sequence part of the input sample
+        input_p (Tensor) - Period sequence part of the input sample
+        input_t (Tensor) - Trend sequence part of the input sample
+        input_time (Tensor, Optional) - Temporal part of input sample when is_pt is True. Default: None
+        input_poi (Tensor, Optional) - POI part of input sample when is_pt is True. Default: None
+        '''
+
         if self._device == None:
-            if c_input.get_device() == 0:
+            if input_c.get_device() == 0:
                 self._device = torch.device("cuda")
             else:
                 self._device = torch.device("cpu")
             self.ptTrans._set_device(self._device)
 
-        c_input = c_input.view(-1, self.channel_c, self.H, self.W)
-        p_input = p_input.view(-1, self.channel_p, self.H, self.W)
-        t_input = t_input.view(-1, self.channel_t, self.H, self.W)
+        input_c = input_c.view(-1, self.channel_c, self.H, self.W)
+        input_p = input_p.view(-1, self.channel_p, self.H, self.W)
+        input_t = input_t.view(-1, self.channel_t, self.H, self.W)
 
-        c_out1 = self.conv1(c_input)
-        p_out1 = self.conv2(p_input)
-        t_out1 = self.conv3(t_input)
+        c_out1 = self.conv1(input_c)
+        p_out1 = self.conv2(input_p)
+        t_out1 = self.conv3(input_t)
 
         if self.is_pt:
-            time_in = time_in.view(-1, self.T+7, self.H, self.W)
+            input_time = input_time.view(-1, self.T+7, self.H, self.W)
 
-            if poi_in != None:
-                poi_in = poi_in.view(-1, self.P_N, self.H, self.W)
+            if input_poi != None:
+                input_poi = input_poi.view(-1, self.P_N, self.H, self.W)
             
-            poi_time = self.ptTrans(time_in, poi_in)
+            poi_time = self.ptTrans(input_time, input_poi)
 
             cpt_con1 = torch.cat((c_out1, p_out1, t_out1, poi_time), axis=1)
 
@@ -285,18 +295,18 @@ class _PT_trans(nn.Module):
         else:
             self.conv = nn.Conv2d(1, PT_F, kernel_size=1, padding = "same")
 
-    def forward(self, time_in, poi_in = None):
-        time_in = time_in.view(-1, self.T+7, self.H, self.W)
+    def forward(self, input_time, input_poi = None):
+        input_time = input_time.view(-1, self.T+7, self.H, self.W)
 
-        t_x = self.t_trans(time_in)
+        t_x = self.t_trans(input_time)
 
-        if poi_in != None:
-            poi_in = poi_in.view(-1, self.P_N, self.H, self.W)
+        if input_poi != None:
+            input_poi = input_poi.view(-1, self.P_N, self.H, self.W)
 
             if self.P_N >= 2:
                 t_x = torch.cat(tuple([t_x]*self.P_N), axis=1)
 
-            poi_time = self.multiply(torch.stack([poi_in, t_x]))
+            poi_time = self.multiply(torch.stack([input_poi, t_x]))
         else:
             poi_time = self.multiply(torch.stack([t_x]))
 

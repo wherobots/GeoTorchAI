@@ -50,6 +50,11 @@ class ProcessedWithExtraFeatures(Dataset):
 			self.additional_features = torch.tensor(df_data.drop(columns=[origin, class_label]).values)
 
 
+	## This method returns the class labels as a dictionary of key-value pairs. Key-> class name, value-> class index
+	def get_class_labels(self):
+		return self._class_to_idx
+
+
 	def __len__(self) -> int:
 		return len(self.image_paths)
 	
@@ -71,9 +76,6 @@ class ProcessedWithExtraFeatures(Dataset):
 			tiff_data = f.read().astype(np.float32)
 		return torch.tensor(tiff_data)
 
-
-	def get_class_labels():
-		return self._class_to_idx
 
 
 

@@ -92,7 +92,7 @@ def createModelAndTrain():
                 Y_batch = sample["y_data"].type(torch.FloatTensor).to(device)
 
                 # Forward pass
-                outputs = model(X_c, X_p, X_t, None)
+                outputs = model(X_c, X_p, X_t)
                 loss = loss_fn(outputs, Y_batch)
 
                 # Backward and optimize
@@ -121,7 +121,7 @@ def createModelAndTrain():
             X_t = sample["x_trend"].type(torch.FloatTensor).to(device)
             Y_batch = sample["y_data"].type(torch.FloatTensor).to(device)
 
-            outputs = model(X_c, X_p, X_t, None)
+            outputs = model(X_c, X_p, X_t)
             mse, mae, rmse = compute_errors(outputs.cpu().data.numpy(), Y_batch.cpu().data.numpy())
 
             rmse_list.append(rmse)
@@ -172,7 +172,7 @@ def get_validation_loss(model, val_generator, criterion, device):
         X_t = sample["x_trend"].type(torch.FloatTensor).to(device)
         Y_batch = sample["y_data"].type(torch.FloatTensor).to(device)
 
-        outputs = model(X_c, X_p, X_t, None)
+        outputs = model(X_c, X_p, X_t)
         mse= criterion(outputs, Y_batch).item()
         mean_loss.append(mse)
 

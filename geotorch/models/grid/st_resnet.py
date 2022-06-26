@@ -1,9 +1,5 @@
-import click
-import logging
-from pathlib import Path
 import torch
 import torch.nn as nn
-from torchsummary import summary
 from collections import OrderedDict
 
 
@@ -67,7 +63,16 @@ class STResNet(nn.Module):
             ('FusionLayer', _TrainableEltwiseLayer(n = flow_num, h = self.map_height, w = self.map_width))
         ]))
 
-    def forward(self, input_c, input_p, input_t, input_ext):
+    def forward(self, input_c, input_p, input_t, input_ext = None):
+        '''
+        Parameters
+        ..........
+        input_c (Tensor) - Closeness sequence part of the input sample
+        input_p (Tensor) - Period sequence part of the input sample
+        input_t (Tensor) - Trend sequence part of the input sample
+        input_ext (Tensor, Optional) - Extra input part of input sample when external_dim > 0. Default: None
+        '''
+
         main_output = 0
         if self.c_conf is not None:
             input_c = input_c.view(-1, self.c_conf[0]*self.c_conf[1], self.c_conf[2], self.c_conf[3])
@@ -82,7 +87,7 @@ class STResNet(nn.Module):
             out_t = self.t_way(input_t)
             main_output += out_t
 
-        if self.external_dim != None and self.external_dim > 0:
+        if self.external_dim != None and self.external_dim > 0 and input_ext != None:
             external_output = self.external_ops(input_ext)
             external_output = self.relu(external_output)
             external_output = external_output.view(-1, self.nb_flow, self.map_height, self.map_width)

@@ -31,8 +31,14 @@ class UNet(nn.Module):
         self.outpu_conv = _FinalConvolution(64, num_classes)
 
         
-    def forward(self, x):
-        x1 = self.input_conv(x)
+    def forward(self, images):
+        '''
+        Parameters
+        ..........
+        images (Tensor) - Tensor containing the sample images
+        '''
+
+        x1 = self.input_conv(images)
 
         x2 = self.down_sample1(x1)
         x3 = self.down_sample2(x2)

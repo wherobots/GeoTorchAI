@@ -49,6 +49,15 @@ class TaxiBJ21(Dataset):
 
 
     def merge_closeness_period_trend(self, history_length, predict_length):
+        '''
+        Call this method if you want to iterate the dataset as a sequence of histories and predictions instead of closeness, period, and trend.
+
+        Parameters
+        ..........
+        history_length (Int) - Length of history data in sequence of each sample
+        predict_length (Int) - Length of prediction data in sequence of each sample
+        '''
+
         max_data = np.max(self.merged_data)
         min_data = np.min(self.merged_data)
         self.min_max_diff = max_data-min_data
@@ -115,9 +124,6 @@ class TaxiBJ21(Dataset):
 
     # This is replication of lzq_load_data method proposed by authors here: https://github.com/FIBLAB/DeepSTN/blob/master/BikeNYC/DATA/lzq_read_data_time_poi.py
     def _create_feature_vector(self, all_data, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend):
-        max_data = np.max(all_data)
-        min_data = np.min(all_data)
-
         len_total,feature,map_height,map_width = all_data.shape
 
         time=np.arange(len_total,dtype=int)

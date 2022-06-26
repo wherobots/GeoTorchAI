@@ -50,6 +50,13 @@ class ConvLSTM(nn.Module):
         self.cell_list = nn.ModuleList(cell_list)
 
     def forward(self, input_tensor, hidden_state=None):
+        '''
+        Parameters
+        ..........
+        input_tensor (Tensor) - History sequence part of the input sample
+        hidden_state (Tuple, Optional) - A tuple of pair denoting the hidden state: (h, c). Default: None
+        '''
+
         if self.device is None:
             self.device = input_tensor.device
 

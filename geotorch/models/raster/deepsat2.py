@@ -1,11 +1,6 @@
-import click
-import logging
-from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.nn.functional as torch_f
-from torchsummary import summary
-from collections import OrderedDict
 import numpy as np
 
 
@@ -44,15 +39,22 @@ class DeepSatV2(nn.Module):
         	nn.Linear(128, num_classes))
 
         
-    def forward(self, images, filtered_features):
-        x = self.sequences_part1(images)
-        x = x.view(x.size(0), -1)
+	def forward(self, images, filtered_features):
+		'''
+		Parameters
+		..........
+		images (Tensor) - Tensor containing the sample images
+		filtered_features (Tensor) - Tensor containing the additional features
+		'''
 
-        if filtered_features != None:
-        	x = torch.cat((x, filtered_features), axis=1)
+		x = self.sequences_part1(images)
+		x = x.view(x.size(0), -1)
 
-        x = self.sequences_part2(x)
-        x = torch_f.softmax(x, dim=1)
+		if filtered_features != None:
+			x = torch.cat((x, filtered_features), axis=1)
 
-        return x
+		x = self.sequences_part2(x)
+		x = torch_f.softmax(x, dim=1)
+
+		return x
 

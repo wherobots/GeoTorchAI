@@ -11,6 +11,20 @@ class STManager:
 
 	@classmethod
 	def convert_date_format(cls, df, date_column, new_format, new_column_alias = None):
+		'''
+	    This function converts dates of a column from one format to another format.
+
+	    Parameters
+	    ........... 
+        df (pyspark.sql.DataFrame) - PySpark DataFrame containing the date column
+        date_column (String) - Column name in df dataframe that contains the dates
+        new_format (String) - New format to which date will be converted
+        new_column_alias (String, Optional) - New column name which will contain the reformatted date. Default: "reformatted_" + date_column
+
+	    Returns
+	    .........
+	    A PySpark DataFrame.
+	    '''
 		if new_column_alias == None:
 			new_column_alias = "reformatted_" + date_column
 		return df.withColumn(new_column_alias, date_format(date_column, new_format))
@@ -19,6 +33,20 @@ class STManager:
 
 	@classmethod
 	def get_unix_timestamp(cls, df, date_column, date_format = "yyyy-MM-dd HH:mm:ss", new_column_alias = None):
+		'''
+	    This function converts the dates in a column into unix timestamps and appends to the dataframe as a new column.
+
+	    Parameters
+	    ........... 
+        df (pyspark.sql.DataFrame) - PySpark DataFrame containing the date column
+        date_column (String) - Column name in df dataframe that contains the dates
+        date_format (String, Optional) - Current format of the dates. If not provided, it assumes the default format to be: "yyyy-MM-dd HH:mm:ss"
+        new_column_alias (String, Optional) - New column name which will contain the reformatted date. Default: "unix_" + date_column
+
+	    Returns
+	    .........
+	    A PySpark DataFrame.
+	    '''
 		if new_column_alias == None:
 			new_column_alias = "unix_" + date_column
 
@@ -28,6 +56,21 @@ class STManager:
 
 	@classmethod
 	def trim_on_timestamp(cls, df, target_column, upper_threshold = None, lower_threshold = None):
+		'''
+	    This function filters a dataframe deleting rows having timestamp values either above an upper threshold or below a lower threshold.
+	    Among upper and lower thresholds, one of the parameters can be optionally None, but both of these parameters cannot be None simultaneously.
+
+	    Parameters
+	    ........... 
+        df (pyspark.sql.DataFrame) - PySpark DataFrame containing the timestamp column
+        target_column (String) - Column name in df dataframe that contains the timestamps
+        upper_threshold (Long, Optional) - Upper threshold, default: None
+        lower_threshold (Long, Optional) - Lower threshold, default: None
+
+	    Returns
+	    .........
+	    A PySpark DataFrame.
+	    '''
 		if upper_threshold == None and lower_threshold == None:
 			raise InvalidParametersException("Both upper_threshold and lower_threshold cannot be None")
 		else:
@@ -44,6 +87,22 @@ class STManager:
 
 	@classmethod
 	def trim_on_datetime(cls, df, target_column, upper_date = None, lower_date = None, date_format = "yyyy-MM-dd HH:mm:ss"):
+		'''
+	    This function filters a dataframe deleting rows having datetime values either above an upper threshold or below a lower threshold.
+	    Among upper and lower thresholds, one of the parameters can be optionally None, but both of these parameters cannot be None simultaneously.
+
+	    Parameters
+	    ........... 
+        df (pyspark.sql.DataFrame) - PySpark DataFrame containing the timestamp column
+        target_column (String) - Column name in df dataframe that contains the timestamps
+        upper_date (Long, Optional) - Date denoting the upper threshold, default: None
+        lower_date (Long, Optional) - Date denoting the lower threshold, default: None
+        date_format (String, Optional) - Current format of the date column. If not provided, it assumes the default format to be: "yyyy-MM-dd HH:mm:ss"
+
+	    Returns
+	    .........
+	    A PySpark DataFrame.
+	    '''
 		if upper_date == None and lower_date == None:
 			raise InvalidParametersException("Both upper_date and lower_date cannot be None")
 		else:
@@ -73,6 +132,20 @@ class STManager:
 
 	@classmethod
 	def add_temporal_steps(cls, df, timestamp_column, step_duration, temporal_steps_alias = None):
+		'''
+	    This function adds timestep intervals as a new column to a dataframe which contains a column with unix timestamps.
+
+	    Parameters
+	    ........... 
+        df (pyspark.sql.DataFrame) - PySpark DataFrame containing the timestamp column
+        timestamp_column (String) - Column name in df dataframe that contains the timestamps
+        step_duration (Int, Optional) - Duration of a timestep interval or distance between two consecutive timesteps
+        temporal_steps_alias (String, Optional) - New column name which will contain the timesteps. Default: "temporal_steps"
+
+	    Returns
+	    .........
+	    A PySpark DataFrame.
+	    '''
 		if temporal_steps_alias == None:
 			temporal_steps_alias = "temporal_steps"
 
@@ -88,12 +161,38 @@ class STManager:
 
 	@classmethod
 	def get_temporal_steps_count(cls, df, temporal_steps_column):
+		'''
+	    This function returns the total number of timesteps or timestep intervals in a dataframe.
+
+	    Parameters
+	    ........... 
+        df (pyspark.sql.DataFrame) - PySpark DataFrame containing the timestamp column
+        temporal_steps_column (String) - Column name in df dataframe that contains the timesteps
+
+	    Returns
+	    .........
+	    An Integer: number of timesteps
+	    '''
 		return int(df.agg({temporal_steps_column: "max"}).collect()[0][0]) + 1
 
 
 
 	@classmethod
 	def add_spatial_points(cls, df, lat_column, lon_column, new_column_alias = None):
+		'''
+	    This function creates a column of spatial Point objects from latitude and longitude columns.
+
+	    Parameters
+	    ........... 
+        df (pyspark.sql.DataFrame) - PySpark DataFrame containing latitude and longitude columns
+        lat_column (String) - Name of the latitude column
+        lon_column (String, Optional) - Name of the longitude column
+        new_column_alias (String, Optional) - New column name which will contain the spatial point objects. Default: "st_points"
+
+	    Returns
+	    .........
+	    A PySpark DataFrame.
+	    '''
 		if new_column_alias == None:
 			new_column_alias = "st_points"
 
@@ -222,6 +321,23 @@ class STManager:
 
 	@classmethod
 	def get_st_array(cls, df, temporal_id, spatial_id, columns_list, temporal_length, spatial_length, missing_data = None):
+		'''
+	    This function creates a spatiotemporal tensor shaped array from a spatiotemporal dataframe.
+
+	    Parameters
+	    ........... 
+        df (pyspark.sql.DataFrame) - PySpark DataFrame from which spatiotemporal array will be created
+        temporal_id (String) - Name of the column that contains timestep ids
+        spatial_id (String) - Name of the column that contains spatial polygon/point ids
+        columns_list (String) - Columns representing the features to be included to the array or spatiotemporal tensor.
+        temporal_length (String) - Total number of timesteps
+        spatial_length (String) - Total number of spatial point or polygon objects
+        missing_data (String, Optional) - Feature value which will replace the empty cells
+
+	    Returns
+	    .........
+	    A numpy array with a shape of spatiotemporal tensor
+	    '''
 		st_array = np.empty((temporal_length, spatial_length, len(columns_list)))
 		if missing_data == None:
 			st_array[:] = np.NaN
@@ -240,6 +356,24 @@ class STManager:
 
 	@classmethod
 	def get_st_grid_array(cls, df, temporal_id, spatial_id, columns_list, temporal_length, height, width, missing_data = None):
+		'''
+	    This function creates a grid-based spatiotemporal tensor shaped array from a grid-based spatiotemporal dataframe.
+
+	    Parameters
+	    ........... 
+        df (pyspark.sql.DataFrame) - PySpark DataFrame from which spatiotemporal array will be created
+        temporal_id (String) - Name of the column that contains timestep ids
+        spatial_id (String) - Name of the column that contains spatial polygon/point ids
+        columns_list (String) - Columns representing the features to be included to the array or spatiotemporal tensor.
+        temporal_length (String) - Total number of timesteps
+        height (String) - Height of grid or number of rows
+        width (String) - Width of grid or number of columns
+        missing_data (String, Optional) - Feature value which will replace the empty cells
+
+	    Returns
+	    .........
+	    A numpy array with a shape of spatiotemporal tensor
+	    '''
 		st_array = np.empty((temporal_length, height, width, len(columns_list)))
 		if missing_data == None:
 			st_array[:] = np.NaN
@@ -260,6 +394,21 @@ class STManager:
 
 	@classmethod
 	def get_spatial_array(cls, df, spatial_id, columns_list, spatial_length, missing_data = None):
+		'''
+	    This function creates a spatial tensor shaped array from a spatial dataframe. It does not contain any temporal dimension.
+
+	    Parameters
+	    ........... 
+        df (pyspark.sql.DataFrame) - PySpark DataFrame from which spatial array will be created
+        spatial_id (String) - Name of the column that contains spatial polygon/point ids
+        columns_list (String) - Columns representing the features to be included to the array or spatial tensor.
+        spatial_length (String) - Total number of spatial point or polygon objects
+        missing_data (String, Optional) - Feature value which will replace the empty cells
+
+	    Returns
+	    .........
+	    A numpy array with a shape of spatial tensor
+	    '''
 		st_array = np.empty((spatial_length, len(columns_list)))
 		if missing_data == None:
 			st_array[:] = np.NaN
@@ -276,6 +425,22 @@ class STManager:
 
 	@classmethod
 	def get_spatial_grid_array(cls, df, spatial_id, columns_list, height, width, missing_data = None):
+		'''
+	    This function creates a grid-based spatial tensor shaped array from a grid-based spatial dataframe. It does not contain any temporal dimension.
+
+	    Parameters
+	    ........... 
+        df (pyspark.sql.DataFrame) - PySpark DataFrame from which spatial array will be created
+        spatial_id (String) - Name of the column that contains spatial polygon/point ids
+        columns_list (String) - Columns representing the features to be included to the array or spatial tensor.
+        height (String) - Height of grid or number of rows
+        width (String) - Width of grid or number of columns
+        missing_data (String, Optional) - Feature value which will replace the empty cells
+
+	    Returns
+	    .........
+	    A numpy array with a shape of spatial tensor
+	    '''
 		st_array = np.empty((height, width, len(columns_list)))
 		if missing_data == None:
 			st_array[:] = np.NaN

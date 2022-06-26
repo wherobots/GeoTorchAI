@@ -2,24 +2,29 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6fdb80bd-33f2-41e8-adee-5fb3f2eb8cce" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/train_stresnet.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/train_stresnet.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/geotorch/datasets/grid/nyc_bike_deepstn.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/datasets/grid/nyc_bike_deepstn.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/geotorch/datasets/grid/processed.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/datasets/grid/processed.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/geotorch/datasets/grid/taxi_bj_21.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/datasets/grid/taxi_bj_21.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/geotorch/datasets/raster/cloud_38.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/datasets/raster/cloud_38.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/geotorch/datasets/raster/euro_sat.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/datasets/raster/euro_sat.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geotorch/datasets/raster/processed_extra_features.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/datasets/raster/processed_extra_features.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/geotorch/datasets/raster/sat4.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/datasets/raster/sat4.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/geotorch/datasets/raster/sat6.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/datasets/raster/sat6.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/geotorch/datasets/raster/slum_detection.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/datasets/raster/slum_detection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geotorch/models/grid/conv_lstm.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/models/grid/conv_lstm.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geotorch/models/grid/deep_stn_net.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/models/grid/deep_stn_net.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geotorch/models/grid/st_resnet.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/models/grid/st_resnet.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geotorch/models/raster/deepsat2.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/models/raster/deepsat2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geotorch/models/raster/fcn.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/models/raster/fcn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geotorch/models/raster/sat_cnn.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/models/raster/sat_cnn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geotorch/models/raster/unet.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/models/raster/unet.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geotorch/preprocessing/adapter.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/preprocessing/adapter.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/geotorch/preprocessing/geo_io.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/preprocessing/geo_io.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/geotorch/preprocessing/grid/adjacency.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/preprocessing/grid/adjacency.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/geotorch/preprocessing/grid/space_partition.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/preprocessing/grid/space_partition.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/geotorch/preprocessing/grid/st_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/preprocessing/grid/st_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/geotorch/preprocessing/spark_registration.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/preprocessing/spark_registration.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/geotorch/preprocessing/utility/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/geotorch/preprocessing/utility/exceptions.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/geotorch/preprocessing/utility/method_overload.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/geotorch/preprocessing/utility/properties.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/geotorch/preprocessing/utility/types.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/geotorch/preprocessing/raster/raster_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/preprocessing/raster/raster_processing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geotorch/utility/exceptions.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/utility/exceptions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/geotorch/utility/method_overload.py" beforeDir="false" afterPath="$PROJECT_DIR$/geotorch/utility/method_overload.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,13 +43,13 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "/media/kchowdh1/fcf87b53-9c62-4c1d-9df2-cb2b83598bea/kanchan/programs/Repositories/DatSysLab/GeoTorch"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/media/kchowdh1/fcf87b53-9c62-4c1d-9df2-cb2b83598bea/kanchan/programs/Repositories/DatSysLab/GeoTorch&quot;
   }
-}]]></component>
+}</component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -55,5 +60,16 @@
       <updated>1656111596382</updated>
     </task>
     <servers />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/geotorch/datasets/grid/taxi_bj_21.py</url>
+          <line>1</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

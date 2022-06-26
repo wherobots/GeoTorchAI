@@ -1,3 +1,4 @@
+
 class InvalidParametersException(Exception):
     """
     Exception added to handle invalid constructor of function parameters

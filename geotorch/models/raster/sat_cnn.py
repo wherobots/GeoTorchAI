@@ -41,6 +41,12 @@ class SatCNN(nn.Module):
 
         
     def forward(self, images):
+        '''
+        Parameters
+        ..........
+        images (Tensor) - Tensor containing the sample images
+        '''
+
         x = self.sequences_part1(images)
         x = x.view(x.size(0), -1)
 

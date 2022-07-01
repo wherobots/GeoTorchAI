@@ -26,20 +26,23 @@ Following libraries need to be set up before using GeoTorch.
 Details documentation on installation, API, and programming guide is available on [GeoTorch Website](https://kanchanchy.github.io/geotorch/).
 
 ## Example
-We show a very short example of satellite imagery classification using GeoTorch in a step-by-step manner. Training a satellite imagery classification models consists of three steps: loading dataset, initializing model and parameters, and model training.
+We show a very short example of satellite imagery classification using GeoTorch in a step-by-step manner. Training a satellite imagery classification models consists of three steps: loading dataset, initializing model and parameters, and model training. We pick the SatCNN model to classify SAT6 satellite images.
 #### Loading Dataset
 Load the training and testing splits of SAT6 Dataset. Setting download=True for training dataset will download the full data. So, set download=False for testing dataset.
 ```
-train_data = SAT6(root = "data/sat6", download = True, is_train_data = True)
-test_data = SAT6(root = "data/sat6", download = False, is_train_data = False)
+train_data = geotorch.datasets.raser.SAT6(root="data/sat6", download=True, is_train_data=True)
+test_data = geotorch.datasets.raser.SAT6(root="data/sat6", download=False, is_train_data=False)
 ```
 ```
-train_loader = DataLoader(train_data, batch_size=16)
-test_loader = DataLoader(test_data, batch_size=16)
+train_loader = torch.utils.data.DataLoader(train_data, batch_size=16)
+test_loader = torch.utils.data.DataLoader(test_data, batch_size=16)
 ```
 #### Initializing Model and Parameters
 ```
+Model initialization parameters are based on the property of SAT6 dataset.
 model = SatCNN(in_channels=4, in_height=28, in_width=28, num_classes=6)
+loss_fn = torch.nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.0002)
 ```
 
 ## Other Contributions of this Project

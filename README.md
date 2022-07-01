@@ -44,6 +44,18 @@ model = SatCNN(in_channels=4, in_height=28, in_width=28, num_classes=6)
 loss_fn = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0002)
 ```
+#### Train a Model for One Epoch
+```
+for i, sample in enumerate(train_loader):
+    inputs, labels = sample
+    # Forward pass
+    outputs = model(inputs)
+    loss = loss_fn(outputs, labels)
+    # Backward pass and optimize
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+```
 
 ## Other Contributions of this Project
 We also contributed to [Apache Sedona](https://sedona.apache.org/) to add transformation and write supports for GeoTiff raster images. This contribution is also a part of this project. Contribution reference: [Commits](https://github.com/apache/incubator-sedona/commits?author=kanchanchy)

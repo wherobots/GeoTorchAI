@@ -52,7 +52,7 @@ for i, sample in enumerate(train_loader):
     loss.backward()
     optimizer.step()
 ```
-For more details on evaluating the model on test dataset, please have a look at our detailed examples [here](https://github.com/DataSystemsLab/GeoTorch/tree/main/examples).
+For more details on evaluating the model on test dataset, training the model for multiple epochs, and saving the best model, please have a look at our detailed examples [here](https://github.com/DataSystemsLab/GeoTorch/tree/main/examples).
 
 ## Other Contributions of this Project
 We also contributed to [Apache Sedona](https://sedona.apache.org/) to add transformation and write supports for GeoTiff raster images. This contribution is also a part of this project. Contribution reference: [Commits](https://github.com/apache/incubator-sedona/commits?author=kanchanchy)

@@ -27,7 +27,7 @@ Details documentation on installation, API, and programming guide is available o
 
 ## Example
 We show a very short example of satellite imagery classification using GeoTorch in a step-by-step manner. Training a satellite imagery classification models consists of three steps: loading dataset, initializing model and parameters, and model training. We pick the [SatCNN](https://www.tandfonline.com/doi/abs/10.1080/2150704X.2016.1235299?journalCode=trsl20) model to classify [SAT6](https://www.kaggle.com/datasets/crawford/deepsat-sat6) satellite images.
-#### Loading Dataset
+#### Loading Training Dataset
 Load the training and testing splits of SAT6 Dataset. Setting download=True for training dataset will download the full data. So, set download=False for test dataset. Also, set is_train_data=False for test dataset.
 ```
 train_data = geotorch.datasets.raser.SAT6(root="data/sat6", download=True, is_train_data=True)
@@ -40,7 +40,7 @@ model = SatCNN(in_channels=4, in_height=28, in_width=28, num_classes=6)
 loss_fn = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0002)
 ```
-#### Train a Model for One Epoch
+#### Train the Model for One Epoch
 ```
 for i, sample in enumerate(train_loader):
     inputs, labels = sample

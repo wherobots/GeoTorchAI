@@ -38,8 +38,8 @@ train_loader = torch.utils.data.DataLoader(train_data, batch_size=16)
 test_loader = torch.utils.data.DataLoader(test_data, batch_size=16)
 ```
 #### Initializing Model and Parameters
+Model initialization parameters such as in_channel, in_width, in_height, and num_classes are based on the property of SAT6 dataset.
 ```
-Model initialization parameters are based on the property of SAT6 dataset.
 model = SatCNN(in_channels=4, in_height=28, in_width=28, num_classes=6)
 loss_fn = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0002)

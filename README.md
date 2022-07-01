@@ -27,12 +27,12 @@ Details documentation on installation, API, and programming guide is available o
 
 ## Example
 We show a very short example of satellite imagery classification using GeoTorch in a step-by-step manner. Training a satellite imagery classification models consists of four steps: loading dataset, initializing model, model training, and model testing.
-### Loading Dataset
+#### Loading Dataset
 Load the training and testing splits of SAT6 Dataset:
-'''
+```
 train_data = SAT6(root = "data/sat6", download = True, is_train_data = True)
 test_data = SAT6(root = "data/sat6", download = False, is_train_data = False)
-'''
+```
     
 
 ## Other Contributions of this Project

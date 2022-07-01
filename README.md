@@ -28,14 +28,10 @@ Details documentation on installation, API, and programming guide is available o
 ## Example
 We show a very short example of satellite imagery classification using GeoTorch in a step-by-step manner. Training a satellite imagery classification models consists of three steps: loading dataset, initializing model and parameters, and model training. We pick the [SatCNN](https://www.tandfonline.com/doi/abs/10.1080/2150704X.2016.1235299?journalCode=trsl20) model to classify [SAT6](https://www.kaggle.com/datasets/crawford/deepsat-sat6) satellite images.
 #### Loading Dataset
-Load the training and testing splits of SAT6 Dataset. Setting download=True for training dataset will download the full data. So, set download=False for testing dataset.
+Load the training and testing splits of SAT6 Dataset. Setting download=True for training dataset will download the full data. So, set download=False for test dataset. Also, set is_train_data=False for test dataset.
 ```
 train_data = geotorch.datasets.raser.SAT6(root="data/sat6", download=True, is_train_data=True)
-test_data = geotorch.datasets.raser.SAT6(root="data/sat6", download=False, is_train_data=False)
-```
-```
 train_loader = torch.utils.data.DataLoader(train_data, batch_size=16)
-test_loader = torch.utils.data.DataLoader(test_data, batch_size=16)
 ```
 #### Initializing Model and Parameters
 Model initialization parameters such as in_channel, in_width, in_height, and num_classes are based on the property of SAT6 dataset.
@@ -56,6 +52,7 @@ for i, sample in enumerate(train_loader):
     loss.backward()
     optimizer.step()
 ```
+For more details on evaluating the model on test dataset, please have a look at our detailed examples [here](https://github.com/DataSystemsLab/GeoTorch/tree/main/examples).
 
 ## Other Contributions of this Project
 We also contributed to [Apache Sedona](https://sedona.apache.org/) to add transformation and write supports for GeoTiff raster images. This contribution is also a part of this project. Contribution reference: [Commits](https://github.com/apache/incubator-sedona/commits?author=kanchanchy)

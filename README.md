@@ -25,6 +25,16 @@ Following libraries need to be set up before using GeoTorch.
 ## Documentation
 Details documentation on installation, API, and programming guide is available on [GeoTorch Website](https://kanchanchy.github.io/geotorch/).
 
+## Example
+We show a very short example of satellite imagery classification using GeoTorch in a step-by-step manner. Training a satellite imagery classification models consists of four steps: loading dataset, initializing model, model training, and model testing.
+### Loading Dataset
+Load the training and testing splits of SAT6 Dataset:
+'''
+train_data = SAT6(root = "data/sat6", download = True, is_train_data = True)
+test_data = SAT6(root = "data/sat6", download = False, is_train_data = False)
+'''
+    
+
 ## Other Contributions of this Project
 We also contributed to [Apache Sedona](https://sedona.apache.org/) to add transformation and write supports for GeoTiff raster images. This contribution is also a part of this project. Contribution reference: [Commits](https://github.com/apache/incubator-sedona/commits?author=kanchanchy)
 

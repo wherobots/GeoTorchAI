@@ -3,7 +3,7 @@
 GeoTorch is a python library on top of PyTorch and Apache Sedona. It helps machine learning practitioners to easily and efficiently implement deep learning models targeting the applications of satellite images and spatiotemporal grid datasets such as sateliite imagery classification, satellite image segmentation, and spatiotemporal predictions. Spatiotemporal prediction tasks include but are not limited to traffic volume and traffic flow prediction, precipitation forecasting, and weather forecasting.
 
 ## GeoTorch Modules
-GeoTorch contains various modules for data preprocessing, ready-to-use raster and grid datasets, and neural network models:
+GeoTorch contains various modules for data preprocessing, ready-to-use raster and grid datasets, transforms, and neural network models:
 
 * Datasets: Conatins processed popular datasets for raster data models and grid based spatio-temporal models. Datasets are available as ready-to-use PyTorch datasets.
 * Models: PyTorch wrapper for popular raster data models and grid based spatio-temporal models.

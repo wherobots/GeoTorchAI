@@ -14,7 +14,7 @@ from geotorch.datasets.raster import EuroSAT
 epoch_nums = 50#350
 learning_rate = 0.0002
 batch_size = 16
-params = {'batch_size': batch_size, 'shuffle': False, 'drop_last':False, 'num_workers': 0}
+params = {'batch_size': batch_size, 'shuffle': False}
 
 validation_split = 0.2
 shuffle_dataset = True

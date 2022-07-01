@@ -16,13 +16,12 @@ nb_residual_unit = 4
 
 map_height, map_width = 21, 12
 nb_flow = 2
-nb_area = 81
 T = 24
 
 epoch_nums = 100
 learning_rate = 0.0002
 batch_size = 32
-params = {'batch_size': batch_size, 'shuffle': False, 'drop_last':False, 'num_workers': 0}
+params = {'batch_size': batch_size, 'shuffle': False}
 
 validation_split = 0.1
 shuffle_dataset = False

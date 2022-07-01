@@ -1,9 +1,9 @@
 # GeoTorch
 
-GeoTorch is a deep learning and scalable data processing framework for raster and spatio-temporal datasets. It's a python library on top of PyTorch and Apache Sedona. It contains various modules for data preprocessing, ready-to-use raster and grid datasets, and neural network models.
+A Spatiotemporal Deep Learning Framework
 
 ## GeoTorch Modules
-GeoTorch contains following modules for various types of functionalities:
+GeoTorch is a python library on top of PyTorch and Apache Sedona. It contains various modules for data preprocessing, ready-to-use raster and grid datasets, and neural network models.:
 
 * Datasets: Conatins processed popular datasets for raster data models and grid based spatio-temporal models. Datasets are available as ready-to-use PyTorch datasets.
 * Models: PyTorch wrapper for popular raster data models and grid based spatio-temporal models.

@@ -26,7 +26,7 @@ Following libraries need to be set up before using GeoTorch.
 Details documentation on installation, API, and programming guide is available on [GeoTorch Website](https://kanchanchy.github.io/geotorch/).
 
 ## Example
-We show a very short example of satellite imagery classification using GeoTorch in a step-by-step manner. Training a satellite imagery classification models consists of three steps: loading dataset, initializing model and parameters, and model training. We pick the SatCNN model to classify SAT6 satellite images.
+We show a very short example of satellite imagery classification using GeoTorch in a step-by-step manner. Training a satellite imagery classification models consists of three steps: loading dataset, initializing model and parameters, and model training. We pick the [SatCNN](https://www.tandfonline.com/doi/abs/10.1080/2150704X.2016.1235299?journalCode=trsl20) model to classify [SAT6](https://www.kaggle.com/datasets/crawford/deepsat-sat6) satellite images.
 #### Loading Dataset
 Load the training and testing splits of SAT6 Dataset. Setting download=True for training dataset will download the full data. So, set download=False for testing dataset.
 ```

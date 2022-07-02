@@ -26,7 +26,9 @@ Following libraries need to be set up before using GeoTorch.
 Details documentation on installation, API, and programming guide is available on [GeoTorch Website](https://kanchanchy.github.io/geotorch/).
 
 ## Example
-We show a very short example of satellite imagery classification using GeoTorch in a step-by-step manner. Training a satellite imagery classification models consists of three steps: loading dataset, initializing model and parameters, and model training. We pick the [SatCNN](https://www.tandfonline.com/doi/abs/10.1080/2150704X.2016.1235299?journalCode=trsl20) model to classify [SAT6](https://www.kaggle.com/datasets/crawford/deepsat-sat6) satellite images.
+End-to-end coding examples for various applications including model training and data preprocessing are available in our [binders](https://github.com/DataSystemsLab/GeoTorch/tree/main/binders) and [examples](https://github.com/DataSystemsLab/GeoTorch/tree/main/examples) sections.
+
+We show a very short example of satellite imagery classification using GeoTorch in a step-by-step manner below. Training a satellite imagery classification models consists of three steps: loading dataset, initializing model and parameters, and model training. We pick the [SatCNN](https://www.tandfonline.com/doi/abs/10.1080/2150704X.2016.1235299?journalCode=trsl20) model to classify [SAT6](https://www.kaggle.com/datasets/crawford/deepsat-sat6) satellite images.
 #### Loading Training Dataset
 Load the training and testing splits of SAT6 Dataset. Setting download=True for training dataset will download the full data. So, set download=False for test dataset. Also, set is_train_data=False for test dataset.
 ```
@@ -52,7 +54,7 @@ for i, sample in enumerate(train_loader):
     loss.backward()
     optimizer.step()
 ```
-For more details on evaluating the model on test dataset, training the model for multiple epochs, and saving the best model, please have a look at our detailed examples [here](https://github.com/DataSystemsLab/GeoTorch/tree/main/examples).
+For more details on evaluating the model on test dataset, training the model for multiple epochs, and saving the best model, please have a look at our detailed [examples](https://github.com/DataSystemsLab/GeoTorch/tree/main/examples) or [binders](https://github.com/DataSystemsLab/GeoTorch/tree/main/binders).
 
 ## Other Contributions of this Project
 We also contributed to [Apache Sedona](https://sedona.apache.org/) to add transformation and write supports for GeoTiff raster images. This contribution is also a part of this project. Contribution reference: [Commits](https://github.com/apache/incubator-sedona/commits?author=kanchanchy)

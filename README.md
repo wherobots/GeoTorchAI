@@ -42,6 +42,7 @@ split = int(np.floor(0.2 * dataset_size))
 np.random.seed(random_seed)
 np.random.shuffle(indices)
 train_indices, val_indices = indices[split:], indices[:split]
+
 train_sampler = torch.utils.data.sampler.SubsetRandomSampler(train_indices)
 valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(val_indices)
 
@@ -51,23 +52,37 @@ val_loader = torch.utils.data.DataLoader(full_data, batch_size=16, sampler=valid
 #### Initializing Model and Parameters
 Model initialization parameters such as in_channel, in_width, in_height, and num_classes are based on the property of SAT6 dataset.
 ```
-model = SatCNN(in_channels=4, in_height=28, in_width=28, num_classes=6)
+model = DeepSatV2(in_channels=13, in_height=64, in_width=64, num_classes=10, num_filtered_features=len(full_data.ADDITIONAL_FEATURES))
 loss_fn = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0002)
 ```
 #### Train the Model for One Epoch
 ```
 for i, sample in enumerate(train_loader):
-    inputs, labels = sample
+    inputs, labels, features = sample
     # Forward pass
-    outputs = model(inputs)
+    outputs = model(inputs, features)
     loss = loss_fn(outputs, labels)
     # Backward pass and optimize
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
 ```
-For more details on evaluating the model on test dataset, training the model for multiple epochs, and saving the best model, please have a look at our detailed [examples](https://github.com/DataSystemsLab/GeoTorch/tree/main/examples) or [binders](https://github.com/DataSystemsLab/GeoTorch/tree/main/binders).
+#### Evaluate the Model on Validation Dataset
+```
+model.eval()
+total_sample = 0
+correct = 0
+for i, sample in enumerate(val_loader):
+    inputs, labels, features = sample
+    # Forward pass
+    outputs = model(inputs, features)
+    total_sample += len(labels)
+    _, predicted = outputs.max(1)
+    correct += predicted.eq(labels).sum().item()
+val_accuracy = 100 * correct / total_sample
+print("Validation Accuracy: ", val_accuracy, "%")
+```
 
 ## Other Contributions of this Project
 We also contributed to [Apache Sedona](https://sedona.apache.org/) to add transformation and write supports for GeoTiff raster images. This contribution is also a part of this project. Contribution reference: [Commits](https://github.com/apache/incubator-sedona/commits?author=kanchanchy)

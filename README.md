@@ -29,6 +29,17 @@ Details documentation on installation, API, and programming guide is available o
 End-to-end coding examples for various applications including model training and data preprocessing are available in our [binders](https://github.com/DataSystemsLab/GeoTorch/tree/main/binders) and [examples](https://github.com/DataSystemsLab/GeoTorch/tree/main/examples) sections.
 
 We show a very short example of satellite imagery classification using GeoTorch in a step-by-step manner below. Training a satellite imagery classification models consists of three steps: loading dataset, initializing model and parameters, and model training. We pick the [DeepSatV2](https://arxiv.org/abs/1911.07747) model to classify [EuroSAT](https://github.com/phelber/EuroSAT) satellite images.
+#### EuroSAT Image Classes
+* Annual Crop
+* Forest
+* Herbaceous Vegetation
+* Highway
+* Industrial
+* Pasture
+* Permanent Crop
+* Residential
+* River
+* SeaLake
 #### Loading Training Dataset
 Load the EuroSAT Dataset. Setting download=True will download the full data in the given directory. If data is already available, set download=False.
 ```

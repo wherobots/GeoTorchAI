@@ -40,6 +40,10 @@ We show a very short example of satellite imagery classification using GeoTorch 
 * Residential
 * River
 * SeaLake
+#### Spectral Bands of a Highway Image
+![picture alt](https://github.com/DataSystemsLab/GeoTorch/tree/main/data/euro-highway.png)
+#### Spectral Bands of an Industry Image
+![picture alt](https://github.com/DataSystemsLab/GeoTorch/tree/main/data/euro-industry.png)
 #### Loading Training Dataset
 Load the EuroSAT Dataset. Setting download=True will download the full data in the given directory. If data is already available, set download=False.
 ```

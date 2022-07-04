@@ -28,12 +28,25 @@ Details documentation on installation, API, and programming guide is available o
 ## Example
 End-to-end coding examples for various applications including model training and data preprocessing are available in our [binders](https://github.com/DataSystemsLab/GeoTorch/tree/main/binders) and [examples](https://github.com/DataSystemsLab/GeoTorch/tree/main/examples) sections.
 
-We show a very short example of satellite imagery classification using GeoTorch in a step-by-step manner below. Training a satellite imagery classification models consists of three steps: loading dataset, initializing model and parameters, and model training. We pick the [SatCNN](https://www.tandfonline.com/doi/abs/10.1080/2150704X.2016.1235299?journalCode=trsl20) model to classify [SAT6](https://www.kaggle.com/datasets/crawford/deepsat-sat6) satellite images.
+We show a very short example of satellite imagery classification using GeoTorch in a step-by-step manner below. Training a satellite imagery classification models consists of three steps: loading dataset, initializing model and parameters, and model training. We pick the [DeepSatV2](https://arxiv.org/abs/1911.07747) model to classify [EuroSAT](https://github.com/phelber/EuroSAT) satellite images.
 #### Loading Training Dataset
-Load the training and testing splits of SAT6 Dataset. Setting download=True for training dataset will download the full data. So, set download=False for test dataset. Also, set is_train_data=False for test dataset.
+Load the EuroSAT Dataset. Setting download=True will download the full data in the given directory. If data is already available, set download=False.
 ```
-train_data = geotorch.datasets.raser.SAT6(root="data/sat6", download=True, is_train_data=True)
-train_loader = torch.utils.data.DataLoader(train_data, batch_size=16)
+full_data = geotorch.datasets.raser.EuroSAT(root="data/eurosat", download=True, include_additional_features=True)
+```
+#### Split data into 80% train and 20% validation parts
+```
+dataset_size = len(full_data)
+indices = list(range(dataset_size))
+split = int(np.floor(0.2 * dataset_size))
+np.random.seed(random_seed)
+np.random.shuffle(indices)
+train_indices, val_indices = indices[split:], indices[:split]
+train_sampler = torch.utils.data.sampler.SubsetRandomSampler(train_indices)
+valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(val_indices)
+
+train_loader = torch.utils.data.DataLoader(full_data, batch_size=16, sampler=train_sampler)
+val_loader = torch.utils.data.DataLoader(full_data, batch_size=16, sampler=valid_sampler)
 ```
 #### Initializing Model and Parameters
 Model initialization parameters such as in_channel, in_width, in_height, and num_classes are based on the property of SAT6 dataset.

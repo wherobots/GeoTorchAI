@@ -8,9 +8,7 @@ GeoTorch contains various modules for deep learning and data preprocessing in bo
 * Datasets: This module conatins processed popular datasets for raster data models and grid based spatio-temporal models. Datasets are available as ready-to-use PyTorch datasets.
 * Models: These are PyTorch layers for popular raster data models and grid based spatio-temporal models.
 * Transforms: Various tranformations operations that can be applied to dataset samples during model training.
-* Preprocessing: Supports preprocessing of raster imagery and spatiotemporal non-imagery datasets in a scalable setting on top of Apache Spark and Apache Sedona. Users don't require the coding concepts of Apache Sedona and Apache Spark. They only need to code on Python while PySpark and Apache Sedona implementations are a black box to them. The preprocessing module allows machine learning practitioners to prepare a trainable grid-based spatiotemporal tensor from large raw datasets along with performing various transformations on raster imagery datasets.
-![GeoTorch Architecture](https://github.com/DataSystemsLab/GeoTorch/blob/main/data/geotorch-architecture.svg)
-
+* Preprocessing: Supports preprocessing of raster imagery and spatiotemporal non-imagery datasets in a scalable setting on top of Apache Spark and Apache Sedona. Users don't require the coding concepts of Apache Sedona and Apache Spark. They only need to code on Python while PySpark and Apache Sedona implementations are a black box to them. The preprocessing module allows machine learning practitioners to prepare a trainable grid-based spatiotemporal tensor from large raw datasets along with performing various transformations on raster imagery datasets. ![GeoTorch Architecture](https://github.com/DataSystemsLab/GeoTorch/blob/main/data/geotorch-architecture.svg)
 ## Documentation
 Details documentation on installation, API, and programming guide is available on [GeoTorch Website](https://kanchanchy.github.io/geotorch/).
 

@@ -1,26 +1,26 @@
 # GeoTorch: A Spatiotemporal Deep Learning Framework
 
-GeoTorch is a python library on top of PyTorch and Apache Sedona. It helps machine learning practitioners to easily and efficiently implement deep learning models targeting the applications of satellite images and spatiotemporal grid datasets such as sateliite imagery classification, satellite image segmentation, and spatiotemporal predictions. Spatiotemporal prediction tasks include but are not limited to traffic volume and traffic flow prediction, precipitation forecasting, and weather forecasting.
+GeoTorch is a python library spatiotemporal deep learning and data preprocessing on top of PyTorch and [Apache Sedona](https://sedona.apache.org/). It helps machine learning practitioners on spatiotemporal domain easily and efficiently implement deep learning models targeting the applications of raster imagery datasets and spatiotemporal non-imagery datasets. Deep learning applications of raster imagery datasets include sateliite imagery classification and satellite image segmentation. Applications of deep learning on spatiotemporal non-imagery datasets are mainly prediction tasks which include but are not limited to traffic volume and traffic flow prediction, taxi/bike flow/volume prediction, precipitation forecasting, and weather forecasting.
 
 ## GeoTorch Modules
-GeoTorch contains various modules for data preprocessing, ready-to-use raster and grid datasets, transforms, and neural network models:
+GeoTorch contains various modules for deep learning and data preprocessing in both raster imagery and spatiotemporal non-imagery categories. Deep learning module offers ready-to-use raster and grid datasets, transforms, and neural network models.
 
-* Datasets: Conatins processed popular datasets for raster data models and grid based spatio-temporal models. Datasets are available as ready-to-use PyTorch datasets.
-* Models: PyTorch wrapper for popular raster data models and grid based spatio-temporal models.
+* Datasets: This module conatins processed popular datasets for raster data models and grid based spatio-temporal models. Datasets are available as ready-to-use PyTorch datasets.
+* Models: These are PyTorch layers for popular raster data models and grid based spatio-temporal models.
 * Transforms: Various tranformations operations that can be applied to dataset samples during model training.
-* Preprocessing: Supports preprocessing of raster and spatio-temporal datasets in a scalable settings on top of Apache Spark and Apache Sedona. Users don't require the coding concepts of Apache Sedona and Apache Spark. They only need to code on Python while PySpark and Apache Sedona implementations are a black box to them.
+* Preprocessing: Supports preprocessing of raster imagery and spatiotemporal non-imagery datasets in a scalable setting on top of Apache Spark and Apache Sedona. Users don't require the coding concepts of Apache Sedona and Apache Spark. They only need to code on Python while PySpark and Apache Sedona implementations are a black box to them. The preprocessing module allows machine learning practitioners to prepare a trainable grid-based spatiotemporal tensor from large raw datasets along with performing various transformations on raster imagery datasets.
 
 ## Dependency Set up
 Following libraries need to be set up before using GeoTorch.
 
 ##### Dependencies for Deep Learning Module:
-1. PyTorch 1.10
+1. PyTorch >=1.10
 2. Rasterio
 3. Scikit-image
 
 ##### Dependencies for Preprocessing Module:
-1. PySpark 3.0.0
-2. Apache Sedona 1.2.0-incubating
+1. PySpark >=3.0.0
+2. Apache Sedona >=1.2.0-incubating
 
 ## Documentation
 Details documentation on installation, API, and programming guide is available on [GeoTorch Website](https://kanchanchy.github.io/geotorch/).
@@ -28,7 +28,7 @@ Details documentation on installation, API, and programming guide is available o
 ## Example
 End-to-end coding examples for various applications including model training and data preprocessing are available in our [binders](https://github.com/DataSystemsLab/GeoTorch/tree/main/binders) and [examples](https://github.com/DataSystemsLab/GeoTorch/tree/main/examples) sections.
 
-We show a very short example of satellite imagery classification using GeoTorch in a step-by-step manner below. Training a satellite imagery classification models consists of three steps: loading dataset, initializing model and parameters, and model training. We pick the [DeepSatV2](https://arxiv.org/abs/1911.07747) model to classify [EuroSAT](https://github.com/phelber/EuroSAT) satellite images.
+We show a very short example of satellite imagery classification using GeoTorch in a step-by-step manner below. Training a satellite imagery classification model consists of three steps: loading the dataset, initializing the model and parameters, and train the model. We pick the [DeepSatV2](https://arxiv.org/abs/1911.07747) model to classify [EuroSAT](https://github.com/phelber/EuroSAT) satellite images.
 #### EuroSAT Image Classes
 * Annual Crop
 * Forest

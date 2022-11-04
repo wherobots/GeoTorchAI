@@ -8,7 +8,7 @@ GeoTorch is a spatiotemporal deep learning framework on top of PyTorch and [Apac
 GeoTorch contains various modules for deep learning and data preprocessing in both raster imagery and spatiotemporal non-imagery categories. Deep learning module offers ready-to-use raster and grid datasets, transforms, and neural network models.
 
 
-<img src="https://github.com/DataSystemsLab/GeoTorch/blob/main/data/architecture.png" class="center" width="50%" align="right">
+<img src="https://github.com/DataSystemsLab/GeoTorch/blob/main/data/architecture.png" class="center" width="60%" align="right">
 
 * Datasets: This module conatins processed popular datasets for raster data models and grid based spatio-temporal models. Datasets are available as ready-to-use PyTorch datasets.
 * Models: These are PyTorch layers for popular raster data models and grid based spatio-temporal models.

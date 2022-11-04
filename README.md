@@ -7,13 +7,16 @@ GeoTorch is a spatiotemporal deep learning framework on top of PyTorch and [Apac
 ## GeoTorch Modules
 GeoTorch contains various modules for deep learning and data preprocessing in both raster imagery and spatiotemporal non-imagery categories. Deep learning module offers ready-to-use raster and grid datasets, transforms, and neural network models.
 
+
+<img src="https://github.com/DataSystemsLab/GeoTorch/blob/main/data/architecture.png" class="center" width="50%" align="right">
+
 * Datasets: This module conatins processed popular datasets for raster data models and grid based spatio-temporal models. Datasets are available as ready-to-use PyTorch datasets.
 * Models: These are PyTorch layers for popular raster data models and grid based spatio-temporal models.
 * Transforms: Various tranformations operations that can be applied to dataset samples during model training.
 * Preprocessing: Supports preprocessing of raster imagery and spatiotemporal non-imagery datasets in a scalable setting on top of Apache Spark and Apache Sedona. Users don't need to learn the coding concepts of Apache Sedona and Apache Spark. They only need to write their code on Python while PySpark and Apache Sedona implementations are hidden. The preprocessing module allows machine learning practitioners to prepare a trainable grid-based spatiotemporal tensor from large raw datasets along with performing various transformations on raster imagery datasets.
 
 
-<img src="https://github.com/DataSystemsLab/GeoTorch/blob/main/data/architecture.png" class="center" width="50%">
+
 
 ## GeoTorch Design Principles
 

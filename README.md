@@ -11,7 +11,7 @@ GeoTorch contains various modules for deep learning and data preprocessing in bo
 * Preprocessing: Supports preprocessing of raster imagery and spatiotemporal non-imagery datasets in a scalable setting on top of Apache Spark and Apache Sedona. Users don't need to learn the coding concepts of Apache Sedona and Apache Spark. They only need to write their code on Python while PySpark and Apache Sedona implementations are hidden. The preprocessing module allows machine learning practitioners to prepare a trainable grid-based spatiotemporal tensor from large raw datasets along with performing various transformations on raster imagery datasets.
 
 
-<img src="https://github.com/DataSystemsLab/GeoTorch/blob/main/data/architecture.png" width="50%">
+<img src="https://github.com/DataSystemsLab/GeoTorch/blob/main/data/architecture.png" class="center" width="50%">
 
 ## GeoTorch Design Principles
 

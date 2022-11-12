@@ -147,8 +147,8 @@ class SAT6(Dataset):
 			return img, label
 
 
-	def _get_path(self, data_dir):
-		queue = [data_dir]
+	def _get_path(self, root_dir):
+		queue = [root_dir]
 		while queue:
 			data_dir = queue.pop(0)
 			folders = os.listdir(data_dir)

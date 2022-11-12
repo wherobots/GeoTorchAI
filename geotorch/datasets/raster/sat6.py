@@ -148,7 +148,7 @@ class SAT6(Dataset):
 
 
 	def _get_path(self, data_dir):
-		queue = [root_dir]
+		queue = [data_dir]
 		while queue:
 			data_dir = queue.pop(0)
 			folders = os.listdir(data_dir)

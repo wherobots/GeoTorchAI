@@ -1,5 +1,6 @@
 from sedona.utils.adapter import Adapter as adp
 from geotorch.preprocessing.spark_registration import SparkRegistration
+from pyspark.sql.functions import col
 
 
 class Adapter(object):

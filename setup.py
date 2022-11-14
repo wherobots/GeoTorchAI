@@ -23,15 +23,15 @@ keywords = [
 ]
 
 setup(
-	name='geotorch',
-	packages=find_packages(include=['geotorch']),
-	version='0.1.0',
-	description='GeoTorch: A Spatiotemporal Deep Learning Framework',
-	author='Kanchan Chowdhury',
-        author_email='kchowdh1@asu.edu',
-        url='https://github.com/DataSystemsLab/GeoTorch',
-	license='AGPL-3.0',
-	install_requires=[
+    name='geotorch',
+	  packages=find_packages(),
+	  version='0.1.0',
+	  description='GeoTorch: A Spatiotemporal Deep Learning Framework',
+    author='Kanchan Chowdhury',
+    author_email='kchowdh1@asu.edu',
+    url='https://github.com/DataSystemsLab/GeoTorch',
+	  license='AGPL-3.0',
+	  install_requires=[
           'torch',
           'rasterio',
           'scikit-image',
@@ -40,9 +40,9 @@ setup(
           'pyspark',
           'apache-sedona'
         ],
-	setup_requires=['pytest-runner'],
-        tests_require=['pytest'],
-	test_suite='tests',
-        python_requires=">=3.6",
-        keywords=keywords,
+	  setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
+	  test_suite='tests',
+    python_requires=">=3.6",
+    keywords=keywords,
 	)

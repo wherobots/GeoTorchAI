@@ -2,7 +2,7 @@
 
 # GeoTorch: A Spatiotemporal Deep Learning Framework
 
-GeoTorch is a spatiotemporal deep learning framework on top of PyTorch and [Apache Sedona](https://sedona.apache.org/). It enable spatiotemporal machine learning practitioners to easily and efficiently implement deep learning models targeting the applications of raster imagery datasets and spatiotemporal non-imagery datasets. Deep learning applications of raster imagery datasets include satellite imagery classification and satellite image segmentation. Applications of deep learning on spatiotemporal non-imagery datasets are mainly prediction tasks which include but are not limited to traffic volume and traffic flow prediction, taxi/bike flow/volume prediction, precipitation forecasting, and weather forecasting.
+[GeoTorch](https://dl.acm.org/doi/abs/10.1145/3557915.3561036) is a spatiotemporal deep learning framework on top of PyTorch and [Apache Sedona](https://sedona.apache.org/). It enable spatiotemporal machine learning practitioners to easily and efficiently implement deep learning models targeting the applications of raster imagery datasets and spatiotemporal non-imagery datasets. Deep learning applications of raster imagery datasets include satellite imagery classification and satellite image segmentation. Applications of deep learning on spatiotemporal non-imagery datasets are mainly prediction tasks which include but are not limited to traffic volume and traffic flow prediction, taxi/bike flow/volume prediction, precipitation forecasting, and weather forecasting.
 
 ## GeoTorch Modules
 GeoTorch contains various modules for deep learning and data preprocessing in both raster imagery and spatiotemporal non-imagery categories. Deep learning module offers ready-to-use raster and grid datasets, transforms, and neural network models.
@@ -120,5 +120,25 @@ print("Validation Accuracy: ", val_accuracy, "%")
 
 ## Other Contributions of this Project
 We also contributed to [Apache Sedona](https://sedona.apache.org/) to add transformation and write supports for GeoTiff raster images. This contribution is also a part of this project. Contribution reference: [Commits](https://github.com/apache/incubator-sedona/commits?author=kanchanchy)
+
+## Citing the Work:
+Kanchan Chowdhury and Mohamed Sarwat. 2022. GeoTorch: a spatiotemporal deep learning framework. In Proceedings of the 30th International Conference on Advances in Geographic Information Systems (SIGSPATIAL '22). Association for Computing Machinery, New York, NY, USA, Article 100, 1–4. https://doi.org/10.1145/3557915.3561036
+
+### BibTex:
+```
+@inproceedings{10.1145/3557915.3561036,
+author = {Chowdhury, Kanchan and Sarwat, Mohamed},
+title = {GeoTorch: A Spatiotemporal Deep Learning Framework},
+year = {2022},
+isbn = {9781450395298},
+publisher = {Association for Computing Machinery},
+url = {https://doi.org/10.1145/3557915.3561036},
+doi = {10.1145/3557915.3561036},
+articleno = {100},
+numpages = {4},
+location = {Seattle, Washington},
+series = {SIGSPATIAL '22}
+}
+```
 
 

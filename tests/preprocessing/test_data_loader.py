@@ -46,34 +46,12 @@ class TestDataLoading:
 		assert df_first[5] == 1
 
 
-	def test_load_geotiff_with_read_to_crs(self):
-		TestSparkRegistration.set_spark_session()
-
-		df = load_geotiff_image("data/raster", options_dict={"readToCRS": "EPSG:4326"})
-		df_first = df.first()
-		assert str(df_first[1]) == "POLYGON ((-117.6414112809731 33.94356351407699, -117.6414112809731 33.66497814650128, -117.3093939519626 33.66497814650128, -117.3093939519626 33.94356351407699, -117.6414112809731 33.94356351407699))"
-		assert df_first[2] == 517
-		assert df_first[3] == 512
-		assert df_first[5] == 1
-
-
 	def test_load_geotiff_with_read_from_crs(self):
 		TestSparkRegistration.set_spark_session()
 
 		df = load_geotiff_image("data/raster", options_dict={"readFromCRS": "EPSG:4499"})
 		df_first = df.first()
 		assert str(df_first[1]) == "POLYGON ((-13095782 4021226.5, -13095782 3983905, -13058822 3983905, -13058822 4021226.5, -13095782 4021226.5))"
-		assert df_first[2] == 517
-		assert df_first[3] == 512
-		assert df_first[5] == 1
-
-
-	def test_load_geotiff_with_reading_crs(self):
-		TestSparkRegistration.set_spark_session()
-
-		df = load_geotiff_image("data/raster", options_dict={"readFromCRS": "EPSG:4499", "readToCRS": "EPSG:4326"})
-		df_first = df.first()
-		assert str(df_first[1]) == "POLYGON ((-117.6414112809731 33.94356351407699, -117.6414112809731 33.66497814650128, -117.3093939519626 33.66497814650128, -117.3093939519626 33.94356351407699, -117.6414112809731 33.94356351407699))"
 		assert df_first[2] == 517
 		assert df_first[3] == 512
 		assert df_first[5] == 1

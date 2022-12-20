@@ -83,17 +83,30 @@ valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(val_indices)
 train_loader = torch.utils.data.DataLoader(full_data, batch_size=16, sampler=train_sampler)
 val_loader = torch.utils.data.DataLoader(full_data, batch_size=16, sampler=valid_sampler)
 ```
+#### Train and Evaluate on GPU
+If the device used to train the model has GPUs available, then the model, loss function, and tensors can be loaded on GPU. At first initialize the device with CPU or GPU based on the availability of GPU.
+```
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+```
+Later, model, loss function, and tensors can be loaded to CPU or GPU by calling .to(device). See the exact examples in the later parts.
 #### Initializing Model and Parameters
 Model initialization parameters such as in_channel, in_width, in_height, and num_classes are based on the property of SAT6 dataset.
 ```
 model = DeepSatV2(in_channels=13, in_height=64, in_width=64, num_classes=10, num_filtered_features=len(full_data.ADDITIONAL_FEATURES))
 loss_fn = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0002)
+# Load model and loss function to GPU or CPU
+model.to(device)
+loss_fn.to(device)
 ```
 #### Train the Model for One Epoch
 ```
 for i, sample in enumerate(train_loader):
     inputs, labels, features = sample
+    # Load tensors to GPU or CPU
+    inputs = inputs.to(device)
+    features = features.type(torch.FloatTensor).to(device)
+    labels = labels.to(device)
     # Forward pass
     outputs = model(inputs, features)
     loss = loss_fn(outputs, labels)
@@ -109,6 +122,10 @@ total_sample = 0
 correct = 0
 for i, sample in enumerate(val_loader):
     inputs, labels, features = sample
+    # Load tensors to GPU or CPU
+    inputs = inputs.to(device)
+    features = features.type(torch.FloatTensor).to(device)
+    labels = labels.to(device)
     # Forward pass
     outputs = model(inputs, features)
     total_sample += len(labels)

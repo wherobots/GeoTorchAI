@@ -37,6 +37,7 @@ setup(
         'scikit-image',
         'numpy',
         'pandas',
+        'kaggle',
         'pyspark',
         'apache-sedona'
     ],

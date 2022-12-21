@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-keywords = [
+keywords=[
     "spatial-machine-learning",
     "spatiotemporal-deep-learning",
     "spatial forecasting",
@@ -19,7 +19,7 @@ keywords = [
     "lstm",
     "temporal network",
     "eurosat",
-    "representation learning"
+    "representation learning",
 ]
 
 setup(
@@ -27,6 +27,8 @@ setup(
     packages=find_packages(),
     version='0.1.0',
     description='GeoTorch: A Spatiotemporal Deep Learning Framework',
+    long_description = "file: README.md",
+    long_description_content_type = "text/markdown",
     author='Kanchan Chowdhury',
     author_email='kchowdh1@asu.edu',
     url='https://github.com/DataSystemsLab/GeoTorch',
@@ -38,12 +40,23 @@ setup(
         'numpy',
         'pandas',
         'kaggle',
-        'pyspark',
-        'apache-sedona'
     ],
+    extras_require={
+        'Preprocessing':  ['pyspark', 'apache-sedona'],
+    },
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
     test_suite='tests',
     python_requires=">=3.6",
     keywords=keywords,
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "Topic :: Software Development :: Build Tools",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Scientific/Engineering :: GIS",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.6",
+    ],
 )

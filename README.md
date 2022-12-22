@@ -135,6 +135,9 @@ val_accuracy = 100 * correct / total_sample
 print("Validation Accuracy: ", val_accuracy, "%")
 ```
 
+## Contributing to this Project
+Follow the instructions available [here](https://github.com/DataSystemsLab/GeoTorch/blob/main/CONTRIBUTING.md).
+
 ## Other Contributions of this Project
 We also contributed to [Apache Sedona](https://sedona.apache.org/) to add transformation and write supports for GeoTiff raster images. This contribution is also a part of this project. Contribution reference: [Commits](https://github.com/apache/incubator-sedona/commits?author=kanchanchy)
 

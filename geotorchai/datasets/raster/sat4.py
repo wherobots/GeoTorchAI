@@ -8,10 +8,10 @@ import torch
 from torch import Tensor
 from torch.utils.data import Dataset
 from kaggle.api.kaggle_api_extended import KaggleApi
-from geotorch.datasets.raster.utility import textural_features as ttf
-from geotorch.datasets.raster.utility import spectral_indices as si
-from geotorch.utility.exceptions import InvalidParametersException
-from geotorch.utility._download_utils import _extract_archive
+from geotorchai.datasets.raster.utility import textural_features as ttf
+from geotorchai.datasets.raster.utility import spectral_indices as si
+from geotorchai.utility.exceptions import InvalidParametersException
+from geotorchai.utility._download_utils import _extract_archive
 
 
 class SAT4(Dataset):

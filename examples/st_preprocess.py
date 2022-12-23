@@ -2,14 +2,14 @@ from pyspark.sql import SparkSession
 from sedona.register import SedonaRegistrator
 from sedona.utils import SedonaKryoRegistrator, KryoSerializer
 
-from geotorch.preprocessing import SparkRegistration, load_geo_data, load_data, load_geotiff_image, write_geotiff_image
-from geotorch.preprocessing.enums import GeoFileType
-from geotorch.preprocessing.enums import AggregationType
-from geotorch.preprocessing.enums import GeoRelationship
-from geotorch.preprocessing.raster import RasterProcessing as rp
-from geotorch.preprocessing.grid import SpacePartition
-from geotorch.preprocessing.grid import STManager as stm
-from geotorch.preprocessing import Adapter
+from geotorchai.preprocessing import SparkRegistration, load_geo_data, load_data, load_geotiff_image, write_geotiff_image
+from geotorchai.preprocessing.enums import GeoFileType
+from geotorchai.preprocessing.enums import AggregationType
+from geotorchai.preprocessing.enums import GeoRelationship
+from geotorchai.preprocessing.raster import RasterProcessing as rp
+from geotorchai.preprocessing.grid import SpacePartition
+from geotorchai.preprocessing.grid import STManager as stm
+from geotorchai.preprocessing import Adapter
 
 
 

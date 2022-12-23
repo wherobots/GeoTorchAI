@@ -7,8 +7,8 @@ from torch import Tensor
 from torch.utils.data import Dataset
 from kaggle.api.kaggle_api_extended import KaggleApi
 import rasterio
-from geotorch.utility.exceptions import InvalidParametersException
-from geotorch.utility._download_utils import _extract_archive
+from geotorchai.utility.exceptions import InvalidParametersException
+from geotorchai.utility._download_utils import _extract_archive
 
 
 class Cloud38(Dataset):

@@ -4,8 +4,8 @@ import numpy as np
 import torch
 from torch import Tensor
 from torch.utils.data import Dataset
-from geotorch.utility.exceptions import InvalidParametersException
-from geotorch.utility._download_utils import _download_remote_file
+from geotorchai.utility.exceptions import InvalidParametersException
+from geotorchai.utility._download_utils import _download_remote_file
 
 
 class TaxiBJ21(Dataset):

@@ -2,9 +2,9 @@ from sedona.core.formatMapper.shapefileParser import ShapefileReader
 from sedona.core.formatMapper import WkbReader
 from sedona.core.formatMapper import WktReader
 from sedona.core.formatMapper import GeoJsonReader
-from geotorch.utility.exceptions import InvalidParametersException
 from .spark_registration import SparkRegistration
-from geotorch.preprocessing.enums import GeoFileType
+from geotorchai.utility.exceptions import InvalidParametersException
+from geotorchai.preprocessing.enums import GeoFileType
 
 
 def load_geo_data(path_to_dataset, geo_file_type):

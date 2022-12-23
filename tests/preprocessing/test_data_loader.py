@@ -1,7 +1,7 @@
 import os
+from geotorch.preprocessing import load_geo_data, load_geotiff_image, write_geotiff_image
 from tests.preprocessing.test_spark_registration import TestSparkRegistration
-from geotorchai.preprocessing import load_geo_data, load_geotiff_image, write_geotiff_image
-from geotorchai.preprocessing.enums import GeoFileType
+from geotorch.preprocessing.enums import GeoFileType
 
 
 class TestDataLoading:

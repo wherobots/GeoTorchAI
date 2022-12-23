@@ -1,4 +1,4 @@
-from geotorchai.datasets.grid import BikeNYCDeepSTN, TaxiBJ21
+from geotorch.datasets.grid import BikeNYCDeepSTN, TaxiBJ21
 
 
 class TestGridDatasets:

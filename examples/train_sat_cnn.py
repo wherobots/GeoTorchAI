@@ -8,8 +8,8 @@ import torch.nn as nn
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
-from geotorchai.models.raster import SatCNN
-from geotorchai.datasets.raster import EuroSAT
+from geotorch.models.raster import SatCNN
+from geotorch.datasets.raster import EuroSAT
 
 epoch_nums = 50#350
 learning_rate = 0.0002

@@ -1,4 +1,4 @@
-from geotorchai.datasets.raster import EuroSAT, SlumDetection, Cloud38
+from geotorch.datasets.raster import EuroSAT, SlumDetection, Cloud38
 
 
 class TestRasterDatasets:

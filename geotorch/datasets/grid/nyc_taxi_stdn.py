@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch import Tensor
 from torch.utils.data import Dataset
-from geotorchai.utility._download_utils import _download_remote_file, _extract_archive
+from geotorch.utility._download_utils import _download_remote_file, _extract_archive
 
 
 class TaxiNYCSTDN(Dataset):

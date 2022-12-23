@@ -5,8 +5,8 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 import torch.nn as nn
-from geotorchai.models.grid import STResNet
-from geotorchai.datasets.grid import BikeNYCDeepSTN
+from geotorch.models.grid import STResNet
+from geotorch.datasets.grid import BikeNYCDeepSTN
 
 
 len_closeness = 3

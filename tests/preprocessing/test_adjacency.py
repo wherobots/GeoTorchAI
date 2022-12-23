@@ -1,4 +1,4 @@
-from geotorchai.preprocessing.grid import Adjacency
+from geotorch.preprocessing.grid import Adjacency
 from tests.preprocessing.test_spark_registration import TestSparkRegistration
 from tests.preprocessing.utility import are_dfs_equal
 from shapely.geometry import Polygon

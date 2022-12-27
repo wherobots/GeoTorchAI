@@ -1,6 +1,6 @@
 <img src="https://github.com/DataSystemsLab/GeoTorch/blob/main/data/GeoTorchLogo.png" class="center" width="30%">
 
-# GeoTorchAI (GeoTorch): A Spatiotemporal Deep Learning Framework
+# GeoTorchAI: A Spatiotemporal Deep Learning Framework
 
 GeoTorchAI, formerly known as [GeoTorch](https://dl.acm.org/doi/abs/10.1145/3557915.3561036), is a spatiotemporal deep learning framework on top of PyTorch and [Apache Sedona](https://sedona.apache.org/). It enable spatiotemporal machine learning practitioners to easily and efficiently implement deep learning models targeting the applications of raster imagery datasets and spatiotemporal non-imagery datasets. Deep learning applications of raster imagery datasets include satellite imagery classification and satellite image segmentation. Applications of deep learning on spatiotemporal non-imagery datasets are mainly prediction tasks which include but are not limited to traffic volume and traffic flow prediction, taxi/bike flow/volume prediction, precipitation forecasting, and weather forecasting.
 

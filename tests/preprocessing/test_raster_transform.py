@@ -1,6 +1,6 @@
 from tests.preprocessing.test_spark_registration import TestSparkRegistration
-from geotorch.preprocessing import load_geotiff_image
-from geotorch.preprocessing.raster import RasterProcessing as rp
+from geotorchai.preprocessing import load_geotiff_image
+from geotorchai.preprocessing.raster import RasterProcessing as rp
 
 
 class TestRasterTransform:

@@ -1,5 +1,5 @@
-from geotorch.datasets.raster import EuroSAT
-from geotorch.transforms.raster import AppendNormalizedDifferenceIndex, AppendRatioIndex, AppendAWEI
+from geotorchai.datasets.raster import EuroSAT
+from geotorchai.transforms.raster import AppendNormalizedDifferenceIndex, AppendRatioIndex, AppendAWEI
 
 
 class TestTransforms:

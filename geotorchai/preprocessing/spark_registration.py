@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from geotorch.utility.exceptions import SparkSessionInitException
+from geotorchai.utility.exceptions import SparkSessionInitException
 
 class SparkRegistration:
 

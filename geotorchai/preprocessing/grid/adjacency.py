@@ -1,8 +1,8 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.types import IntegerType
-from geotorch.preprocessing.enums import AdjacencyType
-from geotorch.utility.exceptions import InvalidParametersException
-from geotorch.preprocessing.spark_registration import SparkRegistration
+from geotorchai.preprocessing.enums import AdjacencyType
+from geotorchai.utility.exceptions import InvalidParametersException
+from geotorchai.preprocessing.spark_registration import SparkRegistration
 import math
 
 class Adjacency:

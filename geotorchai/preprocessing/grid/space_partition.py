@@ -6,8 +6,8 @@ from pyspark.sql.types import StructType
 from pyspark.sql.types import StructField
 from pyspark.sql.types import IntegerType
 from sedona.sql.types import GeometryType
-from geotorch.utility.method_overload import MultipleMeta
-from geotorch.preprocessing.spark_registration import SparkRegistration
+from geotorchai.utility.method_overload import MultipleMeta
+from geotorchai.preprocessing.spark_registration import SparkRegistration
 
 class SpacePartition(metaclass = MultipleMeta):
 

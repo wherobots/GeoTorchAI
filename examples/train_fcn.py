@@ -8,8 +8,8 @@ import torch.nn as nn
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
-from geotorch.models.raster import FullyConvolutionalNetwork
-from geotorch.datasets.raster import Cloud38
+from geotorchai.models.raster import FullyConvolutionalNetwork
+from geotorchai.datasets.raster import Cloud38
 
 epoch_nums = 50#350
 learning_rate = 0.0002

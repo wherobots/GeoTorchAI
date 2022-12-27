@@ -23,10 +23,10 @@ keywords=[
 ]
 
 setup(
-    name='geotorch',
+    name='geotorchai',
     packages=find_packages(),
     version='0.1.0',
-    description='GeoTorch: A Spatiotemporal Deep Learning Framework',
+    description='GeoTorchAI, formarly GeoTorch, A Spatiotemporal Deep Learning Framework',
     long_description = "file: README.md",
     long_description_content_type = "text/markdown",
     author='Kanchan Chowdhury',

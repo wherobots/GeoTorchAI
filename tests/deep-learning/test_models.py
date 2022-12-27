@@ -1,7 +1,7 @@
-from geotorch.datasets.raster import EuroSAT, Cloud38
-from geotorch.models.raster import DeepSatV2, SatCNN, FullyConvolutionalNetwork, UNet
-from geotorch.models.grid import STResNet, DeepSTN, ConvLSTM
-from geotorch.datasets.grid import BikeNYCDeepSTN
+from geotorchai.datasets.raster import EuroSAT, Cloud38
+from geotorchai.models.raster import DeepSatV2, SatCNN, FullyConvolutionalNetwork, UNet
+from geotorchai.models.grid import STResNet, DeepSTN, ConvLSTM
+from geotorchai.datasets.grid import BikeNYCDeepSTN
 from torch.utils.data import DataLoader
 import torch
 

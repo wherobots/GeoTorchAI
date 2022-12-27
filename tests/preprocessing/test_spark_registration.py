@@ -2,9 +2,9 @@ from pyspark.sql import SparkSession
 from pyspark import StorageLevel
 from sedona.register import SedonaRegistrator
 from sedona.utils import SedonaKryoRegistrator, KryoSerializer
-from geotorch.utility.exceptions import SparkSessionInitException
-from geotorch.preprocessing import SparkRegistration
-from geotorch.utility.properties import classproperty
+from geotorchai.utility.exceptions import SparkSessionInitException
+from geotorchai.preprocessing import SparkRegistration
+from geotorchai.utility.properties import classproperty
 
 class TestSparkRegistration:
 

@@ -28,7 +28,7 @@ Our preprocessing module is designed such that it minimizes the number of method
 
 
 ## Documentation
-Details documentation on installation, API, and programming guide is available on [GeoTorchAI Website](https://kanchanchy.github.io/geotorch/).
+Details documentation on installation, API, and programming guide is available on [GeoTorchAI Website](https://kanchanchy.github.io/geotorchai/).
 
 ## Dependency Set up
 Following libraries need to be set up before using GeoTorchAI.
@@ -42,7 +42,7 @@ Following libraries need to be set up before using GeoTorchAI.
 1. PySpark >=3.0.0
 2. Apache Sedona >=1.2.0-incubating
 
-For installation, visit the [instructions](https://kanchanchy.github.io/geotorch/installation.html).
+For installation, visit the [instructions](https://kanchanchy.github.io/geotorchai/installation.html).
 
 ## Example
 End-to-end coding examples for various applications including model training and data preprocessing are available in our [binders](https://github.com/DataSystemsLab/GeoTorchAI/tree/main/binders) and [examples](https://github.com/DataSystemsLab/GeoTorchAI/tree/main/examples) sections.

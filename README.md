@@ -1,4 +1,4 @@
-<img src="https://github.com/DataSystemsLab/GeoTorch/blob/main/data/GeoTorchLogo.png" class="center" width="30%">
+<img src="https://github.com/DataSystemsLab/GeoTorch/blob/main/data/GeoTorchAILogo.png" class="center" width="30%">
 
 # GeoTorchAI: A Spatiotemporal Deep Learning Framework
 

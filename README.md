@@ -8,7 +8,7 @@ GeoTorchAI, formerly known as [GeoTorch](https://dl.acm.org/doi/abs/10.1145/3557
 GeoTorchAI contains various modules for deep learning and data preprocessing in both raster imagery and spatiotemporal non-imagery categories. Deep learning module offers ready-to-use raster and grid datasets, transforms, and neural network models.
 
 
-<img src="https://github.com/DataSystemsLab/GeoTorch/blob/main/data/architecture.png" class="center" width="60%" align="right">
+<img src="https://github.com/DataSystemsLab/GeoTorchAI/blob/main/data/architecture.png" class="center" width="60%" align="right">
 
 * Datasets: This module conatins processed popular datasets for raster data models and grid based spatio-temporal models. Datasets are available as ready-to-use PyTorch datasets.
 * Models: These are PyTorch layers for popular raster data models and grid based spatio-temporal models.
@@ -45,7 +45,7 @@ Following libraries need to be set up before using GeoTorchAI.
 For installation, visit the [instructions](https://kanchanchy.github.io/geotorch/installation.html).
 
 ## Example
-End-to-end coding examples for various applications including model training and data preprocessing are available in our [binders](https://github.com/DataSystemsLab/GeoTorch/tree/main/binders) and [examples](https://github.com/DataSystemsLab/GeoTorch/tree/main/examples) sections.
+End-to-end coding examples for various applications including model training and data preprocessing are available in our [binders](https://github.com/DataSystemsLab/GeoTorchAI/tree/main/binders) and [examples](https://github.com/DataSystemsLab/GeoTorchAI/tree/main/examples) sections.
 
 We show a very short example of satellite imagery classification using GeoTorchAI in a step-by-step manner below. Training a satellite imagery classification model consists of three steps: loading the dataset, initializing the model and parameters, and train the model. We pick the [DeepSatV2](https://arxiv.org/abs/1911.07747) model to classify [EuroSAT](https://github.com/phelber/EuroSAT) satellite images.
 #### EuroSAT Image Classes
@@ -60,9 +60,9 @@ We show a very short example of satellite imagery classification using GeoTorchA
 * River
 * SeaLake
 #### Spectral Bands of a Highway Image
-![Highway Image](https://github.com/DataSystemsLab/GeoTorch/blob/main/data/euro-highway.png)
+![Highway Image](https://github.com/DataSystemsLab/GeoTorchAI/blob/main/data/euro-highway.png)
 #### Spectral Bands of an Industry Image
-![Industry Image](https://github.com/DataSystemsLab/GeoTorch/blob/main/data/euro-industry.png)
+![Industry Image](https://github.com/DataSystemsLab/GeoTorchAI/blob/main/data/euro-industry.png)
 #### Loading Training Dataset
 Load the EuroSAT Dataset. Setting download=True will download the full data in the given directory. If data is already available, set download=False.
 ```
@@ -136,7 +136,7 @@ print("Validation Accuracy: ", val_accuracy, "%")
 ```
 
 ## Contributing to this Project
-Follow the instructions available [here](https://github.com/DataSystemsLab/GeoTorch/blob/main/CONTRIBUTING.md).
+Follow the instructions available [here](https://github.com/DataSystemsLab/GeoTorchAI/blob/main/CONTRIBUTING.md).
 
 ## Other Contributions of this Project
 We also contributed to [Apache Sedona](https://sedona.apache.org/) to add transformation and write supports for GeoTiff raster images. This contribution is also a part of this project. Contribution reference: [Commits](https://github.com/apache/incubator-sedona/commits?author=kanchanchy)

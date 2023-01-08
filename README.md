@@ -30,8 +30,8 @@ Our preprocessing module is designed such that it minimizes the number of method
 ## Documentation
 Details documentation on installation, API, and programming guide is available on [GeoTorchAI Website](https://kanchanchy.github.io/geotorchai/).
 
-## Dependency Set up
-Following libraries need to be set up before using GeoTorchAI.
+## Installation
+GeoTorchAI can be installed by running the command 'pip install geotorchai'. GeoTorchAI is available on [PyPI](https://pypi.org/project/geotorchai/). For more instructions regrading the required and optional dependencies, please visit the [website](https://kanchanchy.github.io/geotorchai/installation.html).
 
 ##### Dependencies for Deep Learning Module:
 1. PyTorch >=1.10
@@ -66,7 +66,7 @@ We show a very short example of satellite imagery classification using GeoTorchA
 #### Loading Training Dataset
 Load the EuroSAT Dataset. Setting download=True will download the full data in the given directory. If data is already available, set download=False.
 ```
-full_data = geotorch.datasets.raser.EuroSAT(root="data/eurosat", download=True, include_additional_features=True)
+full_data = geotorchai.datasets.raser.EuroSAT(root="data/eurosat", download=True, include_additional_features=True)
 ```
 #### Split data into 80% train and 20% validation parts
 ```

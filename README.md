@@ -31,7 +31,11 @@ Our preprocessing module is designed such that it minimizes the number of method
 Details documentation on installation, API, and programming guide is available on [GeoTorchAI Website](https://kanchanchy.github.io/geotorchai/).
 
 ## Installation
-GeoTorchAI can be installed by running the command 'pip install geotorchai'. GeoTorchAI is available on [PyPI](https://pypi.org/project/geotorchai/). For more instructions regrading the required and optional dependencies, please visit the [website](https://kanchanchy.github.io/geotorchai/installation.html).
+GeoTorchAI can be installed by running the following command:
+```
+pip install geotorchai
+```
+GeoTorchAI is available on [PyPI](https://pypi.org/project/geotorchai/). For more instructions regrading the required and optional dependencies, please visit the [website](https://kanchanchy.github.io/geotorchai/installation.html).
 
 ##### Dependencies for Deep Learning Module:
 1. PyTorch >=1.10

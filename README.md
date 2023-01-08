@@ -8,7 +8,7 @@ GeoTorchAI, formerly known as [GeoTorch](https://dl.acm.org/doi/abs/10.1145/3557
 GeoTorchAI contains various modules for deep learning and data preprocessing in both raster imagery and spatiotemporal non-imagery categories. Deep learning module offers ready-to-use raster and grid datasets, transforms, and neural network models.
 
 
-<img src="https://github.com/DataSystemsLab/GeoTorchAI/blob/main/data/architecture.png" class="center" width="60%" align="right">
+<img src="https://github.com/DataSystemsLab/GeoTorchAI/blob/main/data/architecture.png?raw=true" class="center" width="60%" align="right">
 
 * Datasets: This module conatins processed popular datasets for raster data models and grid based spatio-temporal models. Datasets are available as ready-to-use PyTorch datasets.
 * Models: These are PyTorch layers for popular raster data models and grid based spatio-temporal models.

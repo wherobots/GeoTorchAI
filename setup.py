@@ -1,4 +1,8 @@
 from setuptools import find_packages, setup
+from pathlib import Path
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
 
 keywords=[
     "spatial-machine-learning",
@@ -27,7 +31,7 @@ setup(
     packages=find_packages(),
     version='0.1.0',
     description='GeoTorchAI, formarly GeoTorch, A Spatiotemporal Deep Learning Framework',
-    long_description = "file: README.md",
+    long_description = long_description,
     long_description_content_type = "text/markdown",
     author='Kanchan Chowdhury',
     author_email='kchowdh1@asu.edu',

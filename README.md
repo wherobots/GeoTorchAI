@@ -37,17 +37,6 @@ pip install geotorchai
 ```
 GeoTorchAI is available on [PyPI](https://pypi.org/project/geotorchai/). For more instructions regrading the required and optional dependencies, please visit the [website](https://kanchanchy.github.io/geotorchai/installation.html).
 
-##### Dependencies for Deep Learning Module:
-1. PyTorch >=1.10
-2. Rasterio
-3. Scikit-image
-
-##### Dependencies for Preprocessing Module:
-1. PySpark >=3.0.0
-2. Apache Sedona >=1.2.0-incubating
-
-For installation, visit the [instructions](https://kanchanchy.github.io/geotorchai/installation.html).
-
 ## Example
 End-to-end coding examples for various applications including model training and data preprocessing are available in our [binders](https://github.com/DataSystemsLab/GeoTorchAI/tree/main/binders) and [examples](https://github.com/DataSystemsLab/GeoTorchAI/tree/main/examples) sections.
 

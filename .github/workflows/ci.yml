@@ -55,10 +55,12 @@ jobs:
         python3 -m pip install flake8 pytest
         python3 -m pip install pandas
         python3 -m pip install numpy
+        python3 -m pip install xarray
         python3 -m pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
         python3 -m pip install rasterio
         python3 -m pip install -U scikit-image
         python3 -m pip install kaggle
+        python3 -m pip install cdsapi
         python3 -m pip install pyspark==${SPARK_VERSION}
         python3 -m pip install apache-sedona
         if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi

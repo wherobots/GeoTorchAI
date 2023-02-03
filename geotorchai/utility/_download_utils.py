@@ -84,7 +84,7 @@ def _is_zip(filename):
 
 def _download_single_cdsapi_file(save_path: str, variable, years, months, days, times, level_type, pressure_level, grid, product_type, format_name):
 	if level_type == 'pressure':
-		file_name = variable + '_' + pressure_level + '_' + year + '.nc'
+		file_name = variable + '_' + pressure_level + '_' + years[0] + '.nc'
 	else:
 		file_name = variable + '_' + years[0] + '.nc'
 

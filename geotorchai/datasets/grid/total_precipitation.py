@@ -11,7 +11,7 @@ import xarray as xr
 
 class TotalPrecipitation(Dataset):
     '''
-    This dataset is based on https://github.com/jwwthu/DL4Traffic/tree/main/TaxiBJ21
+    This dataset is based on the repository https://github.com/pangeo-data/WeatherBench
 
     Parameters
     ..........

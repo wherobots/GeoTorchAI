@@ -11,7 +11,7 @@ import xarray as xr
 
 class Temperature(Dataset):
     '''
-    This dataset is based on https://github.com/jwwthu/DL4Traffic/tree/main/TaxiBJ21
+    This dataset is based on the repository https://github.com/pangeo-data/WeatherBench
 
     Parameters
     ..........
@@ -20,6 +20,7 @@ class Temperature(Dataset):
     prediction_length (Int) - Length of prediction data in sequence of each sample
     download (Boolean, Optional) - Set to True if dataset is not available in the given directory. Default: False
     years (List, Optional) - Dataset will be downloaded for the given years
+    pressure_level (String, Optional) - Pressure level for temperature data
     '''
 
     ALL_YEARS = [
@@ -29,7 +30,7 @@ class Temperature(Dataset):
     ]
 
 
-    def __init__(self, root, history_length, prediction_length, download=False, years=ALL_YEARS):
+    def __init__(self, root, history_length, prediction_length, download=False, years=ALL_YEARS, pressure_level = '850'):
         super().__init__()
 
         self.all_months = ['01','02','03','04','05','06','07','08','09','10','11','12']
@@ -40,7 +41,7 @@ class Temperature(Dataset):
 
         self.variable = 'temperature'
         self.level_type = 'pressure'
-        self.pressure_level = '850'
+        self.pressure_level = pressure_level
         self.grid = [5.625,2.8125]
         self.product_type = 'reanalysis'
         self.format_name = 'netcdf'

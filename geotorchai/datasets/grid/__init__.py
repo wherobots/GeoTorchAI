@@ -6,6 +6,7 @@ from .total_precipitation import TotalPrecipitation
 from .temperature import Temperature
 from .geopotential import Geopotential
 from .total_cloud_cover import TotalCloudCover
+from .toa_incident_solar_radiation import ToaIncidentSolarRadiation
 from .processed import Processed
 
-__all__ = ["BikeNYCDeepSTN", "BikeNYCSTDN", "TaxiNYCSTDN", "TaxiBJ21", "TotalPrecipitation", "Temperature", "Geopotential", "TotalCloudCover", "Processed"]
+__all__ = ["BikeNYCDeepSTN", "BikeNYCSTDN", "TaxiNYCSTDN", "TaxiBJ21", "TotalPrecipitation", "Temperature", "Geopotential", "TotalCloudCover", "ToaIncidentSolarRadiation", "Processed"]

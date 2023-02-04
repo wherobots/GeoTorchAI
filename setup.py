@@ -43,6 +43,8 @@ setup(
         'scikit-image',
         'numpy',
         'pandas',
+        'xarray',
+        'cdsapi',
         'kaggle',
     ],
     extras_require={

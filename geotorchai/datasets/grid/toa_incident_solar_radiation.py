@@ -29,7 +29,7 @@ class ToaIncidentSolarRadiation(Dataset):
     ]
 
 
-    def __init__(self, root, history_length, prediction_length, download=False, years=ALL_YEARS):
+    def __init__(self, root, download=False, years=['2018'], grid = [5.625,2.8125], lead_time = 2*24):
         super().__init__()
 
         self.all_months = ['01','02','03','04','05','06','07','08','09','10','11','12']
@@ -41,7 +41,7 @@ class ToaIncidentSolarRadiation(Dataset):
         self.variable = 'toa_incident_solar_radiation'
         self.level_type = 'single'
         self.pressure_level = None
-        self.grid = [5.625,2.8125]
+        self.grid = grid
         self.product_type = 'reanalysis'
         self.format_name = 'netcdf'
 
@@ -52,13 +52,14 @@ class ToaIncidentSolarRadiation(Dataset):
         arr = xr.open_mfdataset(f'{data_dir}/*.nc', combine='by_coords')
         self.full_data = arr['tisr'].values
 
+        self.lead_time = lead_time
+        self.use_lead_time = True
+
         self.timesteps = self.full_data.shape[0]
         self.grid_height = self.full_data.shape[1]
         self.grid_width = self.full_data.shape[2]
 
         self.full_data = self.full_data.reshape((self.timesteps, 1, self.grid_height, self.grid_width))
-
-        self._generate_sequence_data(history_length, prediction_length)
 
 
 
@@ -80,6 +81,12 @@ class ToaIncidentSolarRadiation(Dataset):
 
 
 
+    def set_history_prediction_length(self, history_length, prediction_length):
+        self._generate_sequence_data(history_length, prediction_length)
+        self.use_lead_time = False
+
+
+
     def _generate_sequence_data(self, history_length, prediction_length):
         self.X_data = []
         self.Y_data = []
@@ -95,11 +102,18 @@ class ToaIncidentSolarRadiation(Dataset):
 
 
     def __len__(self) -> int:
-        return len(self.Y_data)
+        if self.use_lead_time:
+            return len(self.full_data) - self.lead_time
+        else:
+            return len(self.Y_data)
 
 
     def __getitem__(self, index: int):
-        sample = {"x_data": self.X_data[index], "y_data": self.Y_data[index]}
+        if self.use_lead_time:
+            sample = {"x_data": self.full_data[index], "y_data": self.full_data[index + self.lead_time]}
+        else:
+            sample = {"x_data": self.X_data[index], "y_data": self.Y_data[index]}
+
         return sample
 
 

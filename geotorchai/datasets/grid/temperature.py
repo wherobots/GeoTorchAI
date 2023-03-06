@@ -11,7 +11,7 @@ import xarray as xr
 
 class Temperature(Dataset):
     '''
-    This dataset is based on the repository https://github.com/pangeo-data/WeatherBench
+    This dataset is based on https://github.com/jwwthu/DL4Traffic/tree/main/TaxiBJ21
 
     Parameters
     ..........
@@ -20,7 +20,6 @@ class Temperature(Dataset):
     prediction_length (Int) - Length of prediction data in sequence of each sample
     download (Boolean, Optional) - Set to True if dataset is not available in the given directory. Default: False
     years (List, Optional) - Dataset will be downloaded for the given years
-    pressure_level (String, Optional) - Pressure level for temperature data
     '''
 
     ALL_YEARS = [
@@ -30,7 +29,7 @@ class Temperature(Dataset):
     ]
 
 
-    def __init__(self, root, history_length, prediction_length, download=False, years=ALL_YEARS, pressure_level = '850'):
+    def __init__(self, root, download=False, years=['2018'], pressure_level = '850', grid = [5.625,2.8125], lead_time = 2*24):
         super().__init__()
 
         self.all_months = ['01','02','03','04','05','06','07','08','09','10','11','12']
@@ -42,7 +41,7 @@ class Temperature(Dataset):
         self.variable = 'temperature'
         self.level_type = 'pressure'
         self.pressure_level = pressure_level
-        self.grid = [5.625,2.8125]
+        self.grid = grid
         self.product_type = 'reanalysis'
         self.format_name = 'netcdf'
 
@@ -53,13 +52,14 @@ class Temperature(Dataset):
         arr = xr.open_mfdataset(f'{data_dir}/*.nc', combine='by_coords')
         self.full_data = arr['t'].values
 
+        self.lead_time = lead_time
+        self.use_lead_time = True
+
         self.timesteps = self.full_data.shape[0]
         self.grid_height = self.full_data.shape[1]
         self.grid_width = self.full_data.shape[2]
 
         self.full_data = self.full_data.reshape((self.timesteps, 1, self.grid_height, self.grid_width))
-
-        self._generate_sequence_data(history_length, prediction_length)
 
 
 
@@ -80,6 +80,11 @@ class Temperature(Dataset):
         return self.grid_width
 
 
+    def set_history_prediction_length(self, history_length, prediction_length):
+        self._generate_sequence_data(history_length, prediction_length)
+        self.use_lead_time = False
+
+
 
     def _generate_sequence_data(self, history_length, prediction_length):
         self.X_data = []
@@ -96,11 +101,18 @@ class Temperature(Dataset):
 
 
     def __len__(self) -> int:
-        return len(self.Y_data)
+        if self.use_lead_time:
+            return len(self.full_data) - self.lead_time
+        else:
+            return len(self.Y_data)
 
 
     def __getitem__(self, index: int):
-        sample = {"x_data": self.X_data[index], "y_data": self.Y_data[index]}
+        if self.use_lead_time:
+            sample = {"x_data": self.full_data[index], "y_data": self.full_data[index + self.lead_time]}
+        else:
+            sample = {"x_data": self.X_data[index], "y_data": self.Y_data[index]}
+        
         return sample
 
 

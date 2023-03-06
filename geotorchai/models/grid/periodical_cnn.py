@@ -59,8 +59,8 @@ class _PeriodicPadding2D(nn.Module):
 	def forward(self, x):
 		if self.pad_width == 0:
 			return x
-		x = torch.cat((x[:, :, -self.pad_width:, :], x, x[:, :, :self.pad_width, :]), dim=2)
-		x = nn.functional.pad(x, (0, 0, 0, 0, self.pad_width, self.pad_width, 0, 0))
+		x = torch.cat((x[:, :, :, -self.pad_width:], x, x[:, :, :, :self.pad_width]), dim=3)
+		x = nn.functional.pad(x, (0, 0, self.pad_width, self.pad_width, 0, 0, 0, 0))
 
 		return x
 

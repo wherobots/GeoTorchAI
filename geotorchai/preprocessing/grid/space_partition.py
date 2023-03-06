@@ -1,6 +1,4 @@
 from shapely.geometry import Polygon
-from sedona.utils.adapter import Adapter
-from pyspark.sql import SparkSession
 from pyspark.sql import DataFrame
 from pyspark.sql.types import StructType
 from pyspark.sql.types import StructField
@@ -33,9 +31,9 @@ class SpacePartition(metaclass = MultipleMeta):
 		# retrieve the SparkSession instance
 		spark = SparkRegistration._get_spark_session()
 
-		geo_rdd = Adapter.toSpatialRdd(geo_df, geometry)
-		geo_rdd.analyze()
-		boundary = geo_rdd.boundaryEnvelope
+		geo_df.createOrReplaceTempView("geo_df")
+		boundary = \
+		spark.sql("SELECT ST_Envelope_Aggr(geo_df.{0}) as boundary FROM geo_df".format(geometry)).collect()[0][0]
 		x_arr, y_arr = boundary.exterior.coords.xy
 		x = list(x_arr)
 		y = list(y_arr)
@@ -81,9 +79,9 @@ class SpacePartition(metaclass = MultipleMeta):
 		# retrieve the SparkSession instance
 		spark = SparkRegistration._get_spark_session()
 
-		geo_rdd = Adapter.toSpatialRdd(geo_df, geometry)
-		geo_rdd.analyze()
-		boundary = geo_rdd.boundaryEnvelope
+		geo_df.createOrReplaceTempView("geo_df")
+		boundary = \
+		spark.sql("SELECT ST_Envelope_Aggr(geo_df.{0}) as boundary FROM geo_df".format(geometry)).collect()[0][0]
 		x_arr, y_arr = boundary.exterior.coords.xy
 		x = list(x_arr)
 		y = list(y_arr)

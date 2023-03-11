@@ -86,7 +86,7 @@ class Temperature(Dataset):
 
 
 
-    def _generate_sequence_data(self, history_length, prediction_length):
+    def generate_sequence_data(self, history_length, prediction_length):
         self.X_data = []
         self.Y_data = []
         total_length = self.full_data.shape[0]

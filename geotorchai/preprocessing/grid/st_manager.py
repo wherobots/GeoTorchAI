@@ -201,7 +201,7 @@ class STManager:
 		if new_column_alias == None:
 			new_column_alias = "st_points"
 
-		return df.withColumn(new_column_alias, expr("ST_Point(double({0}), double({1}))".format(lat_column, lon_column)))
+		return df.withColumn(new_column_alias, expr("ST_Point(double({0}), double({1}))".format(lon_column, lat_column)))
 
 
 

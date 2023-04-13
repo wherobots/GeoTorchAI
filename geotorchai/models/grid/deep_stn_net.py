@@ -93,8 +93,10 @@ class DeepSTN(nn.Module):
         '''
 
         if self._device == None:
-            if input_c.get_device() == 0:
+            if input_c.is_cuda:
                 self._device = torch.device("cuda")
+            elif input_c.is_mps:
+                self._device = torch.device("mps")
             else:
                 self._device = torch.device("cpu")
             self.ptTrans._set_device(self._device)

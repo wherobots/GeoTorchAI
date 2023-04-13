@@ -1,5 +1,4 @@
 import os
-import time
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
@@ -26,8 +25,8 @@ learning_rate = 0.0002
 batch_size = 32
 params = {'batch_size': batch_size, 'shuffle': False, 'drop_last':False, 'num_workers': 0}
 
-validation_split = 0.1
-shuffle_dataset = False
+validation_ratio = 0.1
+test_ratio = 0.1
 
 out_dir = 'reports'
 checkpoint_dir = out_dir+'/checkpoint'
@@ -37,7 +36,6 @@ os.makedirs(model_dir, exist_ok=True)
 
 initial_checkpoint = model_dir + '/model.best.pth'
 LOAD_INITIAL = False
-random_seed = int(time.time())
 
 
 class GeoTorchConvLSTM(nn.Module):
@@ -52,30 +50,31 @@ class GeoTorchConvLSTM(nn.Module):
 
 def createModelAndTrain():
 
-    train_dataset = BikeNYCDeepSTN(root = "data/deepstn")
-    train_dataset.merge_closeness_period_trend(len_history, len_predict)
-    test_dataset = BikeNYCDeepSTN(root = "data/deepstn", is_training_data = False)
-    test_dataset.merge_closeness_period_trend(len_history, len_predict)
+    full_dataset = BikeNYCDeepSTN(root = "data/deepstn")
+    full_dataset.set_sequential_representation(len_history, len_predict)
+    min_max_diff = full_dataset.get_min_max_difference()
 
-    min_max_diff = train_dataset.get_min_max_difference()
-
-    dataset_size = len(train_dataset)
+    dataset_size = len(full_dataset)
     indices = list(range(dataset_size))
-    split = int(np.floor(validation_split * dataset_size))
-    if shuffle_dataset:
-        np.random.seed(random_seed)
-        np.random.shuffle(indices)
-    train_indices, val_indices = indices[split:], indices[:split]
-
+    val_split = int(np.floor((1 - (validation_ratio + test_ratio)) * dataset_size))
+    test_split = int(np.floor((1 - test_ratio) * dataset_size))
+    train_indices, val_indices, test_indices = indices[:val_split], indices[val_split:test_split], indices[test_split:]
 
     train_sampler = SubsetRandomSampler(train_indices)
     valid_sampler = SubsetRandomSampler(val_indices)
+    test_sampler = SubsetRandomSampler(test_indices)
 
-    training_generator = DataLoader(train_dataset, **params, sampler=train_sampler)
-    val_generator = DataLoader(train_dataset, **params, sampler=valid_sampler)
-    test_generator = DataLoader(test_dataset, batch_size=batch_size)
+    training_generator = DataLoader(full_dataset, **params, sampler=train_sampler)
+    val_generator = DataLoader(full_dataset, **params, sampler=valid_sampler)
+    test_generator = DataLoader(full_dataset, **params, sampler=test_sampler)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
+
     # Total iterations
     total_iters = 5
 
@@ -115,9 +114,9 @@ def createModelAndTrain():
             print('Mean validation loss:', val_loss)
 
             if min_val_loss == None or val_loss < min_val_loss:
-            	min_val_loss = val_loss
-            	torch.save(model.state_dict(), initial_checkpoint)
-            	print('best model saved!')
+                min_val_loss = val_loss
+                torch.save(model.state_dict(), initial_checkpoint)
+                print('best model saved!')
 
         model.load_state_dict(torch.load(initial_checkpoint, map_location=lambda storage, loc: storage))
 

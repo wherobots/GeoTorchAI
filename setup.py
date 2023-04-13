@@ -29,7 +29,7 @@ keywords=[
 setup(
     name='geotorchai',
     packages=find_packages(),
-    version='0.1.0',
+    version='0.2.0',
     description='GeoTorchAI, formarly GeoTorch, A Spatiotemporal Deep Learning Framework',
     long_description = long_description,
     long_description_content_type = "text/markdown",
@@ -39,13 +39,12 @@ setup(
     license='AGPL-3.0',
     install_requires=[
         'torch',
-        'rasterio',
-        'scikit-image',
+        'rasterio <= 1.1.8',
+        'scikit-image >= 0.19.0',
         'numpy',
         'pandas',
         'xarray',
         'cdsapi',
-        'kaggle',
     ],
     extras_require={
         'Preprocessing':  ['pyspark', 'apache-sedona'],

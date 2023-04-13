@@ -1,17 +1,13 @@
 
 import os
 from typing import Optional, Callable, Dict
-import pandas as pd
-import numpy as np
-import rasterio
 import torch
-from torch import Tensor
 from torch.utils.data import Dataset
-from kaggle.api.kaggle_api_extended import KaggleApi
 from geotorchai.datasets.raster.utility import textural_features as ttf
 from geotorchai.datasets.raster.utility import spectral_indices as si
 from geotorchai.utility.exceptions import InvalidParametersException
-from geotorchai.utility._download_utils import _extract_archive
+import pandas as pd
+import numpy as np
 
 
 class SAT4(Dataset):
@@ -50,7 +46,7 @@ class SAT4(Dataset):
 	BAND_NIR_INDEX = 3
 
 
-	def __init__(self, root, download = False, is_train_data = True, bands = SPECTRAL_BANDS, include_additional_features = False, additional_features_list = ADDITIONAL_FEATURES, user_features_callback: Optional[Dict[str, Callable]] = None, transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
+	def __init__(self, root, is_train_data = True, bands = SPECTRAL_BANDS, include_additional_features = False, additional_features_list = ADDITIONAL_FEATURES, user_features_callback: Optional[Dict[str, Callable]] = None, transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
 		super().__init__()
 		# first check if selected bands are valid. Trow exception otherwise
 		if not self._is_valid_bands(bands):
@@ -66,12 +62,6 @@ class SAT4(Dataset):
 		self._idx_to_class = {i:j for i, j in enumerate(self.SAT4_CLASSES)}
 		self._class_to_idx = {value:key for key, value in self._idx_to_class.items()}
 		self._rgb_band_indices = torch.tensor([self.SPECTRAL_BANDS.index(band) for band in self.RGB_BANDS])
-
-		if download:
-			api = KaggleApi()
-			api.authenticate()
-			api.dataset_download_files('crawford/deepsat-sat4', root)
-			_extract_archive(root + "/deepsat-sat4.zip", root + "/deepsat-sat4")
 
 		data_dir = self._get_path(root)
 		if is_train_data:

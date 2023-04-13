@@ -1,14 +1,11 @@
 
 import os
 from typing import Optional, Callable
-import numpy as np
 import torch
-from torch import Tensor
 from torch.utils.data import Dataset
-from kaggle.api.kaggle_api_extended import KaggleApi
-import rasterio
 from geotorchai.utility.exceptions import InvalidParametersException
-from geotorchai.utility._download_utils import _extract_archive
+import numpy as np
+import rasterio
 
 
 class Cloud38(Dataset):
@@ -29,7 +26,7 @@ class Cloud38(Dataset):
 	SPECTRAL_BANDS = ["red", "green", "blue", "nir"]
 	RGB_BANDS = ["red", "green", "blue"]
 
-	def __init__(self, root, download = False, bands = SPECTRAL_BANDS, transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
+	def __init__(self, root, bands = SPECTRAL_BANDS, transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
 		super().__init__()
 		# first check if selected bands are valid. Trow exception otherwise
 		if not self._is_valid_bands(bands):
@@ -39,12 +36,6 @@ class Cloud38(Dataset):
 		self.transform = transform
 		self.target_transform = target_transform
 		self.image_paths = []
-
-		if download:
-			api = KaggleApi()
-			api.authenticate()
-			api.dataset_download_files('sorour/38cloud-cloud-segmentation-in-satellite-images', root)
-			_extract_archive(root + "/38cloud-cloud-segmentation-in-satellite-images.zip", root + "/38cloud-cloud-segmentation-in-satellite-images")
 
 		image_folders = ["train_red", "train_green", "train_blue", "train_nir"]
 		label_folder = "train_gt"

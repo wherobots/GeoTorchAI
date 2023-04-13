@@ -1,11 +1,10 @@
 
 import os
-import numpy as np
 import torch
-from torch import Tensor
 from torch.utils.data import Dataset
 from geotorchai.utility.exceptions import InvalidParametersException
 from geotorchai.utility._download_utils import _download_remote_file
+import numpy as np
 
 
 class TaxiBJ21(Dataset):
@@ -29,9 +28,8 @@ class TaxiBJ21(Dataset):
 
     DATA_URL = "https://raw.githubusercontent.com/jwwthu/DL4Traffic/main/TaxiBJ21/TaxiBJ21.npy"
 
-    def __init__(self, root, download=False, is_training_data=True, test_ratio = 0.1, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
+    def __init__(self, root, download=False, lead_time = 2*24):
         super().__init__()
-        self.is_training_data = is_training_data
 
         if download:
             _download_remote_file(self.DATA_URL, root)
@@ -40,69 +38,79 @@ class TaxiBJ21(Dataset):
 
         flow_data = np.load(open(data_dir + "/TaxiBJ21.npy", "rb"))
 
-        self.len_test = int(np.floor(test_ratio * len(flow_data)))
-        self.merged_data = np.copy(flow_data)
-        self.is_merged = False
+        self.full_data = np.copy(flow_data)
 
-        self._create_feature_vector(flow_data, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend)
+        self.lead_time = lead_time
+        self.use_lead_time = True
+        self.sequential = False
+        self.periodical = False
+
+        self.lead_time_data = torch.tensor(self.full_data)
 
 
 
-    def merge_closeness_period_trend(self, history_length, predict_length):
+    def set_sequential_representation(self, history_length, prediction_length):
         '''
         Call this method if you want to iterate the dataset as a sequence of histories and predictions instead of closeness, period, and trend.
 
         Parameters
         ..........
         history_length (Int) - Length of history data in sequence of each sample
-        predict_length (Int) - Length of prediction data in sequence of each sample
+        prediction_length (Int) - Length of prediction data in sequence of each sample
         '''
-
-        max_data = np.max(self.merged_data)
-        min_data = np.min(self.merged_data)
-        self.min_max_diff = max_data-min_data
-        self.merged_data=(2.0*self.merged_data-(max_data+min_data))/(max_data-min_data)
 
         history_data = []
         predict_data = []
-        total_length = self.merged_data.shape[0]
-        for end_idx in range(history_length + predict_length, total_length):
-            predict_frames = self.merged_data[end_idx-predict_length:end_idx]
-            history_frames = self.merged_data[end_idx-predict_length-history_length:end_idx-predict_length]
+        total_length = self.full_data.shape[0]
+        for end_idx in range(history_length + prediction_length, total_length):
+            predict_frames = self.full_data[end_idx-prediction_length:end_idx]
+            history_frames = self.full_data[end_idx-prediction_length-history_length:end_idx-prediction_length]
             history_data.append(history_frames)
             predict_data.append(predict_frames)
         history_data = np.stack(history_data)
         predict_data = np.stack(predict_data)
 
-        if self.is_training_data:
-            self.X_data = history_data[:-self.len_test]
-            self.Y_data = predict_data[:-self.len_test]
-        else:
-            self.X_data = history_data[-self.len_test:]
-            self.Y_data = predict_data[-self.len_test:]
+        self.X_data = torch.tensor(history_data)
+        self.Y_data = torch.tensor(predict_data)
 
-        self.X_data = torch.tensor(self.X_data)
-        self.Y_data = torch.tensor(self.Y_data)
+        self.use_lead_time = False
+        self.sequential = True
+        self.periodical = False
 
-        self.is_merged = True
+
+
+    def set_periodical_representation(self, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
+        self._create_feature_vector(self.full_data, len_closeness, len_period, len_trend, T_closeness, T_period,
+                                    T_trend)
+        self.use_lead_time = False
+        self.sequential = False
+        self.periodical = True
         
 
 
     def __len__(self) -> int:
-        return len(self.Y_data)
+        if self.use_lead_time:
+            return len(self.lead_time_data) - self.lead_time
+        else:
+            return len(self.Y_data)
 
 
     def __getitem__(self, index: int):
 
-        if self.is_merged:
-            sample = {"x_data": self.X_data[index], \
-            "y_data": self.Y_data[index]}
-        else:
+        if self.periodical:
             sample = {"x_closeness": self.X_closeness[index], \
-            "x_period": self.X_period[index], \
-            "x_trend": self.X_trend[index], \
-            "t_data": self.T_data[index], \
-            "y_data": self.Y_data[index]}
+                      "x_period": self.X_period[index], \
+                      "x_trend": self.X_trend[index], \
+                      "t_data": self.T_data[index], \
+                      "y_data": self.Y_data[index]}
+        else:
+            if self.use_lead_time:
+                x_data = self.lead_time_data[index]
+                y_data = self.lead_time_data[index + self.lead_time]
+            else:
+                x_data = self.X_data[index]
+                y_data = self.Y_data[index]
+            sample = {"x_data": x_data, "y_data": y_data}
 
         return sample
 
@@ -165,23 +173,8 @@ class TaxiBJ21(Dataset):
 
         matrix_T=matrix_T[number_of_skip_hours:]
 
-        if self.is_training_data:
-            self.X_closeness=self.X_closeness[:-self.len_test]
-            self.X_period=self.X_period[:-self.len_test]
-            self.X_trend=self.X_trend[:-self.len_test]
-            self.T_data=matrix_T[:-self.len_test]
-
-            self.Y_data=Y[:-self.len_test]
-        else:
-            self.X_closeness=self.X_closeness[-self.len_test:]
-            self.X_period=self.X_period[-self.len_test:]
-            self.X_trend=self.X_trend[-self.len_test:]
-            self.T_data=matrix_T[-self.len_test:]
-
-            self.Y_data=Y[-self.len_test:]
-
-
-        len_data=self.X_closeness.shape[0]
+        self.T_data = matrix_T
+        self.Y_data = Y
 
         self.X_closeness = torch.tensor(self.X_closeness)
         self.X_period = torch.tensor(self.X_period)

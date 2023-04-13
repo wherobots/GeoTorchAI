@@ -1,12 +1,10 @@
 
 import os
-import numpy as np
-import torch
-from torch import Tensor
 from torch.utils.data import Dataset
 from geotorchai.utility.exceptions import InvalidParametersException
 from geotorchai.utility._download_utils import _download_cdsapi_files
 import xarray as xr
+import numpy as np
 
 
 class Geopotential(Dataset):
@@ -30,7 +28,7 @@ class Geopotential(Dataset):
     ]
 
 
-    def __init__(self, root, download=False, years=['2018'], pressure_level = '500', grid = [5.625,2.8125], lead_time = 2*24):
+    def __init__(self, root, download=False, years=['2018'], pressure_level = '500', grid = [5.625,2.8125], lead_time = 2*24, normalize=True):
         super().__init__()
 
         self.all_months = ['01','02','03','04','05','06','07','08','09','10','11','12']
@@ -45,6 +43,7 @@ class Geopotential(Dataset):
         self.grid = grid
         self.product_type = 'reanalysis'
         self.format_name = 'netcdf'
+        self.normalize = normalize
 
         if download:
             _download_cdsapi_files(root, self.variable, years, self.all_months, self.all_days, self.all_times, self.level_type, pressure_level = self.pressure_level, grid = self.grid, product_type = self.product_type, format_name = self.format_name)
@@ -55,12 +54,20 @@ class Geopotential(Dataset):
 
         self.lead_time = lead_time
         self.use_lead_time = True
+        self.sequential = False
+        self.periodical = False
 
         self.timesteps = self.full_data.shape[0]
         self.grid_height = self.full_data.shape[1]
         self.grid_width = self.full_data.shape[2]
 
         self.full_data = self.full_data.reshape((self.timesteps, 1, self.grid_height, self.grid_width))
+
+        max_data = np.max(self.full_data)
+        min_data = np.min(self.full_data)
+        self.min_max_diff = max_data - min_data
+        if self.normalize:
+            self.full_data = (2.0 * self.full_data - (max_data + min_data)) / (max_data - min_data)
 
 
 
@@ -81,10 +88,21 @@ class Geopotential(Dataset):
         return self.grid_width
 
 
+    def get_min_max_difference(self):
+        return self.min_max_diff
 
-    def set_history_prediction_length(self, history_length, prediction_length):
+    def set_sequential_representation(self, history_length, prediction_length):
         self._generate_sequence_data(history_length, prediction_length)
         self.use_lead_time = False
+        self.sequential = True
+        self.periodical = False
+
+
+    def set_periodical_representation(self, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
+        self._generate_periodical_data(self.full_data, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend)
+        self.use_lead_time = False
+        self.sequential = False
+        self.periodical = True
 
 
 
@@ -110,10 +128,20 @@ class Geopotential(Dataset):
 
 
     def __getitem__(self, index: int):
-        if self.use_lead_time:
-            sample = {"x_data": self.full_data[index], "y_data": self.full_data[index + self.lead_time]}
+        if self.periodical:
+            sample = {"x_closeness": self.X_closeness[index], \
+                      "x_period": self.X_period[index], \
+                      "x_trend": self.X_trend[index], \
+                      "t_data": self.T_data[index], \
+                      "y_data": self.Y_data[index]}
         else:
-            sample = {"x_data": self.X_data[index], "y_data": self.Y_data[index]}
+            if self.use_lead_time:
+                x_data = self.full_data[index]
+                y_data = self.full_data[index + self.lead_time]
+            else:
+                x_data = self.X_data[index]
+                y_data = self.Y_data[index]
+            sample = {"x_data": x_data, "y_data": y_data}
 
         return sample
 
@@ -132,6 +160,52 @@ class Geopotential(Dataset):
                     queue.append(data_dir + "/" + folder)
 
         return None
+
+
+    def _generate_periodical_data(self, all_data, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend):
+        len_total,feature,map_height,map_width = all_data.shape
+
+        time=np.arange(len_total,dtype=int)
+        time_hour=time%T_period
+        matrix_hour=np.zeros([len_total,24,map_height,map_width])
+        for i in range(len_total):
+            matrix_hour[i,time_hour[i],:,:]=1
+
+        time_day=(time//T_period)%7
+        matrix_day=np.zeros([len_total,7,map_height,map_width])
+        for i in range(len_total):
+            matrix_day[i,time_day[i],:,:]=1
+
+        matrix_T=np.concatenate((matrix_hour,matrix_day),axis=1)
+
+        if len_trend>0:
+            number_of_skip_hours=T_trend*len_trend
+        elif len_period>0:
+            number_of_skip_hours=T_period*len_period
+        elif len_closeness>0:
+            number_of_skip_hours=T_closeness*len_closeness
+        else:
+            raise InvalidParametersException("Wrong parameters")
+
+        Y=all_data[number_of_skip_hours:len_total]
+
+        if len_closeness>0:
+            self.X_closeness=all_data[number_of_skip_hours-T_closeness:len_total-T_closeness]
+            for i in range(len_closeness-1):
+                self.X_closeness=np.concatenate((self.X_closeness,all_data[number_of_skip_hours-T_closeness*(2+i):len_total-T_closeness*(2+i)]),axis=1)
+        if len_period>0:
+            self.X_period=all_data[number_of_skip_hours-T_period:len_total-T_period]
+            for i in range(len_period-1):
+                self.X_period=np.concatenate((self.X_period,all_data[number_of_skip_hours-T_period*(2+i):len_total-T_period*(2+i)]),axis=1)
+        if len_trend>0:
+            self.X_trend=all_data[number_of_skip_hours-T_trend:len_total-T_trend]
+            for i in range(len_trend-1):
+                self.X_trend=np.concatenate((self.X_trend,all_data[number_of_skip_hours-T_trend*(2+i):len_total-T_trend*(2+i)]),axis=1)
+
+        matrix_T=matrix_T[number_of_skip_hours:]
+
+        self.T_data = matrix_T
+        self.Y_data = Y
 
 
 

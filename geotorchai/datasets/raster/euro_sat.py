@@ -1,16 +1,14 @@
 
 import os
 from typing import Optional, Callable, Dict
-import numpy as np
-import rasterio
 import torch
-from torch import Tensor
 from torch.utils.data import Dataset
-import pandas as pd
 from geotorchai.datasets.raster.utility import textural_features as ttf
 from geotorchai.datasets.raster.utility import spectral_indices as si
 from geotorchai.utility.exceptions import InvalidParametersException
 from geotorchai.utility._download_utils import _download_remote_file, _extract_archive
+import numpy as np
+import rasterio
 
 
 class EuroSAT(Dataset):

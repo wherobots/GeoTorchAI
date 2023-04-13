@@ -10,6 +10,7 @@ from pyspark.sql.types import LongType
 from geotorchai.utility.exceptions import InvalidParametersException
 from geotorchai.preprocessing.spark_registration import SparkRegistration
 import numpy as np
+from decimal import Decimal
 
 class STManager:
 
@@ -379,8 +380,8 @@ class STManager:
 		spatial_id (String) - Name of the column that contains spatial polygon/point ids
 		columns_list (String) - Columns representing the features to be included to the array or spatiotemporal tensor.
 		temporal_length (String) - Total number of timesteps
-		height (String) - Height of grid or number of rows
-		width (String) - Width of grid or number of columns
+		height (String) - Height of grid or number of rows or number of partitions along latitude
+		width (String) - Width of grid or number of columns or number of partitions along longitude
 		missing_data (String, Optional) - Feature value which will replace the empty cells
 
 		Returns
@@ -482,8 +483,8 @@ class STManager:
 		...........
 		geo_df: pyspark dataframe containing a column of geometry type
 		geometry: name of the geometry typed column in geo_df dataframe
-		partitions_x: number of partitions along latitude
-		partitions_y: number of partitions along longitude
+		partitions_x: number of partitions along longitude or width
+		partitions_y: number of partitions along latitude or height
 		col_date (String) - Column name in geo_df dataframe that contains the dates
 		step_duration_sec (Int, Optional) - Duration of a timestep interval or distance between two consecutive timesteps
 		date_format (String, Optional) - Current format of the dates. If not provided, it assumes the default format to be: "yyyy-MM-dd HH:mm:ss"
@@ -500,9 +501,6 @@ class STManager:
 		........
 		a pyspark dataframe consisting of aggregated features in spatiotemporal grid format
 		'''
-
-		def get_step_value(time_value):
-			return (time_value - min_time) // step_duration_sec
 
 		def __get_columns_selection__():
 			expr = ""
@@ -529,55 +527,38 @@ class STManager:
 		x = list(x_arr)
 		y = list(y_arr)
 		min_x, min_y, max_x, max_y = min(x), min(y), max(x), max(y)
-		interval_x = (max_x - min_x) / partitions_x
-		interval_y = (max_y - min_y) / partitions_y
+		frac_x = 1 / (10 ** (len(str(min_x).split(".")[1])))
+		frac_y = 1 / (10 ** (len(str(min_y).split(".")[1])))
+		interval_x = (max_x - min_x + frac_x) / partitions_x
+		interval_y = (max_y - min_y + frac_y) / partitions_y
 
-		polygons = []
-		ids = []
-		for i in range(partitions_y):
-			for j in range(partitions_x):
-				polygons.append(Polygon([[min_x + interval_x * j, min_y + interval_y * i],
-										 [min_x + interval_x * (j + 1), min_y + interval_y * i],
-										 [min_x + interval_x * (j + 1), min_y + interval_y * (i + 1)],
-										 [min_x + interval_x * j, min_y + interval_y * (i + 1)],
-										 [min_x + interval_x * j, min_y + interval_y * i]]))
-				ids.append(i * partitions_x + j)
+		def get_cell_id(longitude, latitude):
+			i = int((latitude - min_y) / interval_y)
+			j = int((longitude - min_x) / interval_x)
+			return i * partitions_x + j
 
-		schema_cells = StructType(
-			[
-				StructField("cell_id", IntegerType(), False),
-				StructField("cell_geometry", GeometryType(), False)
-			])
-
-		cell_df = spark.createDataFrame(zip(ids, polygons), schema=schema_cells)
-		cell_df.createOrReplaceTempView("cell_df")
+		get_cell = udf(lambda x, y: get_cell_id(x, y), IntegerType())
+		geo_df = geo_df.withColumn("cell_id", get_cell(expr("ST_X({0})".format(geometry)),
+													   expr("ST_Y({0})".format(geometry))))
 
 		geo_df = geo_df.withColumn("_unix_time_", unix_timestamp(col_date, date_format))
 		min_time = int(geo_df.agg({"_unix_time_": "min"}).collect()[0][0])
 
-		get_step = udf(lambda x: get_step_value(x), LongType())
-		geo_df = geo_df.withColumn("_id_timestep", get_step(geo_df["_unix_time_"].cast(LongType()))).drop(
-			"_unix_time_")
+		def get_step_value(time_value):
+			return (time_value - min_time) // step_duration_sec
 
-		geo_df.createOrReplaceTempView("geo_df")
+		get_step = udf(lambda x: get_step_value(x), LongType())
+		geo_df = geo_df.withColumn("_id_timestep", get_step(geo_df["_unix_time_"])).drop("_unix_time_")
 
 		if columns_to_aggregate != None:
-
-			cell_df = spark.sql(
-				"SELECT d1.cell_id, d2.* FROM cell_df AS d1 INNER JOIN geo_df AS d2 ON ST_Contains(d1.cell_geometry, d2.{0})".format(
-					geometry))
-			cell_df.createOrReplaceTempView("cell_df")
+			geo_df.createOrReplaceTempView("geo_df")
 			select_expr = __get_columns_selection__()
-			cell_df = spark.sql(
-				"SELECT cell_id, _id_timestep, {0} FROM cell_df GROUP BY cell_id, _id_timestep ORDER BY cell_id, _id_timestep".format(
+			geo_df = spark.sql(
+				"SELECT cell_id, _id_timestep, {0} FROM geo_df GROUP BY cell_id, _id_timestep".format(
 					select_expr))
 		else:
-			cell_df = spark.sql(
-				"SELECT d1.cell_id, d2._id_timestep, d2.{0} FROM cell_df AS d1 INNER JOIN geo_df AS d2 ON ST_Contains(d1.cell_geometry, d2.{0})".format(
-					geometry))
-			cell_df = cell_df.groupBy(["cell_id", "_id_timestep"]).agg(
-				count(col(geometry)).alias("aggregated_feature")).orderBy(["cell_id", "_id_timestep"])
-		return cell_df
+			geo_df = geo_df.groupBy(["cell_id", "_id_timestep"]).agg(count(col(geometry)).alias("aggregated_feature"))
+		return geo_df
 
 
 	@classmethod
@@ -630,44 +611,29 @@ class STManager:
 		x = list(x_arr)
 		y = list(y_arr)
 		min_x, min_y, max_x, max_y = min(x), min(y), max(x), max(y)
-		interval_x = (max_x - min_x) / partitions_x
-		interval_y = (max_y - min_y) / partitions_y
+		frac_x = 1 / (10 ** (len(str(min_x).split(".")[1])))
+		frac_y = 1 / (10 ** (len(str(min_y).split(".")[1])))
+		interval_x = (max_x - min_x + frac_x) / partitions_x
+		interval_y = (max_y - min_y + frac_y) / partitions_y
 
-		polygons = []
-		ids = []
-		for i in range(partitions_y):
-			for j in range(partitions_x):
-				polygons.append(Polygon([[min_x + interval_x * j, min_y + interval_y * i],
-										 [min_x + interval_x * (j + 1), min_y + interval_y * i],
-										 [min_x + interval_x * (j + 1), min_y + interval_y * (i + 1)],
-										 [min_x + interval_x * j, min_y + interval_y * (i + 1)],
-										 [min_x + interval_x * j, min_y + interval_y * i]]))
-				ids.append(i * partitions_x + j)
+		def get_cell_id(longitude, latitude):
+			i = int((latitude - min_y) / interval_y)
+			j = int((longitude - min_x) / interval_x)
+			return i * partitions_x + j
 
-		schema_cells = StructType(
-			[
-				StructField("cell_id", IntegerType(), False),
-				StructField("cell_geometry", GeometryType(), False)
-			])
-
-		cell_df = spark.createDataFrame(zip(ids, polygons), schema=schema_cells)
-		cell_df.createOrReplaceTempView("cell_df")
+		get_cell = udf(lambda x, y: get_cell_id(x, y), IntegerType())
+		geo_df = geo_df.withColumn("cell_id", get_cell(expr("ST_X({0})".format(geometry)),
+													   expr("ST_Y({0})".format(geometry))))
 
 		if columns_to_aggregate != None:
-			cell_df = spark.sql(
-				"SELECT d1.cell_id, d2.* FROM cell_df AS d1 INNER JOIN geo_df AS d2 ON ST_Contains(d1.cell_geometry, d2.{0})".format(
-					geometry))
-			cell_df.createOrReplaceTempView("cell_df")
+			geo_df.createOrReplaceTempView("geo_df")
 			select_expr = __get_columns_selection__()
-			cell_df = spark.sql(
-				"SELECT cell_id, {0} FROM cell_df GROUP BY cell_id ORDER BY cell_id".format(select_expr))
+			geo_df = spark.sql(
+				"SELECT cell_id, {0} FROM geo_df GROUP BY cell_id ORDER BY cell_id".format(select_expr))
 		else:
-			cell_df = spark.sql(
-				"SELECT d1.cell_id, d2.{0} FROM cell_df AS d1 INNER JOIN geo_df AS d2 ON ST_Contains(d1.cell_geometry, d2.{0})".format(
-					geometry))
-			cell_df = cell_df.groupBy("cell_id").agg(
+			geo_df = geo_df.groupBy("cell_id").agg(
 				count(col(geometry)).alias("aggregated_feature")).orderBy("cell_id")
-		return cell_df
+		return geo_df
 
 
 

@@ -1,12 +1,10 @@
 
 import os
 from typing import Optional, Callable
+import torch
+from torch.utils.data import Dataset
 import numpy as np
 import rasterio
-import torch
-from torch import Tensor
-from torch.utils.data import Dataset
-import pandas as pd
 
 
 class Processed(Dataset):

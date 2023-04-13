@@ -1,5 +1,4 @@
 
-import sys
 import os
 import numpy as np
 import time
@@ -33,7 +32,7 @@ random_seed = int(time.time())
 
 def createModelAndTrain():
 
-    fullData = Cloud38(root = "data/cloud38", download = False)
+    fullData = Cloud38(root = "data/cloud38")
 
     full_loader = DataLoader(fullData, batch_size= batch_size)
     channels_sum, channels_squared_sum, num_batches = 0, 0, 0
@@ -47,7 +46,7 @@ def createModelAndTrain():
     std = (channels_squared_sum / num_batches - mean ** 2) ** 0.5
 
     sat_transform = transforms.Normalize(mean, std)
-    fullData = Cloud38(root = "data/cloud38", download = False, transform = sat_transform)
+    fullData = Cloud38(root = "data/cloud38", transform = sat_transform)
     
     dataset_size = len(fullData)
     indices = list(range(dataset_size))

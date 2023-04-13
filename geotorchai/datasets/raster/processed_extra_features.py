@@ -1,12 +1,10 @@
 
-import os
 from typing import Optional, Callable
+import torch
+from torch.utils.data import Dataset
 import numpy as np
 import pandas as pd
 import rasterio
-import torch
-from torch import Tensor
-from torch.utils.data import Dataset
 
 
 class ProcessedWithExtraFeatures(Dataset):

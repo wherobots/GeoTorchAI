@@ -1,7 +1,7 @@
 
 import numpy as np
 from skimage.feature import *
-from skimage.feature import greycoprops as gc
+from skimage.feature import graycoprops as gc
 import torch
 
 def _normalize(img):
@@ -21,33 +21,33 @@ def _get_digitized_image(pixels):
     return bin_image
 
 def _get_GLCM_Contrast(digitized_image):
-    glcm = greycomatrix(digitized_image, [1], [0, np.pi/4, np.pi/2], levels=8 , normed=True, symmetric=True)
+    glcm = graycomatrix(digitized_image, [1], [0, np.pi/4, np.pi/2], levels=8 , normed=True, symmetric=True)
     feature = gc(glcm, "contrast")
     return sum(feature[0].tolist())/len(feature[0].tolist())
 
 def _get_GLCM_Dissimilarity(digitized_image):
-    glcm = greycomatrix(digitized_image, [1], [0, np.pi/4, np.pi/2], levels=8 , normed=True, symmetric=True)
+    glcm = graycomatrix(digitized_image, [1], [0, np.pi/4, np.pi/2], levels=8 , normed=True, symmetric=True)
     feature = gc(glcm, "dissimilarity")
     return sum(feature[0].tolist())/len(feature[0].tolist())
 
 
 def _get_GLCM_Homogeneity(digitized_image):
-    glcm = greycomatrix(digitized_image, [1], [0, np.pi/4, np.pi/2], levels=8 , normed=True, symmetric=True)
+    glcm = graycomatrix(digitized_image, [1], [0, np.pi/4, np.pi/2], levels=8 , normed=True, symmetric=True)
     feature = gc(glcm, "homogeneity")
     return sum(feature[0].tolist())/len(feature[0].tolist())
 
 def _get_GLCM_Energy(digitized_image):
-    glcm = greycomatrix(digitized_image, [1], [0, np.pi/4, np.pi/2], levels=8 , normed=True, symmetric=True)
+    glcm = graycomatrix(digitized_image, [1], [0, np.pi/4, np.pi/2], levels=8 , normed=True, symmetric=True)
     feature = gc(glcm, "energy")
     return sum(feature[0].tolist())/len(feature[0].tolist())
 
 
 def _get_GLCM_Correlation(digitized_image):
-    glcm = greycomatrix(digitized_image, [1], [0, np.pi/4, np.pi/2], levels=8 , normed=True, symmetric=True)
+    glcm = graycomatrix(digitized_image, [1], [0, np.pi/4, np.pi/2], levels=8 , normed=True, symmetric=True)
     feature = gc(glcm, "correlation")
     return sum(feature[0].tolist())/len(feature[0].tolist())
 
 def _get_GLCM_ASM(digitized_image):
-    glcm = greycomatrix(digitized_image, [1], [np.pi/4,np.pi/2], levels=8 , normed=True, symmetric=True)
+    glcm = graycomatrix(digitized_image, [1], [np.pi/4,np.pi/2], levels=8 , normed=True, symmetric=True)
     feature = gc(glcm, "ASM")
     return sum(feature[0].tolist())/len(feature[0].tolist())

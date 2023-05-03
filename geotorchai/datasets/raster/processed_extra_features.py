@@ -9,21 +9,21 @@ import rasterio
 
 class ProcessedWithExtraFeatures(Dataset):
 	'''
-    This dataset is a custom dataset which is exactly similar to Processed dataset with the only exception that users can include
-    pre-extracted additional features similar to the EuroSAT. The difference with EuroSAT is that, here, users need to extract
-    the features beforehand and save to a CSV file. The CSV file should include more than two column: one column contains the path
-    to each image, another column contains the image label, and rest of the columns represent features.
+	This dataset is a custom dataset which is exactly similar to Processed dataset with the only exception that users can include
+	pre-extracted additional features similar to the EuroSAT. The difference with EuroSAT is that, here, users need to extract
+	the features beforehand and save to a CSV file. The CSV file should include more than two column: one column contains the path
+	to each image, another column contains the image label, and rest of the columns represent features.
 
-    Parameters
-    ..........
-    path_to_features (String) - Path to the CSV file which contains image locations, labels, and features.
-    origin (String) - Name of the column in the CSV file which contains image locations.
-    class_label (String) - Name of the column in the CSV file which contains image labels or classes.
-    feature_list (List, Optional) - A list of column names in the CSV file which need to be included as additional features.
-                                    If None, all columns in the CSV file except origin and class_label will be included in the feature list.
-    transform (Callable, Optional) - Tranforms to apply to each image. Default: None
-    target_transform (Callable, Optional) - Tranforms to apply to each label. Default: None
-    '''
+	Parameters
+	..........
+	path_to_features (String) - Path to the CSV file which contains image locations, labels, and features.
+	origin (String) - Name of the column in the CSV file which contains image locations.
+	class_label (String) - Name of the column in the CSV file which contains image labels or classes.
+	feature_list (List, Optional) - A list of column names in the CSV file which need to be included as additional features.
+									If None, all columns in the CSV file except origin and class_label will be included in the feature list.
+	transform (Callable, Optional) - Tranforms to apply to each image. Default: None
+	target_transform (Callable, Optional) - Tranforms to apply to each label. Default: None
+	'''
 
 
 	def __init__(self, path_to_features, origin, class_label, feature_list = None, transform: Optional[Callable] = None, target_transform: Optional[Callable] = None):
@@ -55,7 +55,7 @@ class ProcessedWithExtraFeatures(Dataset):
 
 	def __len__(self) -> int:
 		return len(self.image_paths)
-	
+
 
 	def __getitem__(self, index: int):
 		img = self._tiff_loader(self.image_paths[index])

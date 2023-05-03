@@ -12,24 +12,23 @@ import numpy as np
 
 class SAT4(Dataset):
 	'''
-    This is a multi-class classification dtaaset. Link: https://www.kaggle.com/datasets/crawford/deepsat-sat4
-    Image Height and Width: 28 x 28, No of bands: 4, No of classes: 4
+	This is a multi-class classification dtaaset. Link: https://www.kaggle.com/datasets/crawford/deepsat-sat4
+	Image Height and Width: 28 x 28, No of bands: 4, No of classes: 4
 
-    Parameters
-    ..........
-    root (String) - Path to the dataset if it is already downloaded. If not downloaded, it will be downloaded in the given path.
-    download (Boolean, Optional) - Set to True if dataset is not available in the given directory. Default: False
-    is_train_data (Boolean, Optional) - True denotes training data, while False indicates testing data. Default: True
-    bands (List, Optional) - List of all bands that need to be included in the dataset. Default: list of all bands in the EuroSAT images.
-    include_additional_features (Boolean, Optional) - Set to True if you want to include extra image features. Default: False
-    additional_features_list (List, Optional) - List of extra features if previous parameter is set to True. Default: None
-    user_features_callback (Dict[str, Callable], Optional) - User-defined functions for extracting some or all of the features included in the additional feature list.
-                                                             A key in the dictionary is the feature name (exactly similar to what included in the feature list) and value
-                                                             is the function that returns corresponding feature. The function takes an image as input and returns the
-                                                             feature value. Default: None
-    transform (Callable, Optional) - Tranforms to apply to each image. Default: None
-    target_transform (Callable, Optional) - Tranforms to apply to each label. Default: None
-    '''
+	Parameters
+	..........
+	root (String) - Path to the dataset if it is already downloaded. If not downloaded, it will be downloaded in the given path.
+	is_train_data (Boolean, Optional) - True denotes training data, while False indicates testing data. Default: True
+	bands (List, Optional) - List of all bands that need to be included in the dataset. Default: list of all bands in the EuroSAT images.
+	include_additional_features (Boolean, Optional) - Set to True if you want to include extra image features. Default: False
+	additional_features_list (List, Optional) - List of extra features if previous parameter is set to True. Default: None
+	user_features_callback (Dict[str, Callable], Optional) - User-defined functions for extracting some or all of the features included in the additional feature list.
+															 A key in the dictionary is the feature name (exactly similar to what included in the feature list) and value
+															 is the function that returns corresponding feature. The function takes an image as input and returns the
+															 feature value. Default: None
+	transform (Callable, Optional) - Tranforms to apply to each image. Default: None
+	target_transform (Callable, Optional) - Tranforms to apply to each label. Default: None
+	'''
 
 
 	SPECTRAL_BANDS = ["red", "green", "blue", "nir"]
@@ -38,7 +37,7 @@ class SAT4(Dataset):
 	TEXTURAL_FEATURES = ["contrast", "dissimilarity", "homogeneity", "energy", "correlation", "ASM"]
 	SPECTRAL_INDICES = ["mean_NDWI", "mean_NDVI", "mean_RVI"]
 	SAT4_CLASSES = ["barren_land", "trees", "grassland", "none"]
-	
+
 	IMAGE_HEIGHT = 28
 	IMAGE_WIDTH = 28
 	BAND_GREEN_INDEX = 1

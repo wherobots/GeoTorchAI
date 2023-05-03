@@ -14,10 +14,11 @@ class ToaIncidentSolarRadiation(Dataset):
     Parameters
     ..........
     root (String) - Path to the dataset if it is already downloaded. If not downloaded, it will be downloaded in the given path.
-    history_length (Int) - Length of history data in sequence of each sample
-    prediction_length (Int) - Length of prediction data in sequence of each sample
     download (Boolean, Optional) - Set to True if dataset is not available in the given directory. Default: False
-    years (List, Optional) - Dataset will be downloaded for the given years
+    years (List(String), Optional) - Dataset will be downloaded for the given years. Default: ['2018']
+    grid (List(Float), Optional) - Grid interval in degress along x-axis and y-axis. Default: [5.625,2.8125]
+    lead_time (Int, Optional) - Difference between input (history) and label (prediction). Default: 2*24
+    normalize (Boolean, Optional) - If set to True, data will be normalized. Default: True
     '''
 
     ALL_YEARS = [
@@ -91,6 +92,15 @@ class ToaIncidentSolarRadiation(Dataset):
         return self.min_max_diff
 
     def set_sequential_representation(self, history_length, prediction_length):
+        '''
+        Call this method if you want to iterate the dataset as a sequence of histories and predictions instead of closeness, period, and trend.
+
+        Parameters
+        ..........
+        history_length (Int) - Length of history data in sequence of each sample
+        prediction_length (Int) - Length of prediction data in sequence of each sample
+        '''
+
         self._generate_sequence_data(history_length, prediction_length)
         self.use_lead_time = False
         self.sequential = True
@@ -98,6 +108,19 @@ class ToaIncidentSolarRadiation(Dataset):
 
 
     def set_periodical_representation(self, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
+        '''
+        Call this method if you want to iterate the dataset in terms of closeness, period, and trend.
+
+        Parameters
+        ..........
+        len_closeness (Int, Optional) - Length of closeness. Default: 3
+        len_period (Int, Optional) - Length of period. Default: 4
+        len_trend (Int, Optional) - Length of trend. Default: 4
+        T_closeness (Int, Optional) - Closeness length of T_data. Default: 1
+        T_period (Int, Optional) - Period length of T_data. Default: 24
+        T_trend (Int, Optional) - Trend length of T_data. Default: 24*7
+        '''
+
         self._generate_periodical_data(self.full_data, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend)
         self.use_lead_time = False
         self.sequential = False

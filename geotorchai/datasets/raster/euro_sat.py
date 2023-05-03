@@ -13,23 +13,23 @@ import rasterio
 
 class EuroSAT(Dataset):
 	'''
-    This is a multi-class classification dtaaset. Link: https://github.com/phelber/EuroSAT
-    Image Height and Width: 64 x 64, No of bands: 13, No of classes: 10
+	This is a multi-class classification dtaaset. Link: https://github.com/phelber/EuroSAT
+	Image Height and Width: 64 x 64, No of bands: 13, No of classes: 10
 
-    Parameters
-    ..........
-    root (String) - Path to the dataset if it is already downloaded. If not downloaded, it will be downloaded in the given path.
-    download (Boolean, Optional) - Set to True if dataset is not available in the given directory. Default: False
-    bands (List, Optional) - List of all bands that need to be included in the dataset. Default: list of all bands in the EuroSAT images.
-    include_additional_features (Boolean, Optional) - Set to True if you want to include extra image features. Default: False
-    additional_features_list (List, Optional) - List of extra features if previous parameter is set to True. Default: None
-    user_features_callback (Dict[str, Callable], Optional) - User-defined functions for extracting some or all of the features included in the additional feature list.
-                                                             A key in the dictionary is the feature name (exactly similar to what included in the feature list) and value
-                                                             is the function that returns corresponding feature. The function takes an image as input and returns the
-                                                             feature value. Default: None
-    transform (Callable, Optional) - Tranforms to apply to each image. Default: None
-    target_transform (Callable, Optional) - Tranforms to apply to each label. Default: None
-    '''
+	Parameters
+	..........
+	root (String) - Path to the dataset if it is already downloaded. If not downloaded, it will be downloaded in the given path.
+	download (Boolean, Optional) - Set to True if dataset is not available in the given directory. Default: False
+	bands (List, Optional) - List of all bands that need to be included in the dataset. Default: list of all bands in the EuroSAT images.
+	include_additional_features (Boolean, Optional) - Set to True if you want to include extra image features. Default: False
+	additional_features_list (List, Optional) - List of extra features if previous parameter is set to True. Default: None
+	user_features_callback (Dict[str, Callable], Optional) - User-defined functions for extracting some or all of the features included in the additional feature list.
+															 A key in the dictionary is the feature name (exactly similar to what included in the feature list) and value
+															 is the function that returns corresponding feature. The function takes an image as input and returns the
+															 feature value. Default: None
+	transform (Callable, Optional) - Tranforms to apply to each image. Default: None
+	target_transform (Callable, Optional) - Tranforms to apply to each label. Default: None
+	'''
 
 
 	SPECTRAL_BANDS = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B08A", "B09", "B10", "B11", "B12"]
@@ -38,7 +38,7 @@ class EuroSAT(Dataset):
 	ADDITIONAL_FEATURES = ["contrast", "dissimilarity", "homogeneity", "energy", "correlation", "ASM", "mean_NDWI", "mean_MNDWI", "mean_NDMI", "mean_NDVI", "mean_AWEI", "mean_builtup_index", "mean_RVI"]
 	TEXTURAL_FEATURES = ["contrast", "dissimilarity", "homogeneity", "energy", "correlation", "ASM"]
 	SPECTRAL_INDICES = ["mean_NDWI", "mean_MNDWI", "mean_NDMI", "mean_NDVI", "mean_AWEI", "mean_builtup_index", "mean_RVI"]
-	
+
 	IMAGE_HEIGHT = 64
 	IMAGE_WIDTH = 64
 	BAND_GREEN_INDEX = 2

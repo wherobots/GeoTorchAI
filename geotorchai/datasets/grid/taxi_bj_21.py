@@ -16,14 +16,7 @@ class TaxiBJ21(Dataset):
     ..........
     root (String) - Path to the dataset if it is already downloaded. If not downloaded, it will be downloaded in the given path.
     download (Boolean, Optional) - Set to True if dataset is not available in the given directory. Default: False
-    is_training_data (Boolean, Optional) - Set to True if you want to create the training dataset, False for testing dataset. Default: True
-    test_ratio (Float, Optional) - Length fraction of the test dataset. Default: 0.1
-    len_closeness (Int, Optional) - Length of closeness. Default: 3
-    len_period (Int, Optional) - Length of period. Default: 4
-    len_trend (Int, Optional) - Length of trend. Default: 4
-    T_closeness (Int, Optional) - Closeness length of T_data. Default: 1
-    T_period (Int, Optional) - Period length of T_data. Default: 24
-    T_trend (Int, Optional) - Trend length of T_data. Default: 24*7
+    lead_time (Int, Optional) - Difference between input (history) and label (prediction). Default: 2*24
     '''
 
     DATA_URL = "https://raw.githubusercontent.com/jwwthu/DL4Traffic/main/TaxiBJ21/TaxiBJ21.npy"
@@ -80,6 +73,19 @@ class TaxiBJ21(Dataset):
 
 
     def set_periodical_representation(self, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
+        '''
+        Call this method if you want to iterate the dataset in terms of closeness, period, and trend.
+
+        Parameters
+        ..........
+        len_closeness (Int, Optional) - Length of closeness. Default: 3
+        len_period (Int, Optional) - Length of period. Default: 4
+        len_trend (Int, Optional) - Length of trend. Default: 4
+        T_closeness (Int, Optional) - Closeness length of T_data. Default: 1
+        T_period (Int, Optional) - Period length of T_data. Default: 24
+        T_trend (Int, Optional) - Trend length of T_data. Default: 24*7
+        '''
+
         self._create_feature_vector(self.full_data, len_closeness, len_period, len_trend, T_closeness, T_period,
                                     T_trend)
         self.use_lead_time = False

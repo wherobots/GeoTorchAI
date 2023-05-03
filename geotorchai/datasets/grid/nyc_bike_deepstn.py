@@ -24,6 +24,7 @@ class BikeNYCDeepSTN(Dataset):
     T_closeness (Int, Optional) - Closeness length of T_data. Default: 1
     T_period (Int, Optional) - Period length of T_data. Default: 24
     T_trend (Int, Optional) - Trend length of T_data. Default: 24*7
+    normalize (Boolean, Optional) - If set to True, data will be normalized. Default: True
     '''
 
     DATA_URL = "https://raw.githubusercontent.com/FIBLAB/DeepSTN/master/BikeNYC/DATA/dataBikeNYC/flow_data.npy"
@@ -69,7 +70,7 @@ class BikeNYCDeepSTN(Dataset):
         Parameters
         ..........
         history_length (Int) - Length of history data in sequence of each sample
-        predict_length (Int) - Length of prediction data in sequence of each sample
+        prediction_length (Int) - Length of prediction data in sequence of each sample
         '''
 
         history_data = []
@@ -93,12 +94,11 @@ class BikeNYCDeepSTN(Dataset):
 
     def merge_closeness_period_trend(self, lead_time = 2*24):
         '''
-        Call this method if you want to iterate the dataset as a sequence of histories and predictions instead of closeness, period, and trend.
+        Call this method if you want to iterate the dataset as a sequence of histories and label where step difference sequence and label is lead_time
 
         Parameters
         ..........
-        history_length (Int) - Length of history data in sequence of each sample
-        predict_length (Int) - Length of prediction data in sequence of each sample
+        lead_time (Int, Optional) - Difference between input (history) and label (prediction). Default: 2*24
         '''
 
         self.lead_time_data = torch.tensor(self.full_data)

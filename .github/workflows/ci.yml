@@ -41,7 +41,7 @@ jobs:
         SPARK_VERSION: ${{ matrix.spark }}
         HADOOP_VERSION: ${{ matrix.hadoop }}
       run: tar -xzf spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz
-    - run: sudo apt-get install -y python3-pip python-dev-is-python3 libgdal-dev
+    - run: sudo apt-get install -y python3-pip python-dev-is-python3 libgeos-dev libgdal-dev
     - run: python3 -m pip install --upgrade pip
     - run: python3 -m pip install -U setuptools
     - run: python3 -m pip install -U wheel

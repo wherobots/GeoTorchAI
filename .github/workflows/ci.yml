@@ -61,7 +61,7 @@ jobs:
         python3 -m pip install cdsapi
         python3 -m pip install pyspark==${SPARK_VERSION}
         python3 -m pip install apache-sedona
-        python3 -m pip install rasterio --no-binary
+        python3 -m pip install rasterio --no-binary rasterio
         if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
     - name: Install main package
       run: |

@@ -7,18 +7,18 @@ import xarray as xr
 import numpy as np
 
 
-class Geopotential(Dataset):
+class TotalCloudCover(Dataset):
     '''
     This dataset is based on the repository https://github.com/pangeo-data/WeatherBench
 
     Parameters
     ..........
     root (String) - Path to the dataset if it is already downloaded. If not downloaded, it will be downloaded in the given path.
-    history_length (Int) - Length of history data in sequence of each sample
-    prediction_length (Int) - Length of prediction data in sequence of each sample
     download (Boolean, Optional) - Set to True if dataset is not available in the given directory. Default: False
-    years (List, Optional) - Dataset will be downloaded for the given years
-    pressure_level (String, Optional) - Pressure level for geopotential data
+    years (List(String), Optional) - Dataset will be downloaded for the given years. Default: ['2018']
+    grid (List(Float), Optional) - Grid interval in degress along x-axis and y-axis. Default: [5.625,2.8125]
+    lead_time (Int, Optional) - Difference between input (history) and label (prediction). Default: 2*24
+    normalize (Boolean, Optional) - If set to True, data will be normalized. Default: True
     '''
 
     ALL_YEARS = [
@@ -28,7 +28,7 @@ class Geopotential(Dataset):
     ]
 
 
-    def __init__(self, root, download=False, years=['2018'], pressure_level = '500', grid = [5.625,2.8125], lead_time = 2*24, normalize=True):
+    def __init__(self, root, download=False, years=['2018'], grid = [5.625,2.8125], lead_time = 2*24, normalize=True):
         super().__init__()
 
         self.all_months = ['01','02','03','04','05','06','07','08','09','10','11','12']
@@ -37,9 +37,9 @@ class Geopotential(Dataset):
         self.all_times = ['00:00','01:00','02:00','03:00','04:00','05:00','06:00','07:00','08:00','09:00','10:00',
         '11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00']
 
-        self.variable = 'geopotential'
-        self.level_type = 'pressure'
-        self.pressure_level = pressure_level
+        self.variable = 'total_cloud_cover'
+        self.level_type = 'single'
+        self.pressure_level = None
         self.grid = grid
         self.product_type = 'reanalysis'
         self.format_name = 'netcdf'
@@ -50,7 +50,7 @@ class Geopotential(Dataset):
 
         data_dir = self._get_path(root)
         arr = xr.open_mfdataset(f'{data_dir}/*.nc', combine='by_coords')
-        self.full_data = arr['z'].values
+        self.full_data = arr['tcc'].values
 
         self.lead_time = lead_time
         self.use_lead_time = True
@@ -92,6 +92,15 @@ class Geopotential(Dataset):
         return self.min_max_diff
 
     def set_sequential_representation(self, history_length, prediction_length):
+        '''
+        Call this method if you want to iterate the dataset as a sequence of histories and predictions instead of closeness, period, and trend.
+
+        Parameters
+        ..........
+        history_length (Int) - Length of history data in sequence of each sample
+        prediction_length (Int) - Length of prediction data in sequence of each sample
+        '''
+
         self._generate_sequence_data(history_length, prediction_length)
         self.use_lead_time = False
         self.sequential = True
@@ -99,6 +108,19 @@ class Geopotential(Dataset):
 
 
     def set_periodical_representation(self, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
+        '''
+        Call this method if you want to iterate the dataset in terms of closeness, period, and trend.
+
+        Parameters
+        ..........
+        len_closeness (Int, Optional) - Length of closeness. Default: 3
+        len_period (Int, Optional) - Length of period. Default: 4
+        len_trend (Int, Optional) - Length of trend. Default: 4
+        T_closeness (Int, Optional) - Closeness length of T_data. Default: 1
+        T_period (Int, Optional) - Period length of T_data. Default: 24
+        T_trend (Int, Optional) - Trend length of T_data. Default: 24*7
+        '''
+
         self._generate_periodical_data(self.full_data, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend)
         self.use_lead_time = False
         self.sequential = False

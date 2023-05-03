@@ -15,7 +15,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -41,7 +41,7 @@ jobs:
         SPARK_VERSION: ${{ matrix.spark }}
         HADOOP_VERSION: ${{ matrix.hadoop }}
       run: tar -xzf spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz
-    - run: sudo apt-get -y install python3-pip python-dev libgeos-dev
+    - run: sudo apt-get install -y python3-pip python3-dev libgeos-dev gdal-bin libgdal-dev
     - run: python3 -m pip install --upgrade pip
     - run: python3 -m pip install -U setuptools
     - run: python3 -m pip install -U wheel
@@ -57,10 +57,9 @@ jobs:
         python3 -m pip install numpy
         python3 -m pip install xarray
         python3 -m pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
-        python3 -m pip install rasterio
-        python3 -m pip install -U scikit-image
-        python3 -m pip install kaggle
+        python3 -m pip install -U scikit-image>=0.19.0
         python3 -m pip install cdsapi
+        python3 -m pip install rasterio==1.1.8
         python3 -m pip install pyspark==${SPARK_VERSION}
         python3 -m pip install apache-sedona
         if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
@@ -79,5 +78,3 @@ jobs:
       env:
         SPARK_VERSION: ${{ matrix.spark }}
         HADOOP_VERSION: ${{ matrix.hadoop }}
-        KAGGLE_USERNAME: ${{ secrets.KAGGLEUSERNAME }}
-        KAGGLE_KEY: ${{ secrets.KAGGLEKEY }}

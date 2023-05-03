@@ -7,59 +7,39 @@ from geotorchai.utility._download_utils import _download_remote_file
 import numpy as np
 
 
-class BikeNYCDeepSTN(Dataset):
+class TaxiBJ21(Dataset):
     '''
-    This dataset is based on https://github.com/FIBLAB/DeepSTN/tree/master/BikeNYC/DATA
-    Grid map_height and map_width = 21 and 12
+    This dataset is based on https://github.com/jwwthu/DL4Traffic/tree/main/TaxiBJ21
+    Grid map_height and map_width = 32 and 32
 
     Parameters
     ..........
     root (String) - Path to the dataset if it is already downloaded. If not downloaded, it will be downloaded in the given path.
     download (Boolean, Optional) - Set to True if dataset is not available in the given directory. Default: False
-    is_training_data (Boolean, Optional) - Set to True if you want to create the training dataset, False for testing dataset. Default: True
-    test_ratio (Float, Optional) - Length fraction of the test dataset. Default: 0.1
-    len_closeness (Int, Optional) - Length of closeness. Default: 3
-    len_period (Int, Optional) - Length of period. Default: 4
-    len_trend (Int, Optional) - Length of trend. Default: 4
-    T_closeness (Int, Optional) - Closeness length of T_data. Default: 1
-    T_period (Int, Optional) - Period length of T_data. Default: 24
-    T_trend (Int, Optional) - Trend length of T_data. Default: 24*7
+    lead_time (Int, Optional) - Difference between input (history) and label (prediction). Default: 2*24
     '''
 
-    DATA_URL = "https://raw.githubusercontent.com/FIBLAB/DeepSTN/master/BikeNYC/DATA/dataBikeNYC/flow_data.npy"
-    POI_URL = "https://raw.githubusercontent.com/FIBLAB/DeepSTN/master/BikeNYC/DATA/dataBikeNYC/poi_data.npy"
+    DATA_URL = "https://raw.githubusercontent.com/jwwthu/DL4Traffic/main/TaxiBJ21/TaxiBJ21.npy"
 
-    def __init__(self, root, download = False, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7, normalize=True):
+    def __init__(self, root, download=False, lead_time = 2*24):
         super().__init__()
 
         if download:
             _download_remote_file(self.DATA_URL, root)
-            _download_remote_file(self.POI_URL, root)
 
         data_dir = self._get_path(root)
 
-        flow_data = np.load(open(data_dir + "/flow_data.npy", "rb"))
-        poi_data = np.load(open(data_dir + "/poi_data.npy", "rb"))
+        flow_data = np.load(open(data_dir + "/TaxiBJ21.npy", "rb"))
 
         self.full_data = np.copy(flow_data)
 
-        max_data = np.max(self.full_data)
-        min_data = np.min(self.full_data)
-        self.min_max_diff = max_data - min_data
-        if normalize:
-            self.full_data = (2.0 * self.full_data - (max_data + min_data)) / (max_data - min_data)
-
-        self._create_feature_vector(self.full_data, poi_data, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend)
-
-        self.use_lead_time = False
+        self.lead_time = lead_time
+        self.use_lead_time = True
         self.sequential = False
-        self.periodical = True
+        self.periodical = False
 
+        self.lead_time_data = torch.tensor(self.full_data)
 
-
-    ## This method returns the difference between maximum and minimum values of this dataset
-    def get_min_max_difference(self):
-        return self.min_max_diff
 
 
     def set_sequential_representation(self, history_length, prediction_length):
@@ -69,7 +49,7 @@ class BikeNYCDeepSTN(Dataset):
         Parameters
         ..........
         history_length (Int) - Length of history data in sequence of each sample
-        predict_length (Int) - Length of prediction data in sequence of each sample
+        prediction_length (Int) - Length of prediction data in sequence of each sample
         '''
 
         history_data = []
@@ -91,21 +71,27 @@ class BikeNYCDeepSTN(Dataset):
         self.periodical = False
 
 
-    def merge_closeness_period_trend(self, lead_time = 2*24):
+
+    def set_periodical_representation(self, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
         '''
-        Call this method if you want to iterate the dataset as a sequence of histories and predictions instead of closeness, period, and trend.
+        Call this method if you want to iterate the dataset in terms of closeness, period, and trend.
 
         Parameters
         ..........
-        history_length (Int) - Length of history data in sequence of each sample
-        predict_length (Int) - Length of prediction data in sequence of each sample
+        len_closeness (Int, Optional) - Length of closeness. Default: 3
+        len_period (Int, Optional) - Length of period. Default: 4
+        len_trend (Int, Optional) - Length of trend. Default: 4
+        T_closeness (Int, Optional) - Closeness length of T_data. Default: 1
+        T_period (Int, Optional) - Period length of T_data. Default: 24
+        T_trend (Int, Optional) - Trend length of T_data. Default: 24*7
         '''
 
-        self.lead_time_data = torch.tensor(self.full_data)
-        self.lead_time = lead_time
-        self.use_lead_time = True
+        self._create_feature_vector(self.full_data, len_closeness, len_period, len_trend, T_closeness, T_period,
+                                    T_trend)
+        self.use_lead_time = False
         self.sequential = False
-        self.periodical = False
+        self.periodical = True
+        
 
 
     def __len__(self) -> int:
@@ -122,7 +108,6 @@ class BikeNYCDeepSTN(Dataset):
                       "x_period": self.X_period[index], \
                       "x_trend": self.X_trend[index], \
                       "t_data": self.T_data[index], \
-                      "p_data": self.P_data[index], \
                       "y_data": self.Y_data[index]}
         else:
             if self.use_lead_time:
@@ -141,7 +126,7 @@ class BikeNYCDeepSTN(Dataset):
         while queue:
             data_dir = queue.pop(0)
             folders = os.listdir(data_dir)
-            if "flow_data.npy" in folders and "poi_data.npy" in folders:
+            if "TaxiBJ21.npy" in folders:
                 return data_dir
 
             for folder in folders:
@@ -152,7 +137,7 @@ class BikeNYCDeepSTN(Dataset):
 
 
     # This is replication of lzq_load_data method proposed by authors here: https://github.com/FIBLAB/DeepSTN/blob/master/BikeNYC/DATA/lzq_read_data_time_poi.py
-    def _create_feature_vector(self, all_data, poi, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend):
+    def _create_feature_vector(self, all_data, len_closeness, len_period, len_trend, T_closeness, T_period, T_trend):
         len_total,feature,map_height,map_width = all_data.shape
 
         time=np.arange(len_total,dtype=int)
@@ -197,16 +182,10 @@ class BikeNYCDeepSTN(Dataset):
         self.T_data = matrix_T
         self.Y_data = Y
 
-        len_data=self.X_closeness.shape[0]
-
-        for i in range(poi.shape[0]):
-            poi[i]=poi[i]/np.max(poi[i])
-        self.P_data=np.repeat(poi.reshape(1,poi.shape[0],map_height,map_width),len_data,axis=0)
-
         self.X_closeness = torch.tensor(self.X_closeness)
         self.X_period = torch.tensor(self.X_period)
         self.X_trend = torch.tensor(self.X_trend)
         self.T_data = torch.tensor(self.T_data)
-        self.P_data = torch.tensor(self.P_data)
         self.Y_data = torch.tensor(self.Y_data)
+
 

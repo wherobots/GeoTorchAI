@@ -1,70 +1,65 @@
 
-import os
 import torch
 from torch.utils.data import Dataset
 from geotorchai.utility.exceptions import InvalidParametersException
-from geotorchai.utility._download_utils import _download_remote_file
 import numpy as np
 
 
-class TaxiBJ21(Dataset):
+class Processed(Dataset):
     '''
-    This dataset is based on https://github.com/jwwthu/DL4Traffic/tree/main/TaxiBJ21
-    Grid map_height and map_width = 32 and 32
+    This dataset is used load a grid-based spatiotemporal tensor/dataset that is created through GeoTorch Preprocessing module or any other means.
+    The tensor created through the preprocessing steps should available as an npy file of shape: TxCxHxW
+    T => total number of timesteps, C => number of channels/features, H => Grid Height, W => Grid Width.
 
     Parameters
     ..........
-    root (String) - Path to the dataset if it is already downloaded. If not downloaded, it will be downloaded in the given path.
-    download (Boolean, Optional) - Set to True if dataset is not available in the given directory. Default: False
-    is_training_data (Boolean, Optional) - Set to True if you want to create the training dataset, False for testing dataset. Default: True
-    test_ratio (Float, Optional) - Length fraction of the test dataset. Default: 0.1
-    len_closeness (Int, Optional) - Length of closeness. Default: 3
-    len_period (Int, Optional) - Length of period. Default: 4
-    len_trend (Int, Optional) - Length of trend. Default: 4
-    T_closeness (Int, Optional) - Closeness length of T_data. Default: 1
-    T_period (Int, Optional) - Period length of T_data. Default: 24
-    T_trend (Int, Optional) - Trend length of T_data. Default: 24*7
+    root (String) - Path to the npy file of the dataset
+    lead_time (Int, Optional) - Difference between input (history) and label (prediction). Default: 2*24
+    normalize (Boolean, Optional) - If set to True, data will be normalized. Default: True
     '''
 
-    DATA_URL = "https://raw.githubusercontent.com/jwwthu/DL4Traffic/main/TaxiBJ21/TaxiBJ21.npy"
-
-    def __init__(self, root, download=False, lead_time = 2*24):
+    def __init__(self, root, lead_time = 2*24, normalize=True):
         super().__init__()
 
-        if download:
-            _download_remote_file(self.DATA_URL, root)
+        self.full_data = np.load(open(root, "rb"))
+        self.normalize = normalize
 
-        data_dir = self._get_path(root)
+        max_data = np.max(self.full_data)
+        min_data = np.min(self.full_data)
+        self.min_max_diff = max_data - min_data
+        if normalize:
+            self.full_data = (2.0 * self.full_data - (max_data + min_data)) / (max_data - min_data)
 
-        flow_data = np.load(open(data_dir + "/TaxiBJ21.npy", "rb"))
-
-        self.full_data = np.copy(flow_data)
+        self.lead_time_data = torch.tensor(self.full_data)
 
         self.lead_time = lead_time
         self.use_lead_time = True
         self.sequential = False
         self.periodical = False
-
-        self.lead_time_data = torch.tensor(self.full_data)
-
+        
 
 
-    def set_sequential_representation(self, history_length, prediction_length):
+    ## This method returns the difference between maximum and minimum values of this dataset
+    def get_min_max_difference(self):
+        return self.min_max_diff
+
+
+    def set_sequential_representation(self, history_length, predict_length):
         '''
         Call this method if you want to iterate the dataset as a sequence of histories and predictions instead of closeness, period, and trend.
 
         Parameters
         ..........
         history_length (Int) - Length of history data in sequence of each sample
-        prediction_length (Int) - Length of prediction data in sequence of each sample
+        predict_length (Int) - Length of prediction data in sequence of each sample
         '''
 
         history_data = []
         predict_data = []
         total_length = self.full_data.shape[0]
-        for end_idx in range(history_length + prediction_length, total_length):
-            predict_frames = self.full_data[end_idx-prediction_length:end_idx]
-            history_frames = self.full_data[end_idx-prediction_length-history_length:end_idx-prediction_length]
+        for end_idx in range(history_length + predict_length, total_length):
+            predict_frames = self.full_data[end_idx-predict_length:end_idx]
+            history_frames = self.full_data[end_idx-predict_length-history_length:end_idx-predict_length]
             history_data.append(history_frames)
             predict_data.append(predict_frames)
         history_data = np.stack(history_data)
@@ -80,12 +75,24 @@ class TaxiBJ21(Dataset):
 
 
     def set_periodical_representation(self, len_closeness = 3, len_period = 4, len_trend = 4, T_closeness=1, T_period=24, T_trend=24*7):
+        '''
+        Call this method if you want to iterate the dataset in terms of closeness, period, and trend.
+
+        Parameters
+        ..........
+        len_closeness (Int, Optional) - Length of closeness. Default: 3
+        len_period (Int, Optional) - Length of period. Default: 4
+        len_trend (Int, Optional) - Length of trend. Default: 4
+        T_closeness (Int, Optional) - Closeness length of T_data. Default: 1
+        T_period (Int, Optional) - Period length of T_data. Default: 24
+        T_trend (Int, Optional) - Trend length of T_data. Default: 24*7
+        '''
+
         self._create_feature_vector(self.full_data, len_closeness, len_period, len_trend, T_closeness, T_period,
                                     T_trend)
         self.use_lead_time = False
         self.sequential = False
         self.periodical = True
-        
 
 
     def __len__(self) -> int:
@@ -114,20 +121,6 @@ class TaxiBJ21(Dataset):
 
         return sample
 
-
-    def _get_path(self, root_dir):
-        queue = [root_dir]
-        while queue:
-            data_dir = queue.pop(0)
-            folders = os.listdir(data_dir)
-            if "TaxiBJ21.npy" in folders:
-                return data_dir
-
-            for folder in folders:
-                if os.path.isdir(data_dir + "/" + folder):
-                    queue.append(data_dir + "/" + folder)
-
-        return None
 
 
     # This is replication of lzq_load_data method proposed by authors here: https://github.com/FIBLAB/DeepSTN/blob/master/BikeNYC/DATA/lzq_read_data_time_poi.py
@@ -181,5 +174,4 @@ class TaxiBJ21(Dataset):
         self.X_trend = torch.tensor(self.X_trend)
         self.T_data = torch.tensor(self.T_data)
         self.Y_data = torch.tensor(self.Y_data)
-
 

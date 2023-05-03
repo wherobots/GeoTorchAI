@@ -57,7 +57,7 @@ jobs:
         python3 -m pip install numpy
         python3 -m pip install xarray
         python3 -m pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
-        python3 -m pip install rasterio<=1.1.8
+        python3 -m pip install rasterio
         python3 -m pip install -U scikit-image>=0.19.0
         python3 -m pip install cdsapi
         python3 -m pip install pyspark==${SPARK_VERSION}

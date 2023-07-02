@@ -2,7 +2,7 @@
 
 # GeoTorchAI: A Spatiotemporal Deep Learning Framework
 
-GeoTorchAI, formerly known as [GeoTorch](https://dl.acm.org/doi/abs/10.1145/3557915.3561036), is a spatiotemporal deep learning framework on top of PyTorch and [Apache Sedona](https://sedona.apache.org/). It enable spatiotemporal machine learning practitioners to easily and efficiently implement deep learning models targeting the applications of raster imagery datasets and spatiotemporal non-imagery datasets. Deep learning applications of raster imagery datasets include satellite imagery classification and satellite image segmentation. Applications of deep learning on spatiotemporal non-imagery datasets are mainly prediction tasks which include but are not limited to traffic volume and traffic flow prediction, taxi/bike flow/volume prediction, precipitation forecasting, and weather forecasting.
+GeoTorchAI is a spatiotemporal deep learning framework on top of PyTorch and [Apache Sedona](https://sedona.apache.org/). It enable spatiotemporal machine learning practitioners to easily and efficiently implement deep learning models targeting the applications of raster imagery datasets and spatiotemporal non-imagery datasets. Deep learning applications of raster imagery datasets include satellite imagery classification and satellite image segmentation. Applications of deep learning on spatiotemporal non-imagery datasets are mainly prediction tasks which include but are not limited to traffic volume and traffic flow prediction, taxi/bike flow/volume prediction, precipitation forecasting, and weather forecasting.
 
 ## GeoTorchAI Modules
 GeoTorchAI contains various modules for deep learning and data preprocessing in both raster imagery and spatiotemporal non-imagery categories. Deep learning module offers ready-to-use raster and grid datasets, transforms, and neural network models.
@@ -24,7 +24,7 @@ GeoTorchAI is designed in such a way that it has the necessary building blocks f
 
 Although the data preprocessing module has dependencies on external big data processing libraries such as PySpark and Apache Sedona, the deep learning module only depends on PyTorch. Since the datasets component of the deep learning module provides preprocessed and trainable state-of-the-art benchmark datasets, designing applications with such benchmark datasets can be completed without requiring big data-related dependencies. Furthermore, to help machine learning practitioners build raster and spatiotemporal applications with their preferred raw datasets, our preprocessing module enables raster and spatiotemporal data processing in a pure Pythonic way without requiring the coding knowledge of Apache Spark, Apache Sedona, and other big data processing libraries while providing the scalability of Apache Spark at the same time.
 
-Our preprocessing module is designed such that it minimizes the number of methods and classes in the API. Users can perform end-to-end spatiotemporal data preprocessing, which starts by loading raw datasets and ends by generating a trainable Tensor-shaped array, with a minimum number of method calls. It helps the users understand the API fast and reduces their confusion.
+GeoTorchAI preprocessing module minimizes the number of methods and classes in the API. Users can perform end-to-end spatiotemporal data preprocessing, which starts by loading raw datasets and ends by generating a trainable Tensor-shaped array, with a minimum number of method calls. It helps the users understand the API fast and reduces their confusion.
 
 
 ## Documentation

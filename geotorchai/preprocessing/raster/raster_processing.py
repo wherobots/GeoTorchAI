@@ -1,4 +1,4 @@
-from pyspark.sql.functions import expr, col, udf
+from pyspark.sql.functions import col, udf, expr, array, concat
 from pyspark.sql.types import *
 import numpy as np
 import matplotlib.pyplot as plt
@@ -808,7 +808,7 @@ class RasterProcessing:
 		return raster_df
 
 
-	@classmethod
+    @classmethod
 	def logical_over_of_bands(cls, raster_df, band_index1, band_index2, column_data, column_n_bands, new_column_name=None,
 							  return_full_dataframe=True):
 		'''
@@ -847,3 +847,19 @@ class RasterProcessing:
 				"RS_LogicalOver({0}, {1}) as {2}".format(temp_band1, temp_band2, new_column_name))
 
 		return raster_df
+  
+  
+  
+    @classmethod
+    def load_array_from_binary_raster(cls, raster_df, n_bands, col_bin_data, col_new_array_data="image_data", select_bands=None):
+        raster_df = raster_df.withColumn("__raster_data__", expr("RS_FromGeoTiff({0})".format(col_bin_data)))
+        raster_df = raster_df.withColumn(col_new_array_data, array().cast("array<double>"))
+
+        if select_bands == None:
+            select_bands = range(n_bands)
+
+        for i in range(len(select_bands)):
+            raster_df = raster_df.withColumn(col_new_array_data, concat(col(col_new_array_data), expr("RS_BandAsArray(__raster_data__, {0})".format(select_bands[i] + 1))))
+
+        raster_df = raster_df.drop("__raster_data__")
+        return raster_df

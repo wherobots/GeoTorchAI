@@ -1,7 +1,33 @@
-from pyspark.sql.functions import expr, col
+from pyspark.sql.functions import expr, col, udf
+from pyspark.sql.types import *
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 class RasterProcessing:
+
+    @classmethod
+    def visualize_single_band(cls, band_data, height, width):
+        f, ((ax1)) = plt.subplots(1, 1, figsize=(15, 5))
+
+        ax1.set_title('First Band')
+        ax1.imshow(np.array(band_data).reshape((height, width)))
+
+    @classmethod
+    def visualize_all_bands(cls, raster_df, col_data, img_index, no_bands, height, width, axis_rows, axis_cols):
+        data = np.array(list(raster_df.select(col_data).take(img_index +1)[img_index][0])).reshape((no_bands, height, width))
+        f, (ax) = plt.subplots(axis_rows, axis_cols, figsize=(15, 5))
+
+        band_index = 0
+        for i in range(axis_rows):
+            for j in range(axis_cols):
+                if band_index >= no_bands:
+                    ax[i][j].axis('off')
+                    continue
+                #band_data = RasterProcessing.get_raster_band(raster_df, band_index, "data", "nBands", new_column_name="band_data", return_full_dataframe=False).take(img_index + 1)[img_index][0]
+                ax[i][j].set_title("Band" + str((band_index + 1)))
+                ax[i][j].imshow(np.array(data[band_index]).reshape((height, width)))
+                band_index += 1
 
 
 	@classmethod

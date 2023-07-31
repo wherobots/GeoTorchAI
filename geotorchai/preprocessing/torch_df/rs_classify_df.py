@@ -35,7 +35,7 @@ class RasterClassificationDf:
     def get_formatted_df(self):
         spark = SparkRegistration._get_spark_session()
 
-        labels = list(df_data.select(col_label).distinct().sort(col(col_label).asc()).toPandas()[col_label])
+        labels = list(self.df_raster.select(self.col_label).distinct().sort(col(self.col_label).asc()).toPandas()[self.col_label])
         idx_to_class = {i: j for i, j in enumerate(labels)}
         class_to_idx = {value: key for key, value in idx_to_class.items()}
 

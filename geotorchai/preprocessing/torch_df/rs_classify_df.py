@@ -8,6 +8,13 @@ from torchvision import transforms
 from geotorchai.preprocessing.spark_registration import SparkRegistration
 
 
+def find_index(lst, element):
+    try:
+        return lst.index(element)
+    except ValueError:
+        return -1
+
+
 class RasterClassificationDf:
 
     def __init__(self, df_raster, col_data, col_label, height, width, n_bands, include_additional_features=False, col_additional_features=None, transform: Optional[Callable] = None):
@@ -40,23 +47,17 @@ class RasterClassificationDf:
         #idx_to_class = {i: j for i, j in enumerate(labels)}
         #class_to_idx = {value: key for key, value in idx_to_class.items()}
 
-        def find_index(element):
-            try:
-                return labels.index(element)
-            except ValueError:
-                return -1
-
         if self.include_additional_features:
             df_schema = StructType(
                 [StructField("image_data", ArrayType(DoubleType()), False), StructField("label", IntegerType(), False), StructField("additional_features", ArrayType(DoubleType()), True)])
             formatted_rdd = self.df_raster.rdd.map(
-                lambda x: Row(image_data=x[self.col_data], label=find_index(x[self.col_label]), additional_features=x[self.col_additional_features]))
+                lambda x: Row(image_data=x[self.col_data], label=find_index(labels, x[self.col_label]), additional_features=x[self.col_additional_features]))
             formatted_df = spark.createDataFrame(formatted_rdd, schema=df_schema)
         else:
             df_schema = StructType(
                 [StructField("image_data", ArrayType(DoubleType()), False), StructField("label", IntegerType(), False)])
             formatted_rdd = self.df_raster.rdd.map(
-                lambda x: Row(image_data=x[self.col_data], label=find_index(x[self.col_label])))
+                lambda x: Row(image_data=x[self.col_data], label=find_index(labels, x[self.col_label])))
             formatted_df = spark.createDataFrame(formatted_rdd, schema=df_schema)
 
         return formatted_df

@@ -8,13 +8,6 @@ from torchvision import transforms
 from geotorchai.preprocessing.spark_registration import SparkRegistration
 
 
-def find_index(lst, element):
-    try:
-        return lst.index(element)
-    except ValueError:
-        return -1
-
-
 class RasterClassificationDf:
 
     def __init__(self, df_raster, col_data, col_label, height, width, n_bands, include_additional_features=False, col_additional_features=None, transform: Optional[Callable] = None):
@@ -44,22 +37,19 @@ class RasterClassificationDf:
         spark = SparkRegistration._get_spark_session()
 
         labels = list(self.df_raster.select(self.col_label).distinct().sort(col(self.col_label).asc()).toPandas()[self.col_label])
-        #idx_to_class = {i: j for i, j in enumerate(labels)}
-        #class_to_idx = {value: key for key, value in idx_to_class.items()}
+        idx_to_class = {i: j for i, j in enumerate(labels)}
+        class_to_idx = {value: key for key, value in idx_to_class.items()}
+        class_data = list(class_to_idx.items())
+        class_df = spark.createDataFrame(class_data, ["__class_name__", "__label__"])
 
+        formatted_df = self.df_raster.join(class_df, self.df_raster[self.col_label] == class_df["__class_name__"], "left_outer")
         if self.include_additional_features:
-            df_schema = StructType(
-                [StructField("image_data", ArrayType(DoubleType()), False), StructField("label", IntegerType(), False), StructField("additional_features", ArrayType(DoubleType()), True)])
-            formatted_rdd = self.df_raster.rdd.map(
-                lambda x: Row(image_data=x[self.col_data], label=find_index(labels, x[self.col_label]), additional_features=x[self.col_additional_features]))
-            formatted_df = spark.createDataFrame(formatted_rdd, schema=df_schema)
+            formatted_df = formatted_df.select(self.col_data, "__label__", self.col_additional_features)
+            formatted_df = formatted_df.withColumnRenamed(self.col_data, "image_data").withColumnRenamed("__label__", "label")
         else:
-            df_schema = StructType(
-                [StructField("image_data", ArrayType(DoubleType()), False), StructField("label", IntegerType(), False)])
-            formatted_rdd = self.df_raster.rdd.map(
-                lambda x: Row(image_data=x[self.col_data], label=find_index(labels, x[self.col_label])))
-            formatted_df = spark.createDataFrame(formatted_rdd, schema=df_schema)
-
+            formatted_df = formatted_df.select(self.col_data, "__label__")
+            formatted_df = formatted_df.withColumnRenamed(self.col_data, "image_data").withColumnRenamed("__label__",
+                                                                                                         "label")
         return formatted_df
 
 

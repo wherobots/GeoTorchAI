@@ -47,6 +47,9 @@ setup(
         'pandas',
         'xarray',
         'cdsapi',
+        'matplotlib',
+        'pydeck',
+        'geojson',
     ],
     extras_require={
         'Preprocessing':  ['pyspark', 'apache-sedona'],

@@ -18,141 +18,141 @@ import geojson as gjson
 
 class STManager:
 
-    @classmethod
-    def get_grid_cell_polygons(cls, geo_df: DataFrame, geometry: str, partitions_x: int, partitions_y: int):
-        '''
-        Function generates a grid of partitions_x times partitions_y cells
-        partitions_x cells along the latitude and partitions_y cells along the longitude
+	@classmethod
+	def get_grid_cell_polygons(cls, geo_df: DataFrame, geometry: str, partitions_x: int, partitions_y: int):
+		'''
+		Function generates a grid of partitions_x times partitions_y cells
+		partitions_x cells along the latitude and partitions_y cells along the longitude
 
-        Parameters
-        ...........
-        geo_df: pyspark dataframe containing a column of geometry type
-        geometry: name of the geometry typed column in geo_df dataframe
-        partitions_x: number of partitions along latitude
-        partitions_y: number of partitions along longitude
+		Parameters
+		...........
+		geo_df: pyspark dataframe containing a column of geometry type
+		geometry: name of the geometry typed column in geo_df dataframe
+		partitions_x: number of partitions along latitude
+		partitions_y: number of partitions along longitude
 
-        Returns
-        ........
-        a pyspark dataframe constsiting of two columns: id of each cell and polygon object representing each cell
-        '''
+		Returns
+		........
+		a pyspark dataframe constsiting of two columns: id of each cell and polygon object representing each cell
+		'''
 
-        # retrieve the SparkSession instance
-        spark = SparkRegistration._get_spark_session()
+		# retrieve the SparkSession instance
+		spark = SparkRegistration._get_spark_session()
 
-        geo_df.createOrReplaceTempView("geo_df")
-        boundary = \
-            spark.sql("SELECT ST_Envelope_Aggr(geo_df.{0}) as boundary FROM geo_df".format(geometry)).collect()[0][0]
-        x_arr, y_arr = boundary.exterior.coords.xy
-        x = list(x_arr)
-        y = list(y_arr)
+		geo_df.createOrReplaceTempView("geo_df")
+		boundary = \
+			spark.sql("SELECT ST_Envelope_Aggr(geo_df.{0}) as boundary FROM geo_df".format(geometry)).collect()[0][0]
+		x_arr, y_arr = boundary.exterior.coords.xy
+		x = list(x_arr)
+		y = list(y_arr)
 
-        min_x, min_y, max_x, max_y = min(x), min(y), max(x), max(y)
-        interval_x = (max_x - min_x) / partitions_x
-        interval_y = (max_y - min_y) / partitions_y
+		min_x, min_y, max_x, max_y = min(x), min(y), max(x), max(y)
+		interval_x = (max_x - min_x) / partitions_x
+		interval_y = (max_y - min_y) / partitions_y
 
-        polygons = []
-        for i in range(partitions_y):
-            for j in range(partitions_x):
-                polygons.append(Polygon([[min_x + interval_x * j, min_y + interval_y * i],
-                                         [min_x + interval_x * (j + 1), min_y + interval_y * i],
-                                         [min_x + interval_x * (j + 1), min_y + interval_y * (i + 1)],
-                                         [min_x + interval_x * j, min_y + interval_y * (i + 1)],
-                                         [min_x + interval_x * j, min_y + interval_y * i]]))
-        return polygons
-
-
-    @classmethod
-    def getHexagonalLayer(cls, df, col_lat, col_lon, fraction):
-        pd_df = df.sample(fraction).select(*[col_lon, col_lat]).toPandas()
-        lat_mean = (40.491370 + 40.91553) / 2
-        lon_mean = (-74.259090 + -73.700180) / 2
-
-        layer = pdk.Layer(
-            'HexagonLayer',  # `type` positional argument is here
-            pd_df,
-            get_position=[col_lon, col_lat],
-            auto_highlight=True,
-            elevation_scale=50,
-            pickable=True,
-            elevation_range=[0, 3000],
-            extruded=True,
-            coverage=1)
-
-        # Set the viewport location
-        view_state = pdk.ViewState(
-            longitude=lon_mean,
-            latitude=lat_mean,
-            zoom=8,
-            min_zoom=5,
-            max_zoom=15,
-            pitch=40.5,
-            bearing=-27.36)
-
-        # Combined all of it and render a viewport
-        r = pdk.Deck(layers=[layer], initial_view_state=view_state)
-        return r
+		polygons = []
+		for i in range(partitions_y):
+			for j in range(partitions_x):
+				polygons.append(Polygon([[min_x + interval_x * j, min_y + interval_y * i],
+										 [min_x + interval_x * (j + 1), min_y + interval_y * i],
+										 [min_x + interval_x * (j + 1), min_y + interval_y * (i + 1)],
+										 [min_x + interval_x * j, min_y + interval_y * (i + 1)],
+										 [min_x + interval_x * j, min_y + interval_y * i]]))
+		return polygons
 
 
-    @classmethod
-    def getStGridLayer(cls, df, timestamp_index, col_timestamp, col_geometry, col_feature, col_id, polygons):
-        df_geo = df.filter(df[col_timestamp] == timestamp_index)
+	@classmethod
+	def getHexagonalLayer(cls, df, col_lat, col_lon, fraction):
+		pd_df = df.sample(fraction).select(*[col_lon, col_lat]).toPandas()
+		lat_mean = (40.491370 + 40.91553) / 2
+		lon_mean = (-74.259090 + -73.700180) / 2
 
-        feature_objects = []
-        for i in range(len(polygons)):
-            feature_objects.append(gjson.Feature(geometry=polygons[i], properties={"pickup_count": 0}))
+		layer = pdk.Layer(
+			'HexagonLayer',  # `type` positional argument is here
+			pd_df,
+			get_position=[col_lon, col_lat],
+			auto_highlight=True,
+			elevation_scale=50,
+			pickable=True,
+			elevation_range=[0, 3000],
+			extruded=True,
+			coverage=1)
 
-        max_value = 1
-        for row in df_geo.collect():
-            # geom = geojson.Feature(geometry=row['geometry'], properties={"pickup_count": row['aggregated_feature']}).geometry
-            feature_objects[row[col_id]] = gjson.Feature(geometry=polygons[row[col_id]], properties={"pickup_count": row[col_feature]})
-            if row[col_feature] > max_value:
-                max_value = row[col_feature]
+		# Set the viewport location
+		view_state = pdk.ViewState(
+			longitude=lon_mean,
+			latitude=lat_mean,
+			zoom=8,
+			min_zoom=5,
+			max_zoom=15,
+			pitch=40.5,
+			bearing=-27.36)
 
-        feature_collection = gjson.FeatureCollection(feature_objects)
-        # Convert the FeatureCollection to a string in GeoJSON format
-        geojson_data = gjson.dumps(feature_collection, sort_keys=True)
-        geojson_data = json.loads(geojson_data)
+		# Combined all of it and render a viewport
+		r = pdk.Deck(layers=[layer], initial_view_state=view_state)
+		return r
 
-        LAND_COVER = [[-74.259090, 40.491370], [-74.259090, 40.91553], [-73.700180, 40.91553], [-73.700180, 40.491370]]
 
-        lat_mean = (40.491370 + 40.91553) / 2
-        lon_mean = (-74.259090 + -73.700180) / 2
+	@classmethod
+	def getStGridLayer(cls, df, timestamp_index, col_timestamp, col_geometry, col_feature, col_id, polygons):
+		df_geo = df.filter(df[col_timestamp] == timestamp_index)
 
-        INITIAL_VIEW_STATE = pdk.ViewState(
-            longitude=lon_mean,
-            latitude=lat_mean,
-            zoom=9,
-            max_zoom=16,
-            pitch=45,
-            bearing=0
-        )
+		feature_objects = []
+		for i in range(len(polygons)):
+			feature_objects.append(gjson.Feature(geometry=polygons[i], properties={"pickup_count": 0}))
 
-        polygon = pdk.Layer(
-            'PolygonLayer',
-            LAND_COVER,
-            stroked=False,
-            # processes the data as a flat longitude-latitude pair
-            get_polygon='-',
-            get_fill_color=[0, 0, 0, 20]
-        )
+		max_value = 1
+		for row in df_geo.collect():
+			# geom = geojson.Feature(geometry=row['geometry'], properties={"pickup_count": row['aggregated_feature']}).geometry
+			feature_objects[row[col_id]] = gjson.Feature(geometry=polygons[row[col_id]], properties={"pickup_count": row[col_feature]})
+			if row[col_feature] > max_value:
+				max_value = row[col_feature]
 
-        geojson = pdk.Layer(
-            'GeoJsonLayer',
-            geojson_data,
-            opacity=0.2,
-            stroked=False,
-            filled=True,
-            extruded=True,
-            wireframe=True,
-            get_elevation='properties.pickup_count*75',
-            get_fill_color='[255, 255, properties.pickup_count*255/max_value]',
-            get_line_color=[255, 255, 255]
-        )
+		feature_collection = gjson.FeatureCollection(feature_objects)
+		# Convert the FeatureCollection to a string in GeoJSON format
+		geojson_data = gjson.dumps(feature_collection, sort_keys=True)
+		geojson_data = json.loads(geojson_data)
 
-        r = pdk.Deck(
-            layers=[polygon, geojson],
-            initial_view_state=INITIAL_VIEW_STATE)
-        return r
+		LAND_COVER = [[-74.259090, 40.491370], [-74.259090, 40.91553], [-73.700180, 40.91553], [-73.700180, 40.491370]]
+
+		lat_mean = (40.491370 + 40.91553) / 2
+		lon_mean = (-74.259090 + -73.700180) / 2
+
+		INITIAL_VIEW_STATE = pdk.ViewState(
+			longitude=lon_mean,
+			latitude=lat_mean,
+			zoom=9,
+			max_zoom=16,
+			pitch=45,
+			bearing=0
+		)
+
+		polygon = pdk.Layer(
+			'PolygonLayer',
+			LAND_COVER,
+			stroked=False,
+			# processes the data as a flat longitude-latitude pair
+			get_polygon='-',
+			get_fill_color=[0, 0, 0, 20]
+		)
+
+		geojson = pdk.Layer(
+			'GeoJsonLayer',
+			geojson_data,
+			opacity=0.2,
+			stroked=False,
+			filled=True,
+			extruded=True,
+			wireframe=True,
+			get_elevation='properties.pickup_count*75',
+			get_fill_color='[255, 255, properties.pickup_count*255/max_value]',
+			get_line_color=[255, 255, 255]
+		)
+
+		r = pdk.Deck(
+			layers=[polygon, geojson],
+			initial_view_state=INITIAL_VIEW_STATE)
+		return r
 
 
 	@classmethod

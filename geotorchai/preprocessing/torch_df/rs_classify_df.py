@@ -44,13 +44,13 @@ class RasterClassificationDf:
                 [StructField("image_data", ArrayType(DoubleType()), False), StructField("label", IntegerType(), False), StructField("additional_features", ArrayType(DoubleType()), True)])
             formatted_rdd = self.df_raster.rdd.map(
                 lambda x: Row(image_data=x[self.col_data], label=class_to_idx[x[self.col_label]], additional_features=x[self.col_additional_features]))
-            formatted_df = spark.createDataFrame(formatted_rdd, schema=df_schema)
+            formatted_df = formatted_rdd.toDF() #spark.createDataFrame(formatted_rdd, schema=df_schema)
         else:
             df_schema = StructType(
                 [StructField("image_data", ArrayType(DoubleType()), False), StructField("label", IntegerType(), False)])
             formatted_rdd = self.df_raster.rdd.map(
                 lambda x: Row(image_data=x[self.col_data], label=class_to_idx[x[self.col_label]]))
-            formatted_df = spark.createDataFrame(formatted_rdd, schema=df_schema)
+            formatted_df = formatted_rdd.toDF() #spark.createDataFrame(formatted_rdd, schema=df_schema)
 
         return formatted_df
 

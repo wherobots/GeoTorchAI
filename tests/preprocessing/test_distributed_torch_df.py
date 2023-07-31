@@ -16,7 +16,7 @@ class TestRasterTransform:
 		df_data = rp.get_array_from_binary_raster(df, 4, "content", "image_data")
 		df_data = df_data.withColumn("category", lit(0))
 
-		formatted_df  = RasterClassificationDf(df_data, "image_data", "category", 32, 32, 4).get_formatted_df()
+		formatted_df = RasterClassificationDf(df_data, "image_data", "category", 32, 32, 4).get_formatted_df()
 		assert len(formatted_df.select("image_data").first()[0]) == 4096
 
 
@@ -27,7 +27,7 @@ class TestRasterTransform:
 		df_data = rp.get_array_from_binary_raster(df, 4, "content", "image_data")
 		df_data = df_data.withColumn("category", lit(0))
 
-		formatted_df  = RasterClassificationDf(df_data, "image_data", "category", 32, 32, 4).get_formatted_df()
+		formatted_df = RasterClassificationDf(df_data, "image_data", "category", 32, 32, 4).get_formatted_df()
 		assert formatted_df.select("label").first()[0] == 0
 
 
@@ -38,7 +38,7 @@ class TestRasterTransform:
 		df_data = rp.get_array_from_binary_raster(df, 4, "content", "image_data")
 		df_data = df_data.withColumn("category", lit(0))
 
-		formatted_df  = RasterClassificationDf(df_data, "image_data", "category", 32, 32, 4).get_formatted_df()
+		formatted_df = RasterClassificationDf(df_data, "image_data", "category", 32, 32, 4).get_formatted_df()
 		assert formatted_df.select("image_data").first()[0][0] == 1151.0
 
 

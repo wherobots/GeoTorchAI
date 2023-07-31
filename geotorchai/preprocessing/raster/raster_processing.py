@@ -12,7 +12,7 @@ class RasterProcessing:
 
         ax1.set_title('First Band')
         ax1.imshow(np.array(band_data).reshape((height, width)))
-        
+
 
     @classmethod
     def visualize_all_bands(cls, raster_df, col_data, img_index, no_bands, height, width, axis_rows, axis_cols):
@@ -29,10 +29,10 @@ class RasterProcessing:
                 ax[i][j].set_title("Band" + str((band_index + 1)))
                 ax[i][j].imshow(np.array(data[band_index]).reshape((height, width)))
                 band_index += 1
-                
 
 
-	@classmethod
+
+    @classmethod
     def get_band_from_array_data(cls, raster_df, band_index, column_data, column_n_bands, new_column_name=None,
                         return_full_dataframe=True):
         '''
@@ -849,9 +849,9 @@ class RasterProcessing:
                 "RS_LogicalOver({0}, {1}) as {2}".format(temp_band1, temp_band2, new_column_name))
 
         return raster_df
-  
-  
-  
+
+
+
     @classmethod
     def get_raster_from_binary(cls, raster_df, column_binary, new_column_name=None,
                       return_full_dataframe=True):

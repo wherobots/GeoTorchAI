@@ -39,8 +39,10 @@ setup(
     license='AGPL-3.0',
     install_requires=[
         'torch',
+        'torchvision',
         'rasterio',
         'scikit-image >= 0.19.0',
+        'petastorm',
         'numpy',
         'pandas',
         'xarray',

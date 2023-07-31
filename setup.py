@@ -39,7 +39,7 @@ setup(
     license='AGPL-3.0',
     install_requires=[
         'torch',
-        'rasterio <= 1.1.8',
+        'rasterio',
         'scikit-image >= 0.19.0',
         'numpy',
         'pandas',
@@ -52,7 +52,7 @@ setup(
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
     test_suite='tests',
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     keywords=keywords,
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -62,6 +62,6 @@ setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Scientific/Engineering :: GIS",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
     ],
 )

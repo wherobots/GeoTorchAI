@@ -56,7 +56,7 @@ class SpatiotemporalDfToTorchData(Dataset):
 
 
     ## This method returns the difference between maximum and minimum values of this dataset
-    def get_min_max_difference(self):
+    def get_min_max_info(self):
         return self.min_max_diff, self.min_max_sum
 
 

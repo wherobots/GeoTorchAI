@@ -62,14 +62,31 @@ class TorchAdapter(object):
         f, (ax) = plt.subplots(axis_rows, axis_cols, figsize=(15, 5))
 
         band_index = 0
-        for i in range(axis_rows):
-            for j in range(axis_cols):
+        if axis_rows == 1 or axis_cols == 1:
+            rows_cols = axis_rows * axis_cols
+            for i in range(rows_cols):
                 if band_index >= no_bands:
-                    ax[i][j].axis('off')
+                    ax[i].axis('off')
                     continue
-                ax[i][j].set_title("Band" + str((band_index + 1)))
-                ax[i][j].imshow(image[band_index])
+                ax[i].set_title("Band" + str((band_index + 1)))
+                ax[i].imshow(image[band_index])
                 band_index += 1
+
+        else:
+            for i in range(axis_rows):
+                for j in range(axis_cols):
+                    if band_index >= no_bands:
+                        ax[i][j].axis('off')
+                        continue
+                    ax[i][j].set_title("Band" + str((band_index + 1)))
+                    ax[i][j].imshow(image[band_index])
+                    band_index += 1
+
+    @classmethod
+    def visualize_single_band_image(cls, image, title):
+        f, (ax) = plt.subplots()
+        ax.set_title(title)
+        ax.imshow(image)
 
 
     @classmethod

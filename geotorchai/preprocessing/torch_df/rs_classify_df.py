@@ -8,28 +8,27 @@ from torchvision import transforms
 from geotorchai.preprocessing.spark_registration import SparkRegistration
 
 
+
 class RasterClassificationDf:
 
-    def __init__(self, df_raster, col_data, col_label, height, width, n_bands, include_additional_features=False, col_additional_features=None, transform: Optional[Callable] = None):
+    def __init__(self, df_raster, col_data, col_label, include_additional_features=False, col_additional_features=None):
         self.df_raster = df_raster
         self.col_data = col_data
         self.col_label = col_label
-        self.height = height
-        self.width = width
-        self.n_bands = n_bands
         self.include_additional_features = include_additional_features
         self.col_additional_features = col_additional_features
-        self.transform = transform
 
 
-    def __transform_row(self, batch_data):
-        transformers = [transforms.Lambda(lambda x: x.reshape((self.n_bands, self.height, self.width)))]
-        if self.transform != None:
-            transformers.extend([self.transform])
+    @classmethod
+    def __transform_row(cls, batch_data, n_bands, height, width, transform: Optional[Callable]):
+        transformers = [transforms.Lambda(lambda x: x.reshape((n_bands, height, width)))]
+        if transform != None:
+            transformers.extend([transform])
         trans = transforms.Compose(transformers)
 
         batch_data['image_data'] = batch_data['image_data'].map(lambda x: trans(x))
         return batch_data
+
 
 
     def get_formatted_df(self):
@@ -53,13 +52,13 @@ class RasterClassificationDf:
         return formatted_df
 
 
-    def get_transform_spec(self):
+    def get_transform_spec(self, n_bands, height, width, transform: Optional[Callable] = None):
         if self.include_additional_features:
-            return TransformSpec(partial(self.__transform_row),
-                             edit_fields=[('image_data', np.float32, (self.n_bands, self.height, self.width), False)],
+            return TransformSpec(partial(RasterClassificationDf.__transform_row, n_bands, height, width, transform),
+                             edit_fields=[('image_data', np.float32, (n_bands, height, width), False)],
                              selected_fields=['image_data', 'label', 'additional_features'])
         else:
-            return TransformSpec(partial(self.__transform_row),
+            return TransformSpec(partial(RasterClassificationDf.__transform_row, n_bands, height, width, transform),
                                  edit_fields=[
-                                     ('image_data', np.float32, (self.n_bands, self.height, self.width), False)],
+                                     ('image_data', np.float32, (n_bands, height, width), False)],
                                  selected_fields=['image_data', 'label'])

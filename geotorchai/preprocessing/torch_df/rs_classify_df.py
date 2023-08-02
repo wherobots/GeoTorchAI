@@ -1,7 +1,6 @@
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 import numpy as np
-from typing import Optional, Callable
 from functools import partial
 from petastorm import TransformSpec
 from torchvision import transforms
@@ -20,9 +19,9 @@ class RasterClassificationDf:
 
 
     @classmethod
-    def __transform_row(cls, batch_data, n_bands, height, width, transform: Optional[Callable]):
+    def __transform_row(cls, batch_data, n_bands, height, width, transform=None):
         transformers = [transforms.Lambda(lambda x: x.reshape((n_bands, height, width)))]
-        if transform != None:
+        if transform is not None:
             transformers.extend([transform])
         trans = transforms.Compose(transformers)
 
@@ -52,13 +51,14 @@ class RasterClassificationDf:
         return formatted_df
 
 
-    def get_transform_spec(self, n_bands, height, width, transform: Optional[Callable] = None):
+    def get_transform_spec(self, n_bands, height, width, transform=None):
         if self.include_additional_features:
-            return TransformSpec(partial(RasterClassificationDf.__transform_row, n_bands, height, width, transform),
+            return TransformSpec(partial(RasterClassificationDf.__transform_row, n_bands=n_bands, height=height, width=width, transform=transform),
                              edit_fields=[('image_data', np.float32, (n_bands, height, width), False)],
                              selected_fields=['image_data', 'label', 'additional_features'])
         else:
-            return TransformSpec(partial(RasterClassificationDf.__transform_row, n_bands, height, width, transform),
+            return TransformSpec(partial(RasterClassificationDf.__transform_row, n_bands=n_bands, height=height, width=width, transform=transform),
                                  edit_fields=[
                                      ('image_data', np.float32, (n_bands, height, width), False)],
                                  selected_fields=['image_data', 'label'])
+

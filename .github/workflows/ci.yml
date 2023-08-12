@@ -24,10 +24,12 @@ jobs:
             hadoop: '3'
             scala: '2.12.8'
             python: '3.10'
+            spark_compat: '3.4'
           - spark: '3.4.1'
             hadoop: '3'
             scala: '2.12.8'
             python: '3.7'
+            spark_compat: '3.4'
 
     steps:
     - uses: actions/checkout@v3
@@ -51,6 +53,22 @@ jobs:
     - run: python3 -m pip install -U wheel
     - run: python3 -m pip install -U virtualenvwrapper
     - run: python3 -m pip install pipenv
+      # Download Sedona jar
+    - env:
+        SPARK_COMPAT: ${{ matrix.spark_compat }}
+      run: wget https://repo1.maven.org/maven2/org/apache/sedona/sedona-spark-shaded-${SPARK_COMPAT}_2.12/1.4.1/sedona-spark-shaded-${SPARK_COMPAT}_2.12-1.4.1.jar
+      # Put Sedona jar in place
+    - env:
+        SPARK_VERSION: ${{ matrix.spark }}
+        HADOOP_VERSION: ${{ matrix.hadoop }}
+      run: find . -name sedona-spark-shaded-*.jar -exec cp {} spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/jars/ \;
+      # Download Geotools jar
+    - run: wget https://repo1.maven.org/maven2/org/datasyslab/geotools-wrapper/1.4.0-28.2/geotools-wrapper-1.4.0-28.2.jar
+      # Put Geotools jar in place
+    - env:
+        SPARK_VERSION: ${{ matrix.spark }}
+        HADOOP_VERSION: ${{ matrix.hadoop }}
+      run: find . -name geotools-wrapper-*.jar -exec cp {} spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/jars/ \;
     - name: Install dependencies
       env:
         SPARK_VERSION: ${{ matrix.spark }}

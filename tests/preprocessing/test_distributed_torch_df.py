@@ -1,6 +1,6 @@
 from pyspark.sql.functions import lit
 import torch
-from tests.preprocessing.test_spark_registration import TestSparkRegistration
+from tests.preprocessing.test_sedona_registration import TestSedonaRegistration
 from geotorchai.preprocessing import load_geotiff_image_as_binary_data, load_parquet_data
 from geotorchai.preprocessing.torch_df import RasterClassificationDf
 from geotorchai.preprocessing.torch_df import SpatiotemporalDfToTorchData
@@ -10,7 +10,7 @@ from geotorchai.preprocessing.raster import RasterProcessing as rp
 class TestRasterTransform:
 
 	def test_classify_formatted_df_input(self):
-		TestSparkRegistration.set_spark_session()
+		TestSedonaRegistration.set_sedona_context()
 
 		df = load_geotiff_image_as_binary_data("data/raster/test3.tif")
 		df_data = rp.get_array_from_binary_raster(df, 4, "content", "image_data")
@@ -21,7 +21,7 @@ class TestRasterTransform:
 
 
 	def test_classify_formatted_df_label(self):
-		TestSparkRegistration.set_spark_session()
+		TestSedonaRegistration.set_sedona_context()
 
 		df = load_geotiff_image_as_binary_data("data/raster/test3.tif")
 		df_data = rp.get_array_from_binary_raster(df, 4, "content", "image_data")
@@ -32,7 +32,7 @@ class TestRasterTransform:
 
 
 	def test_classify_formatted_df_input_element(self):
-		TestSparkRegistration.set_spark_session()
+		TestSedonaRegistration.set_sedona_context()
 
 		df = load_geotiff_image_as_binary_data("data/raster/test3.tif")
 		df_data = rp.get_array_from_binary_raster(df, 4, "content", "image_data")
@@ -43,7 +43,7 @@ class TestRasterTransform:
 
 
 	def test_st_prediction_formatted_df_periodical_length(self):
-		TestSparkRegistration.set_spark_session()
+		TestSedonaRegistration.set_sedona_context()
 
 		df = load_parquet_data('data/nyc_st_df.parquet')
 		objStDf = SpatiotemporalDfToTorchData(df, "_id_timestep", "cell_id", ["aggregated_feature"], 744, 12, 12)
@@ -52,7 +52,7 @@ class TestRasterTransform:
 
 
 	def test_st_prediction_formatted_df_min_max_info(self):
-		TestSparkRegistration.set_spark_session()
+		TestSedonaRegistration.set_sedona_context()
 
 		df = load_parquet_data('data/nyc_st_df.parquet')
 		objStDf = SpatiotemporalDfToTorchData(df, "_id_timestep", "cell_id", ["aggregated_feature"], 744, 12, 12)
@@ -61,7 +61,7 @@ class TestRasterTransform:
 
 
 	def test_st_prediction_formatted_df_representation(self):
-		TestSparkRegistration.set_spark_session()
+		TestSedonaRegistration.set_sedona_context()
 
 		df = load_parquet_data('data/nyc_st_df.parquet')
 		objStDf = SpatiotemporalDfToTorchData(df, "_id_timestep", "cell_id", ["aggregated_feature"], 744, 12, 12)
@@ -71,7 +71,7 @@ class TestRasterTransform:
 
 
 	def test_st_prediction_formatted_df_sequential_representation(self):
-		TestSparkRegistration.set_spark_session()
+		TestSedonaRegistration.set_sedona_context()
 
 		df = load_parquet_data('data/nyc_st_df.parquet')
 		objStDf = SpatiotemporalDfToTorchData(df, "_id_timestep", "cell_id", ["aggregated_feature"], 744, 12, 12)
@@ -82,7 +82,7 @@ class TestRasterTransform:
 
 
 	def test_st_prediction_formatted_df_periodical_representation(self):
-		TestSparkRegistration.set_spark_session()
+		TestSedonaRegistration.set_sedona_context()
 
 		df = load_parquet_data('data/nyc_st_df.parquet')
 		objStDf = SpatiotemporalDfToTorchData(df, "_id_timestep", "cell_id", ["aggregated_feature"], 744, 12, 12)

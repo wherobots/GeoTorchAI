@@ -4,7 +4,7 @@ import numpy as np
 from functools import partial
 from petastorm import TransformSpec
 from torchvision import transforms
-from geotorchai.preprocessing.spark_registration import SparkRegistration
+from geotorchai.preprocessing.sedona_registration import SedonaRegistration
 
 
 
@@ -32,7 +32,7 @@ class RasterClassificationDf:
 
     def get_formatted_df(self):
 
-        spark = SparkRegistration._get_spark_session()
+        spark = SedonaRegistration._get_sedona_context()
 
         labels = list(self.df_raster.select(self.col_label).distinct().sort(col(self.col_label).asc()).toPandas()[self.col_label])
         idx_to_class = {i: j for i, j in enumerate(labels)}

@@ -29,7 +29,7 @@ keywords=[
 setup(
     name='geotorchai',
     packages=find_packages(),
-    version='0.2.0',
+    version='1.1.0',
     description='GeoTorchAI, formarly GeoTorch, A Spatiotemporal Deep Learning Framework',
     long_description = long_description,
     long_description_content_type = "text/markdown",
@@ -44,7 +44,7 @@ setup(
         'scikit-image >= 0.19.0',
         'petastorm',
         'numpy',
-        'pandas',
+        'Pandas<=1.3.5',
         'xarray',
         'cdsapi',
         'matplotlib',

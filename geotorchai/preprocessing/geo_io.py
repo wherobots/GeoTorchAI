@@ -2,7 +2,7 @@ from sedona.core.formatMapper.shapefileParser import ShapefileReader
 from sedona.core.formatMapper import WkbReader
 from sedona.core.formatMapper import WktReader
 from sedona.core.formatMapper import GeoJsonReader
-from .spark_registration import SparkRegistration
+from .sedona_registration import SedonaRegistration
 from geotorchai.utility.exceptions import InvalidParametersException
 from geotorchai.preprocessing.enums import GeoFileType
 
@@ -23,7 +23,7 @@ def load_geo_data(path_to_dataset, geo_file_type):
 
     # retrieve the sparkContext instance
 
-    sc = SparkRegistration._get_spark_context()
+    sc = SedonaRegistration._get_sedona_context().sparkContext
 
     if geo_file_type == GeoFileType.SHAPE_FILE:
         return ShapefileReader.readToGeometryRDD(sc, path_to_dataset)
@@ -49,7 +49,7 @@ def load_parquet_data(path_to_dataset):
     .........
     A PySpark DataFrame representing the dataset.
     '''
-    spark = SparkRegistration._get_spark_session()
+    spark = SedonaRegistration._get_sedona_context()
     return spark.read.parquet(path_to_dataset)
 
 
@@ -69,7 +69,7 @@ def load_data(path_to_dataset, data_format, delimeiter = ",", header = "false"):
     .........
     A PySpark DataFrame representing the dataset.
     '''
-    spark = SparkRegistration._get_spark_session()
+    spark = SedonaRegistration._get_sedona_context()
     return spark.read.format(data_format).option("delimiter", delimeiter).option("header", header).load(path_to_dataset)
 
 
@@ -86,7 +86,7 @@ def load_geotiff_image_as_binary_data(path_to_dataset):
     .........
     A PySpark DataFrame where each row represents a GeoTiff image.
     '''
-    spark = SparkRegistration._get_spark_session()
+    spark = SedonaRegistration._get_sedona_context()
     return spark.read.format("binaryFile").load(path_to_dataset)
 
 
@@ -110,7 +110,7 @@ def load_geotiff_image_as_array_data(path_to_dataset, options_dict = None):
     .........
     A PySpark DataFrame where each row represents a GeoTiff image.
     '''
-    spark = SparkRegistration._get_spark_session()
+    spark = SedonaRegistration._get_sedona_context()
     if options_dict != None:
         raster_df = spark.read.format("geotiff").options(**options_dict).load(path_to_dataset)
     else:

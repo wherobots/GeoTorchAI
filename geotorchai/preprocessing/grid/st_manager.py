@@ -8,7 +8,7 @@ from sedona.sql.types import GeometryType
 from pyspark.sql.functions import unix_timestamp, date_format, to_date, expr, udf, col, count, when, lit
 from pyspark.sql.types import LongType
 from geotorchai.utility.exceptions import InvalidParametersException
-from geotorchai.preprocessing.spark_registration import SparkRegistration
+from geotorchai.preprocessing.sedona_registration import SedonaRegistration
 import numpy as np
 from decimal import Decimal
 import random
@@ -37,7 +37,7 @@ class STManager:
 		'''
 
 		# retrieve the SparkSession instance
-		spark = SparkRegistration._get_spark_session()
+		spark = SedonaRegistration._get_sedona_context()
 
 		geo_df.createOrReplaceTempView("geo_df")
 		boundary = \
@@ -220,7 +220,7 @@ class STManager:
 		if upper_threshold == None and lower_threshold == None:
 			raise InvalidParametersException("Both upper_threshold and lower_threshold cannot be None")
 		else:
-			spark = SparkRegistration._get_spark_session()
+			spark = SedonaRegistration._get_sedona_context()
 			df.createOrReplaceTempView("dataset_timestamp")
 			if upper_threshold != None and lower_threshold != None:
 				return df.filter("{0} <= {1} and {0} >= {2}".format(target_column, upper_threshold, lower_threshold))
@@ -253,7 +253,7 @@ class STManager:
 			raise InvalidParametersException("Both upper_date and lower_date cannot be None")
 		else:
 			target_column_converted = target_column + "_converted"
-			spark = SparkRegistration._get_spark_session()
+			spark = SedonaRegistration._get_sedona_context()
 			df = df.withColumn(target_column_converted, unix_timestamp(target_column, date_format))
 			df.createOrReplaceTempView("dataset_timestamp")
 
@@ -397,7 +397,7 @@ class STManager:
 
 
 		# retrieve the SparkSession instance
-		spark = SparkRegistration._get_spark_session()
+		spark = SedonaRegistration._get_sedona_context()
 
 		select_expr = __get_columns_selection__()
 
@@ -460,7 +460,7 @@ class STManager:
 
 
 		# retrieve the SparkSession instance
-		spark = SparkRegistration._get_spark_session()
+		spark = SedonaRegistration._get_sedona_context()
 
 		select_expr = __get_columns_selection__()
 
@@ -657,7 +657,7 @@ class STManager:
 			return expr
 
 		# retrieve the SparkSession instance
-		spark = SparkRegistration._get_spark_session()
+		spark = SedonaRegistration._get_sedona_context()
 
 		geo_df.createOrReplaceTempView("geo_df")
 		boundary = \
@@ -741,7 +741,7 @@ class STManager:
 			return expr
 
 		# retrieve the SparkSession instance
-		spark = SparkRegistration._get_spark_session()
+		spark = SedonaRegistration._get_sedona_context()
 
 		geo_df.createOrReplaceTempView("geo_df")
 		boundary = \

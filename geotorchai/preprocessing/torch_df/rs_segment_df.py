@@ -4,7 +4,7 @@ import numpy as np
 from functools import partial
 from petastorm import TransformSpec
 from torchvision import transforms
-from geotorchai.preprocessing.spark_registration import SparkRegistration
+from geotorchai.preprocessing.sedona_registration import SedonaRegistration
 
 
 class RasterSegmentationDf:
@@ -32,7 +32,7 @@ class RasterSegmentationDf:
 
 
     def get_formatted_df(self):
-        spark = SparkRegistration._get_spark_session()
+        spark = SedonaRegistration._get_sedona_context()
 
         df_schema = StructType(
             [StructField("image_data", ArrayType(DoubleType()), False), StructField("label", ArrayType(IntegerType()), False)])

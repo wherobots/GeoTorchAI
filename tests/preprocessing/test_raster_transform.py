@@ -1,4 +1,4 @@
-from tests.preprocessing.test_spark_registration import TestSparkRegistration
+from tests.preprocessing.test_sedona_registration import TestSedonaRegistration
 from geotorchai.preprocessing import load_geotiff_image_as_array_data, load_geotiff_image_as_binary_data
 from geotorchai.preprocessing.raster import RasterProcessing as rp
 
@@ -7,7 +7,7 @@ class TestRasterTransform:
 
 
     def test_get_raster_band(self):
-        TestSparkRegistration.set_spark_session()
+        TestSedonaRegistration.set_sedona_context()
 
         df = load_geotiff_image_as_array_data("data/raster")
         df = rp.get_band_from_array_data(df, 0, "data", "nBands", return_full_dataframe=False)
@@ -15,7 +15,7 @@ class TestRasterTransform:
 
 
     def test_get_second_raster_band(self):
-        TestSparkRegistration.set_spark_session()
+        TestSedonaRegistration.set_sedona_context()
 
         df = load_geotiff_image_as_array_data("data/raster/test3.tif")
         df = rp.get_band_from_array_data(df, 1, "data", "nBands", return_full_dataframe=False)
@@ -23,7 +23,7 @@ class TestRasterTransform:
 
 
     def test_get_second_raster_band_elements(self):
-        TestSparkRegistration.set_spark_session()
+        TestSedonaRegistration.set_sedona_context()
 
         df = load_geotiff_image_as_array_data("data/raster/test3.tif")
         df = rp.get_band_from_array_data(df, 1, "data", "nBands", return_full_dataframe=False)
@@ -31,7 +31,7 @@ class TestRasterTransform:
 
 
     def test_get_fourth_raster_band_elements(self):
-        TestSparkRegistration.set_spark_session()
+        TestSedonaRegistration.set_sedona_context()
 
         df = load_geotiff_image_as_array_data("data/raster/test3.tif")
         df = rp.get_band_from_array_data(df, 3, "data", "nBands", return_full_dataframe=False)
@@ -39,7 +39,7 @@ class TestRasterTransform:
 
 
     def test_append_norm_diff_data_length(self):
-        TestSparkRegistration.set_spark_session()
+        TestSedonaRegistration.set_sedona_context()
 
         df = load_geotiff_image_as_array_data("data/raster/test3.tif")
         df = df.selectExpr("data", "nBands")
@@ -53,7 +53,7 @@ class TestRasterTransform:
 
 
     def test_append_norm_diff_data_elements(self):
-        TestSparkRegistration.set_spark_session()
+        TestSedonaRegistration.set_sedona_context()
 
         df = load_geotiff_image_as_array_data("data/raster/test3.tif")
         df = df.selectExpr("data", "nBands")
@@ -68,7 +68,7 @@ class TestRasterTransform:
 
 
     def test_append_norm_diff_bands_count(self):
-        TestSparkRegistration.set_spark_session()
+        TestSedonaRegistration.set_sedona_context()
 
         df = load_geotiff_image_as_array_data("data/raster/test3.tif")
         df = df.selectExpr("data", "nBands")
@@ -79,7 +79,7 @@ class TestRasterTransform:
 
 
     def test_get_array_from_binary_raster(self):
-        TestSparkRegistration.set_spark_session()
+        TestSedonaRegistration.set_sedona_context()
 
         df = load_geotiff_image_as_binary_data("data/raster/test3.tif")
         df_data = rp.get_array_from_binary_raster(df, 4, "content", "image_data")

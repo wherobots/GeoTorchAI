@@ -1,4 +1,3 @@
-<img src="https://raw.githubusercontent.com/DataSystemsLab/GeoTorchAI/main/data/GoeTorchAILogo.png" class="center" width="30%">
 
 # GeoTorchAI: A Spatiotemporal Deep Learning Framework
 
@@ -11,22 +10,19 @@ GeoTorchAI is a spatiotemporal deep learning framework on top of PyTorch and [Ap
 ## GeoTorchAI Modules
 GeoTorchAI contains various modules for deep learning and data preprocessing in both raster imagery and spatiotemporal non-imagery categories. Deep learning module offers ready-to-use raster and grid datasets, transforms, and neural network models.
 
-
 <img src="https://github.com/DataSystemsLab/GeoTorchAI/blob/main/data/architecture.png?raw=true" class="center" width="60%" align="right">
 
 * Datasets: This module conatins processed popular datasets for raster data models and grid based spatio-temporal models. Datasets are available as ready-to-use PyTorch datasets.
 * Models: These are PyTorch layers for popular raster data models and grid based spatio-temporal models.
 * Transforms: Various tranformations operations that can be applied to dataset samples during model training.
-* Preprocessing: Supports preprocessing of raster imagery and spatiotemporal non-imagery datasets in a scalable setting on top of Apache Spark and Apache Sedona. Users don't need to learn the coding concepts of Apache Sedona and Apache Spark. They only need to write their code on Python while PySpark and Apache Sedona implementations are hidden. The preprocessing module allows machine learning practitioners to prepare a trainable grid-based spatiotemporal tensor from large raw datasets along with performing various transformations on raster imagery datasets.
-
-
+* Preprocessing: Supports preprocessing of raster imagery and spatiotemporal non-imagery datasets in a scalable setting on top of Apache Spark and Apache Sedona. 
 
 
 ## GeoTorchAI Design Principles
 
 GeoTorchAI is designed in such a way that it has the necessary building blocks for developing raster and spatiotemporal DL applications within the PyTorch ecosystem. Various functionalities available in GeoTorch deep learning module are compatible with PyTorch core units such as neural network layers, datasets, and transformations. We make the deep learning module of GeoTorch GPU compatible so that PyTorch-provided scalability and parallelism on GPU can be achieved with GPU configured devices.
 
-Although the data preprocessing module has dependencies on external big data processing libraries such as PySpark and Apache Sedona, the deep learning module only depends on PyTorch. Since the datasets component of the deep learning module provides preprocessed and trainable state-of-the-art benchmark datasets, designing applications with such benchmark datasets can be completed without requiring big data-related dependencies. Furthermore, to help machine learning practitioners build raster and spatiotemporal applications with their preferred raw datasets, our preprocessing module enables raster and spatiotemporal data processing in a pure Pythonic way without requiring the coding knowledge of Apache Spark, Apache Sedona, and other big data processing libraries while providing the scalability of Apache Spark at the same time.
+Although the data preprocessing module has dependencies on external big data processing libraries such as Apache Sedona, the deep learning module only depends on PyTorch. Since the datasets component of the deep learning module provides preprocessed and trainable state-of-the-art benchmark datasets, designing applications with such benchmark datasets can be completed without requiring big data-related dependencies. Furthermore, to help machine learning practitioners build raster and spatiotemporal applications with their preferred raw datasets, our preprocessing module enables raster and spatiotemporal data processing in a pure Pythonic way without requiring the coding knowledge of Apache Spark, Apache Sedona, and other big data processing libraries while providing the scalability of Apache Spark at the same time.
 
 GeoTorchAI preprocessing module minimizes the number of methods and classes in the API. Users can perform end-to-end spatiotemporal data preprocessing, which starts by loading raw datasets and ends by generating a trainable Tensor-shaped array, with a minimum number of method calls. It helps the users understand the API fast and reduces their confusion.
 

@@ -20,7 +20,7 @@ class RasterSegmentationDf:
     def __transform_row(cls, batch_data, n_bands, height, width, transform=None):
         transformers = [transforms.Lambda(lambda x: x.reshape((n_bands, height, width)))]
         if transform is not None:
-            transformers.extend([transform])
+            transformers.extend([transforms.ToTensor(), transform])
         trans = transforms.Compose(transformers)
 
         transformers_label = [transforms.Lambda(lambda x: x.reshape((height, width)))]

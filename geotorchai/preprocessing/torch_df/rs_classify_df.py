@@ -22,7 +22,8 @@ class RasterClassificationDf:
     def __transform_row(cls, batch_data, n_bands, height, width, transform=None):
         transformers = [transforms.Lambda(lambda x: x.reshape((n_bands, height, width)))]
         if transform is not None:
-            transformers.extend([transform])
+            transformers.extend([transforms.ToTensor(), transform])
+
         trans = transforms.Compose(transformers)
 
         batch_data['image_data'] = batch_data['image_data'].map(lambda x: trans(x))
@@ -37,6 +38,7 @@ class RasterClassificationDf:
         labels = list(self.df_raster.select(self.col_label).distinct().sort(col(self.col_label).asc()).toPandas()[self.col_label])
         idx_to_class = {i: j for i, j in enumerate(labels)}
         class_to_idx = {value: key for key, value in idx_to_class.items()}
+        self.class_ids_labels = idx_to_class
         class_data = list(class_to_idx.items())
         class_df = spark.createDataFrame(class_data, ["__class_name__", "__label__"])
 
@@ -61,4 +63,9 @@ class RasterClassificationDf:
                                  edit_fields=[
                                      ('image_data', np.float32, (n_bands, height, width), False)],
                                  selected_fields=['image_data', 'label'])
+    
+    
+    def get_class_labels(self):
+        return self.class_ids_labels
+    
 

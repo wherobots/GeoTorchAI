@@ -61,11 +61,12 @@ class STManager:
 		return polygons
 
 
+
 	@classmethod
 	def getHexagonalLayer(cls, df, col_lat, col_lon, fraction):
 		pd_df = df.sample(fraction).select(*[col_lon, col_lat]).toPandas()
-		lat_mean = (40.491370 + 40.91553) / 2
-		lon_mean = (-74.259090 + -73.700180) / 2
+		lat_mean = (pd_df[col_lat].min() + pd_df[col_lat].max())/2 #(40.491370 + 40.91553) / 2
+		lon_mean = (pd_df[col_lon].min() + pd_df[col_lon].max())/2 #(-74.259090 + -73.700180) / 2
 
 		layer = pdk.Layer(
 			'HexagonLayer',  # `type` positional argument is here
@@ -94,12 +95,22 @@ class STManager:
 
 
 	@classmethod
-	def getStGridLayer(cls, df, timestamp_index, col_timestamp, col_geometry, col_feature, col_id, polygons):
+	def getStGridLayer(cls, df, timestamp_index, col_timestamp, col_feature, col_id, polygons):
 		df_geo = df.filter(df[col_timestamp] == timestamp_index)
 
+		min_lon, min_lat, max_lon, max_lat = polygons[0].bounds
 		feature_objects = []
 		for i in range(len(polygons)):
 			feature_objects.append(gjson.Feature(geometry=polygons[i], properties={"pickup_count": 0}))
+			min_lon_temp, min_lat_temp, max_lon_temp, max_lat_temp = polygons[i].bounds
+			if min_lon_temp < min_lon:
+				min_lon = min_lon_temp
+			if min_lat_temp < min_lat:
+				min_lat = min_lat_temp
+			if max_lon_temp > max_lon:
+				max_lon = max_lon_temp
+			if max_lat_temp > max_lat:
+				max_lat = max_lat_temp
 
 		max_value = 1
 		for row in df_geo.collect():
@@ -113,10 +124,10 @@ class STManager:
 		geojson_data = gjson.dumps(feature_collection, sort_keys=True)
 		geojson_data = json.loads(geojson_data)
 
-		LAND_COVER = [[-74.259090, 40.491370], [-74.259090, 40.91553], [-73.700180, 40.91553], [-73.700180, 40.491370]]
+		LAND_COVER = [[min_lon, min_lat], [min_lon, max_lat], [max_lon, max_lat], [max_lon, min_lat]]
 
-		lat_mean = (40.491370 + 40.91553) / 2
-		lon_mean = (-74.259090 + -73.700180) / 2
+		lat_mean = (min_lat + max_lat) / 2
+		lon_mean = (min_lon + max_lon) / 2
 
 		INITIAL_VIEW_STATE = pdk.ViewState(
 			longitude=lon_mean,
@@ -153,6 +164,87 @@ class STManager:
 			layers=[polygon, geojson],
 			initial_view_state=INITIAL_VIEW_STATE)
 		return r
+
+	@classmethod
+	def getGridLayer(cls, df, col_feature, col_id, polygons):
+		min_lon, min_lat, max_lon, max_lat = polygons[0].bounds
+		feature_objects = []
+		for i in range(len(polygons)):
+			feature_objects.append(gjson.Feature(geometry=polygons[i], properties={"pickup_count": 0}))
+			min_lon_temp, min_lat_temp, max_lon_temp, max_lat_temp = polygons[i].bounds
+			if min_lon_temp < min_lon:
+				min_lon = min_lon_temp
+			if min_lat_temp < min_lat:
+				min_lat = min_lat_temp
+			if max_lon_temp > max_lon:
+				max_lon = max_lon_temp
+			if max_lat_temp > max_lat:
+				max_lat = max_lat_temp
+
+		max_value = 1
+		for row in df.collect():
+			# geom = geojson.Feature(geometry=row['geometry'], properties={"pickup_count": row['aggregated_feature']}).geometry
+			feature_objects[row[col_id]] = gjson.Feature(geometry=polygons[row[col_id]],
+														 properties={"pickup_count": row[col_feature]})
+			if row[col_feature] > max_value:
+				max_value = row[col_feature]
+
+		feature_collection = gjson.FeatureCollection(feature_objects)
+		# Convert the FeatureCollection to a string in GeoJSON format
+		geojson_data = gjson.dumps(feature_collection, sort_keys=True)
+		geojson_data = json.loads(geojson_data)
+
+		LAND_COVER = [[min_lon, min_lat], [min_lon, max_lat], [max_lon, max_lat], [max_lon, min_lat]]
+
+		lat_mean = (min_lat + max_lat) / 2
+		lon_mean = (min_lon + max_lon) / 2
+
+		INITIAL_VIEW_STATE = pdk.ViewState(
+			longitude=lon_mean,
+			latitude=lat_mean,
+			zoom=9,
+			max_zoom=16,
+			pitch=45,
+			bearing=0
+		)
+
+		polygon = pdk.Layer(
+			'PolygonLayer',
+			LAND_COVER,
+			stroked=False,
+			# processes the data as a flat longitude-latitude pair
+			get_polygon='-',
+			get_fill_color=[0, 0, 0, 20]
+		)
+
+		geojson = pdk.Layer(
+			'GeoJsonLayer',
+			geojson_data,
+			opacity=0.2,
+			stroked=False,
+			filled=True,
+			extruded=True,
+			wireframe=True,
+			get_elevation='properties.pickup_count*75',
+			get_fill_color='[255, 255, properties.pickup_count*255/max_value]',
+			get_line_color=[255, 255, 255]
+		)
+
+		r = pdk.Deck(
+			layers=[polygon, geojson],
+			initial_view_state=INITIAL_VIEW_STATE)
+		return r
+
+	@classmethod
+	def get_cells_df(cls, vis_data, col_id, col_feature):
+		display_data = np.absolute(vis_data.cpu().data.numpy().astype(int).flatten()).tolist()
+
+		cell_id = [i for i in range(len(display_data))]
+		columns = [col_id, col_feature]
+
+		sedona = SedonaRegistration._get_sedona_context()
+		topPickupDf = sedona.createDataFrame(zip(cell_id, display_data), columns)
+		return topPickupDf
 
 
 	@classmethod

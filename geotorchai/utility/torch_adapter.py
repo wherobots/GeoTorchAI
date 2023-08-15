@@ -179,5 +179,19 @@ class TorchAdapter(object):
         # Display the figure
         #plt.tight_layout()
         plt.show()
+    
+    
+    
+    @classmethod
+    def compute_prediction_errors(cls, preds, y_true):
+        pred_mean = preds[:, 0:2]
+        diff = y_true - pred_mean
+
+        mse = np.mean(diff ** 2)
+        rmse = np.sqrt(mse)
+        mae = np.mean(np.abs(diff))
+
+        return mse, mae, rmse
+    
 
 

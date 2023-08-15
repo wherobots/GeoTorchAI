@@ -2,6 +2,7 @@ from pyspark.sql.functions import col, udf, expr, array, concat
 from pyspark.sql.types import *
 import numpy as np
 import matplotlib.pyplot as plt
+from geotorchai.preprocessing import SedonaRegistration
 
 
 class RasterProcessing:
@@ -1019,4 +1020,31 @@ class RasterProcessing:
             raster_df = raster_df.withColumn(col_new_array_data, concat(col(col_new_array_data), expr("RS_BandAsArray(__raster_data__, {0})".format(select_bands[i] + 1))))
 
         raster_df = raster_df.drop("__raster_data__")
+        return raster_df
+    
+    
+    
+    
+    @classmethod
+    def get_normalized_array_data(cls, raster_df, col_array_data, mean_bands, std_bands, col_new_normalized_data="normalized_array_data", return_full_dataframe=True):
+        def get_norm_image(img_data):
+            num_bands = len(mean_bands)
+            elem_h_w = len(img_data) // num_bands
+            image_np = np.array(img_data).reshape((num_bands, elem_h_w))
+            mean_np = np.array(mean_bands)[:, np.newaxis]
+            std_np = np.array(std_bands)[:, np.newaxis]
+
+            # Normalize
+            normalized_image_np = (image_np - mean_np) / std_np
+            # If you want the result back as a list
+            return normalized_image_np.flatten().tolist()
+
+        if return_full_dataframe:
+            udf_get_norm_image = udf(lambda x: get_norm_image(x), ArrayType(DoubleType()))
+            raster_df = raster_df.withColumn(col_new_normalized_data, udf_get_norm_image(col(col_array_data)))
+        else:
+            sedona = SedonaRegistration._get_sedona_context()
+            udf_get_norm_image = udf(get_norm_image, ArrayType(DoubleType()))
+            sedona.udf.register("udf_get_norm_image", udf_get_norm_image, ArrayType(DoubleType()))
+            raster_df = raster_df.selectExpr("udf_get_norm_image({0})".format(col_array_data))
         return raster_df

@@ -15,15 +15,15 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         include:
-          - spark: '3.0.3'
-            hadoop: '2.7'
+          - spark: '3.3.0'
+            hadoop: '3'
             scala: '2.12.8'
-            python: '3.6'
+            python: '3.7'
 
     steps:
     - uses: actions/checkout@v3

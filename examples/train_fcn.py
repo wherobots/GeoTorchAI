@@ -10,7 +10,7 @@ import torchvision.transforms as transforms
 from geotorchai.models.raster import FullyConvolutionalNetwork
 from geotorchai.datasets.raster import Cloud38
 
-epoch_nums = 50#350
+epoch_nums = 10#50#350
 learning_rate = 0.0002
 batch_size = 8
 params = {'batch_size': batch_size, 'shuffle': False, 'drop_last':False, 'num_workers': 0}
@@ -18,8 +18,7 @@ params = {'batch_size': batch_size, 'shuffle': False, 'drop_last':False, 'num_wo
 validation_split = 0.2
 shuffle_dataset = True
 
-out_dir = 'reports'
-checkpoint_dir = out_dir+'/checkpoint'
+checkpoint_dir = 'models'
 model_name = 'fcn'
 model_dir = checkpoint_dir + "/" + model_name
 os.makedirs(model_dir, exist_ok=True)
@@ -32,7 +31,7 @@ random_seed = int(time.time())
 
 def createModelAndTrain():
 
-    fullData = Cloud38(root = "data/cloud38")
+    fullData = Cloud38(root = "data/38-Cloud_training")
 
     full_loader = DataLoader(fullData, batch_size= batch_size)
     channels_sum, channels_squared_sum, num_batches = 0, 0, 0
@@ -46,7 +45,7 @@ def createModelAndTrain():
     std = (channels_squared_sum / num_batches - mean ** 2) ** 0.5
 
     sat_transform = transforms.Normalize(mean, std)
-    fullData = Cloud38(root = "data/cloud38", transform = sat_transform)
+    fullData = Cloud38(root = "data/38-Cloud_training", transform = sat_transform)
     
     dataset_size = len(fullData)
     indices = list(range(dataset_size))
@@ -63,8 +62,6 @@ def createModelAndTrain():
     training_generator = DataLoader(fullData, **params, sampler=train_sampler)
     val_generator = DataLoader(fullData, **params, sampler=valid_sampler)
 
-    # Total iterations
-    total_iters = 5
     if torch.cuda.is_available():
         device = torch.device("cuda")
     elif torch.backends.mps.is_available():
@@ -72,79 +69,78 @@ def createModelAndTrain():
     else:
         device = torch.device("cpu")
 
-    test_accuracy = []
     total_time = 0
     epoch_runnned = 0
 
-    for iteration in range(total_iters):
-        model = FullyConvolutionalNetwork(4, 2)
+    model = FullyConvolutionalNetwork(4, 2)
 
-        loss_fn = nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-        model.to(device)
-        loss_fn.to(device)
-
-        max_val_accuracy = None
-        for e in range(epoch_nums):
-            t_start = time.time()
-            for i, sample in enumerate(training_generator):
-                inputs, labels = sample
-                inputs = inputs.to(device)
-                labels = labels.to(device)
-
-                # Forward pass
-                outputs = model(inputs)
-                loss = loss_fn(outputs, labels)
-
-                # Backward and optimize
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-
-            t_end = time.time()
-            total_time += t_end - t_start
-            epoch_runnned += 1
-            print('Epoch [{}/{}], Training Loss: {:.4f}'.format(e + 1, epoch_nums, loss.item()))
-
-            val_accuracy = get_validation_accuracy(model, val_generator, device)
-            print("Validation Accuracy: ", val_accuracy, "%")
-
-            if max_val_accuracy == None or val_accuracy > max_val_accuracy:
-                max_val_accuracy = val_accuracy
-                torch.save(model.state_dict(), initial_checkpoint)
-                print('best model saved!')
-
+    if LOAD_INITIAL:
         model.load_state_dict(torch.load(initial_checkpoint, map_location=lambda storage, loc: storage))
+        model.eval()
 
-        total_sample = 0
-        running_acc = 0.0
-        for i, sample in enumerate(val_generator):
+    loss_fn = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    model.to(device)
+    loss_fn.to(device)
+
+    max_val_accuracy = None
+    t1 = time.time()
+    for e in range(epoch_nums):
+        t_start = time.time()
+        for i, sample in enumerate(training_generator):
             inputs, labels = sample
             inputs = inputs.to(device)
             labels = labels.to(device)
 
             # Forward pass
             outputs = model(inputs)
-            predicted = outputs.argmax(dim=1)
-            running_acc += (predicted == labels).float().mean().item()*len(labels)
-            total_sample += len(labels)
+            loss = loss_fn(outputs, labels)
 
-        accuracy = 100 * running_acc / total_sample
-        test_accuracy.append(accuracy)
+            # Backward and optimize
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        t_end = time.time()
+        total_time += t_end - t_start
+        epoch_runnned += 1
+        print('Epoch [{}/{}], Training Loss: {:.4f}'.format(e + 1, epoch_nums, loss.item()))
+
+        val_accuracy = get_validation_accuracy(model, val_generator, device)
+        print("Validation Accuracy: ", val_accuracy, "%")
+
+        if max_val_accuracy == None or val_accuracy > max_val_accuracy:
+            max_val_accuracy = val_accuracy
+            torch.save(model.state_dict(), initial_checkpoint)
+            print('best model saved!')
+
+    t2 = time.time()
+    model.load_state_dict(torch.load(initial_checkpoint, map_location=lambda storage, loc: storage))
+    model.eval()
+
+    total_sample = 0
+    running_acc = 0.0
+    for i, sample in enumerate(val_generator):
+        inputs, labels = sample
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+
+        # Forward pass
+        outputs = model(inputs)
+        predicted = outputs.argmax(dim=1)
+        running_acc += (predicted == labels).float().mean().item() * len(labels)
+        total_sample += len(labels)
+
+    accuracy = 100 * running_acc / total_sample
+
+
 
     print("\n************************")
     print("Test FCN model with Cloud38 dataset:")
     print("train and test finished")
-    for i in range(total_iters):
-        print("Iteration: {0}, Accuracy: {1}%".format(i, test_accuracy[i]))
+    print("Accuracy: {0}%".format(accuracy))
 
-    test_accuracy_mean = np.mean(test_accuracy)
-    test_accuracy_max = np.max(test_accuracy)
-    test_accuracy_min = np.min(test_accuracy)
-    accuracy_diff = max(test_accuracy_max - test_accuracy_mean, test_accuracy_mean - test_accuracy_min)
-    print("\nMean Accuracy: {0}, Variation of Accuracy: {1}".format(test_accuracy_mean, accuracy_diff))
-
-    print("Total time: {0} seconds, Average epoch time: {1} seconds".format(total_time, total_time/epoch_runnned))
+    print("Elapsed time per epoch:", (t2 - t1) / epoch_nums, "Seconds")
 
 
 

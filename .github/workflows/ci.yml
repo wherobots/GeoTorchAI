@@ -20,10 +20,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - spark: '3.0.3'
-            hadoop: '2.7'
+          - spark: '3.4.1'
+            hadoop: '3'
             scala: '2.12.8'
-            python: '3.6'
+            python: '3.10'
+            spark_compat: '3.4'
+          - spark: '3.4.1'
+            hadoop: '3'
+            scala: '2.12.8'
+            python: '3.7'
+            spark_compat: '3.4'
 
     steps:
     - uses: actions/checkout@v3
@@ -47,6 +53,22 @@ jobs:
     - run: python3 -m pip install -U wheel
     - run: python3 -m pip install -U virtualenvwrapper
     - run: python3 -m pip install pipenv
+      # Download Sedona jar
+    - env:
+        SPARK_COMPAT: ${{ matrix.spark_compat }}
+      run: wget https://repo1.maven.org/maven2/org/apache/sedona/sedona-spark-shaded-${SPARK_COMPAT}_2.12/1.4.1/sedona-spark-shaded-${SPARK_COMPAT}_2.12-1.4.1.jar
+      # Put Sedona jar in place
+    - env:
+        SPARK_VERSION: ${{ matrix.spark }}
+        HADOOP_VERSION: ${{ matrix.hadoop }}
+      run: find . -name sedona-spark-shaded-*.jar -exec cp {} spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/jars/ \;
+      # Download Geotools jar
+    - run: wget https://repo1.maven.org/maven2/org/datasyslab/geotools-wrapper/1.4.0-28.2/geotools-wrapper-1.4.0-28.2.jar
+      # Put Geotools jar in place
+    - env:
+        SPARK_VERSION: ${{ matrix.spark }}
+        HADOOP_VERSION: ${{ matrix.hadoop }}
+      run: find . -name geotools-wrapper-*.jar -exec cp {} spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/jars/ \;
     - name: Install dependencies
       env:
         SPARK_VERSION: ${{ matrix.spark }}
@@ -56,10 +78,14 @@ jobs:
         python3 -m pip install pandas
         python3 -m pip install numpy
         python3 -m pip install xarray
-        python3 -m pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
+        python3 -m pip install torch torchvision torchaudio
         python3 -m pip install -U scikit-image>=0.19.0
         python3 -m pip install cdsapi
         python3 -m pip install rasterio==1.1.8
+        python3 -m pip install petastorm
+        python3 -m pip install matplotlib
+        python3 -m pip install pydeck
+        python3 -m pip install geojson
         python3 -m pip install pyspark==${SPARK_VERSION}
         python3 -m pip install apache-sedona
         if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi

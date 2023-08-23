@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import IntegerType
 from geotorchai.preprocessing.enums import AdjacencyType
 from geotorchai.utility.exceptions import InvalidParametersException
-from geotorchai.preprocessing.spark_registration import SparkRegistration
+from geotorchai.preprocessing.sedona_registration import SedonaRegistration
 import math
 
 class Adjacency:
@@ -35,7 +35,7 @@ class Adjacency:
 		'''
 
 		# retrieve the SparkSession instance
-		spark = SparkRegistration._get_spark_session()
+		spark = SedonaRegistration._get_sedona_context()
 
 		if adjacency_type == AdjacencyType.BINARY:
 			def get_adjacency_value(is_not_same, is_adjacent):
@@ -97,7 +97,7 @@ class Adjacency:
 		'''
 
 		# retrieve the SparkSession instance
-		spark = SparkRegistration._get_spark_session()
+		spark = SedonaRegistration._get_sedona_context()
 
 		geo_df.createOrReplaceTempView("geo_df")
 		df_join = spark.sql("SELECT p1.{0} as id, ST_Distance(p1.{1}, p2.{1}) as distance FROM geo_df p1 CROSS JOIN geo_df p2".format(geo_id, geometry))

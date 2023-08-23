@@ -1,5 +1,5 @@
 from sedona.utils.adapter import Adapter as adp
-from geotorchai.preprocessing.sedona_registration import SedonaRegistration
+from geotorchai.preprocessing.spark_registration import SparkRegistration
 from pyspark.sql.functions import col
 
 
@@ -121,7 +121,7 @@ class Adapter(object):
 		.........
 		An Apache Sedona Spatial DataFrame
 		'''
-		spark = SedonaRegistration._get_sedona_context()
+		spark = SparkRegistration._get_spark_session()
 		return adp.toDf(rdd, spark)
 
 

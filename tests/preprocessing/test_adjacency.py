@@ -1,5 +1,5 @@
 from geotorchai.preprocessing.grid import Adjacency
-from tests.preprocessing.test_sedona_registration import TestSedonaRegistration
+from tests.preprocessing.test_spark_registration import TestSparkRegistration
 from tests.preprocessing.utility import are_dfs_equal
 from shapely.geometry import Polygon
 from shapely.geometry import Point
@@ -16,9 +16,9 @@ class TestAdjacency:
 
 
 	def test_get_polygons_adjacency(self):
-		TestSedonaRegistration.set_sedona_context()
+		TestSparkRegistration.set_spark_session()
 
-		spark = TestSedonaRegistration._get_sedona_context()
+		spark = TestSparkRegistration._get_spark_session()
 
 		schema_cells = StructType(
 			[
@@ -45,9 +45,9 @@ class TestAdjacency:
 
 
 	def test_get_points_adjacency(self):
-		TestSedonaRegistration.set_sedona_context()
+		TestSparkRegistration.set_spark_session()
 
-		spark = TestSedonaRegistration._get_sedona_context()
+		spark = TestSparkRegistration._get_spark_session()
 
 		schema_cells = StructType(
 			[

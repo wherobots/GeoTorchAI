@@ -5,7 +5,7 @@ from pyspark.sql.types import StructField
 from pyspark.sql.types import IntegerType
 from sedona.sql.types import GeometryType
 from geotorchai.utility.method_overload import MultipleMeta
-from geotorchai.preprocessing.sedona_registration import SedonaRegistration
+from geotorchai.preprocessing.spark_registration import SparkRegistration
 
 class SpacePartition(metaclass = MultipleMeta):
 
@@ -29,7 +29,7 @@ class SpacePartition(metaclass = MultipleMeta):
 		'''
 
 		# retrieve the SparkSession instance
-		spark = SedonaRegistration._get_sedona_context()
+		spark = SparkRegistration._get_spark_session()
 
 		geo_df.createOrReplaceTempView("geo_df")
 		boundary = \
@@ -77,7 +77,7 @@ class SpacePartition(metaclass = MultipleMeta):
 		'''
 
 		# retrieve the SparkSession instance
-		spark = SedonaRegistration._get_sedona_context()
+		spark = SparkRegistration._get_spark_session()
 
 		geo_df.createOrReplaceTempView("geo_df")
 		boundary = \
@@ -125,7 +125,7 @@ class SpacePartition(metaclass = MultipleMeta):
 		'''
 
 		# retrieve the SparkSession instance
-		spark = SedonaRegistration._get_sedona_context()
+		spark = SparkRegistration._get_spark_session()
 
 		min_x, min_y, max_x, max_y = boundary[0][0], boundary[0][1], boundary[1][0], boundary[1][1]
 		interval_x = (max_x - min_x)/partitions_x
@@ -165,7 +165,7 @@ class SpacePartition(metaclass = MultipleMeta):
 		'''
 
 		# retrieve the SparkSession instance
-		spark = SedonaRegistration._get_sedona_context()
+		spark = SparkRegistration._get_spark_session()
 
 		min_x, min_y, max_x, max_y = boundary[0][0], boundary[0][1], boundary[1][0], boundary[1][1]
 		interval_x = (max_x - min_x)/partitions

@@ -36,9 +36,9 @@ class DeepSTN(nn.Module):
         c=3, p=4, t=4,\
         pre_F=64, conv_F=64, R_N=2,\
         is_plus=True,\
-        plus=8, rate=1,\
+        plus=8, rate=2,\
         is_pt=True,\
-        P_N=9, T_F=7*8, PT_F=9, T=24,\
+        P_N=6, T_F=28, PT_F=6, T=24,\
         dropVal=0,\
         kernel1=1,\
         isPT_F=1):

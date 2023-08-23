@@ -1,5 +1,5 @@
 from geotorchai.preprocessing.grid import SpacePartition
-from tests.preprocessing.test_sedona_registration import TestSedonaRegistration
+from tests.preprocessing.test_spark_registration import TestSparkRegistration
 from tests.preprocessing.utility import are_dfs_equal
 from shapely.geometry import Polygon
 from pyspark.sql.types import StructType
@@ -12,9 +12,9 @@ class TestSpacePartition:
 
 
 	def test_generate_grid_cells_from_df_varying_xy(self):
-		TestSedonaRegistration.set_sedona_context()
+		TestSparkRegistration.set_spark_session()
 
-		spark = TestSedonaRegistration._get_sedona_context()
+		spark = TestSparkRegistration._get_spark_session()
 
 		schema_cells = StructType(
 			[
@@ -35,9 +35,9 @@ class TestSpacePartition:
 
 
 	def test_generate_grid_cells_from_df_equal_xy(self):
-		TestSedonaRegistration.set_sedona_context()
+		TestSparkRegistration.set_spark_session()
 
-		spark = TestSedonaRegistration._get_sedona_context()
+		spark = TestSparkRegistration._get_spark_session()
 
 		schema_cells = StructType(
 			[
@@ -58,9 +58,9 @@ class TestSpacePartition:
 
 
 	def test_generate_grid_cells_from_boundary_varying_xy(self):
-		TestSedonaRegistration.set_sedona_context()
+		TestSparkRegistration.set_spark_session()
 
-		spark = TestSedonaRegistration._get_sedona_context()
+		spark = TestSparkRegistration._get_spark_session()
 
 		schema_cells = StructType(
 			[
@@ -79,9 +79,9 @@ class TestSpacePartition:
 
 
 	def test_generate_grid_cells_from_boundary_equal_xy(self):
-		TestSedonaRegistration.set_sedona_context()
+		TestSparkRegistration.set_spark_session()
 
-		spark = TestSedonaRegistration._get_sedona_context()
+		spark = TestSparkRegistration._get_spark_session()
 
 		schema_cells = StructType(
 			[

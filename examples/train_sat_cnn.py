@@ -7,12 +7,12 @@ import torch.nn as nn
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
-from geotorchai.models.raster import UNet
-from geotorchai.datasets.raster import Cloud38
+from geotorchai.models.raster import SatCNN
+from geotorchai.datasets.raster import EuroSAT
 
 epoch_nums = 50#350
 learning_rate = 0.0002
-batch_size = 8
+batch_size = 16
 params = {'batch_size': batch_size, 'shuffle': False, 'drop_last':False, 'num_workers': 0}
 
 validation_split = 0.2
@@ -20,7 +20,7 @@ shuffle_dataset = True
 
 out_dir = 'reports'
 checkpoint_dir = out_dir+'/checkpoint'
-model_name = 'unet'
+model_name = 'satcnn'
 model_dir = checkpoint_dir + "/" + model_name
 os.makedirs(model_dir, exist_ok=True)
 
@@ -32,7 +32,7 @@ random_seed = int(time.time())
 
 def createModelAndTrain():
 
-    fullData = Cloud38(root = "data/cloud38")
+    fullData = EuroSAT(root = "data/eurosat", include_additional_features = False)
 
     full_loader = DataLoader(fullData, batch_size= batch_size)
     channels_sum, channels_squared_sum, num_batches = 0, 0, 0
@@ -46,7 +46,7 @@ def createModelAndTrain():
     std = (channels_squared_sum / num_batches - mean ** 2) ** 0.5
 
     sat_transform = transforms.Normalize(mean, std)
-    fullData = Cloud38(root = "data/cloud38", transform = sat_transform)
+    fullData = EuroSAT(root = "data/eurosat", include_additional_features = False, transform = sat_transform)
     
     dataset_size = len(fullData)
     indices = list(range(dataset_size))
@@ -65,14 +65,19 @@ def createModelAndTrain():
 
     # Total iterations
     total_iters = 5
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
 
     test_accuracy = []
     total_time = 0
     epoch_runnned = 0
 
     for iteration in range(total_iters):
-        model = UNet(4, 2)
+        model = SatCNN(13, 64, 64, 10)
 
         loss_fn = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -112,23 +117,23 @@ def createModelAndTrain():
         model.load_state_dict(torch.load(initial_checkpoint, map_location=lambda storage, loc: storage))
 
         total_sample = 0
-        running_acc = 0.0
+        correct = 0
         for i, sample in enumerate(val_generator):
             inputs, labels = sample
             inputs = inputs.to(device)
             labels = labels.to(device)
 
-            # Forward pass
             outputs = model(inputs)
-            predicted = outputs.argmax(dim=1)
-            running_acc += (predicted == labels).float().mean().item()*len(labels)
             total_sample += len(labels)
 
-        accuracy = 100 * running_acc / total_sample
+            _, predicted = outputs.max(1)
+            correct += predicted.eq(labels).sum().item()
+
+        accuracy = 100 * correct / total_sample
         test_accuracy.append(accuracy)
 
     print("\n************************")
-    print("Test UNet model with Cloud38 dataset:")
+    print("Test SatCNN model with EuroSAT dataset:")
     print("train and test finished")
     for i in range(total_iters):
         print("Iteration: {0}, Accuracy: {1}%".format(i, test_accuracy[i]))
@@ -146,18 +151,19 @@ def createModelAndTrain():
 def get_validation_accuracy(model, val_generator, device):
     model.eval()
     total_sample = 0
-    running_acc = 0.0
+    correct = 0
     for i, sample in enumerate(val_generator):
         inputs, labels = sample
         inputs = inputs.to(device)
         labels = labels.to(device)
 
         outputs = model(inputs)
-        predicted = outputs.argmax(dim=1)
-        running_acc += (predicted == labels).float().mean().item()*len(labels)
         total_sample += len(labels)
 
-    accuracy = 100 * running_acc / total_sample
+        _, predicted = outputs.max(1)
+        correct += predicted.eq(labels).sum().item()
+
+    accuracy = 100 * correct / total_sample
 
     return accuracy
 

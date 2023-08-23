@@ -8,243 +8,11 @@ from sedona.sql.types import GeometryType
 from pyspark.sql.functions import unix_timestamp, date_format, to_date, expr, udf, col, count, when, lit
 from pyspark.sql.types import LongType
 from geotorchai.utility.exceptions import InvalidParametersException
-from geotorchai.preprocessing.sedona_registration import SedonaRegistration
+from geotorchai.preprocessing.spark_registration import SparkRegistration
 import numpy as np
 from decimal import Decimal
-import random
-import pydeck as pdk
-import json
-import geojson as gjson
 
 class STManager:
-
-	@classmethod
-	def get_grid_cell_polygons(cls, geo_df: DataFrame, geometry: str, partitions_x: int, partitions_y: int):
-		'''
-		Function generates a grid of partitions_x times partitions_y cells
-		partitions_x cells along the latitude and partitions_y cells along the longitude
-
-		Parameters
-		...........
-		geo_df: pyspark dataframe containing a column of geometry type
-		geometry: name of the geometry typed column in geo_df dataframe
-		partitions_x: number of partitions along latitude
-		partitions_y: number of partitions along longitude
-
-		Returns
-		........
-		a pyspark dataframe constsiting of two columns: id of each cell and polygon object representing each cell
-		'''
-
-		# retrieve the SparkSession instance
-		spark = SedonaRegistration._get_sedona_context()
-
-		geo_df.createOrReplaceTempView("geo_df")
-		boundary = \
-			spark.sql("SELECT ST_Envelope_Aggr(geo_df.{0}) as boundary FROM geo_df".format(geometry)).collect()[0][0]
-		x_arr, y_arr = boundary.exterior.coords.xy
-		x = list(x_arr)
-		y = list(y_arr)
-
-		min_x, min_y, max_x, max_y = min(x), min(y), max(x), max(y)
-		interval_x = (max_x - min_x) / partitions_x
-		interval_y = (max_y - min_y) / partitions_y
-
-		polygons = []
-		for i in range(partitions_y):
-			for j in range(partitions_x):
-				polygons.append(Polygon([[min_x + interval_x * j, min_y + interval_y * i],
-										 [min_x + interval_x * (j + 1), min_y + interval_y * i],
-										 [min_x + interval_x * (j + 1), min_y + interval_y * (i + 1)],
-										 [min_x + interval_x * j, min_y + interval_y * (i + 1)],
-										 [min_x + interval_x * j, min_y + interval_y * i]]))
-		return polygons
-
-
-
-	@classmethod
-	def getHexagonalLayer(cls, df, col_lat, col_lon, fraction):
-		pd_df = df.sample(fraction).select(*[col_lon, col_lat]).toPandas()
-		lat_mean = (pd_df[col_lat].min() + pd_df[col_lat].max())/2 #(40.491370 + 40.91553) / 2
-		lon_mean = (pd_df[col_lon].min() + pd_df[col_lon].max())/2 #(-74.259090 + -73.700180) / 2
-
-		layer = pdk.Layer(
-			'HexagonLayer',  # `type` positional argument is here
-			pd_df,
-			get_position=[col_lon, col_lat],
-			auto_highlight=True,
-			elevation_scale=50,
-			pickable=True,
-			elevation_range=[0, 3000],
-			extruded=True,
-			coverage=1)
-
-		# Set the viewport location
-		view_state = pdk.ViewState(
-			longitude=lon_mean,
-			latitude=lat_mean,
-			zoom=8,
-			min_zoom=5,
-			max_zoom=15,
-			pitch=40.5,
-			bearing=-27.36)
-
-		# Combined all of it and render a viewport
-		r = pdk.Deck(layers=[layer], initial_view_state=view_state)
-		return r
-
-
-	@classmethod
-	def getStGridLayer(cls, df, timestamp_index, col_timestamp, col_feature, col_id, polygons):
-		df_geo = df.filter(df[col_timestamp] == timestamp_index)
-
-		min_lon, min_lat, max_lon, max_lat = polygons[0].bounds
-		feature_objects = []
-		for i in range(len(polygons)):
-			feature_objects.append(gjson.Feature(geometry=polygons[i], properties={"pickup_count": 0}))
-			min_lon_temp, min_lat_temp, max_lon_temp, max_lat_temp = polygons[i].bounds
-			if min_lon_temp < min_lon:
-				min_lon = min_lon_temp
-			if min_lat_temp < min_lat:
-				min_lat = min_lat_temp
-			if max_lon_temp > max_lon:
-				max_lon = max_lon_temp
-			if max_lat_temp > max_lat:
-				max_lat = max_lat_temp
-
-		max_value = 1
-		for row in df_geo.collect():
-			# geom = geojson.Feature(geometry=row['geometry'], properties={"pickup_count": row['aggregated_feature']}).geometry
-			feature_objects[row[col_id]] = gjson.Feature(geometry=polygons[row[col_id]], properties={"pickup_count": row[col_feature]})
-			if row[col_feature] > max_value:
-				max_value = row[col_feature]
-
-		feature_collection = gjson.FeatureCollection(feature_objects)
-		# Convert the FeatureCollection to a string in GeoJSON format
-		geojson_data = gjson.dumps(feature_collection, sort_keys=True)
-		geojson_data = json.loads(geojson_data)
-
-		LAND_COVER = [[min_lon, min_lat], [min_lon, max_lat], [max_lon, max_lat], [max_lon, min_lat]]
-
-		lat_mean = (min_lat + max_lat) / 2
-		lon_mean = (min_lon + max_lon) / 2
-
-		INITIAL_VIEW_STATE = pdk.ViewState(
-			longitude=lon_mean,
-			latitude=lat_mean,
-			zoom=9,
-			max_zoom=16,
-			pitch=45,
-			bearing=0
-		)
-
-		polygon = pdk.Layer(
-			'PolygonLayer',
-			LAND_COVER,
-			stroked=False,
-			# processes the data as a flat longitude-latitude pair
-			get_polygon='-',
-			get_fill_color=[0, 0, 0, 20]
-		)
-
-		geojson = pdk.Layer(
-			'GeoJsonLayer',
-			geojson_data,
-			opacity=0.2,
-			stroked=False,
-			filled=True,
-			extruded=True,
-			wireframe=True,
-			get_elevation='properties.pickup_count*75',
-			get_fill_color='[255, 255, properties.pickup_count*255/max_value]',
-			get_line_color=[255, 255, 255]
-		)
-
-		r = pdk.Deck(
-			layers=[polygon, geojson],
-			initial_view_state=INITIAL_VIEW_STATE)
-		return r
-
-	@classmethod
-	def getGridLayer(cls, df, col_feature, col_id, polygons):
-		min_lon, min_lat, max_lon, max_lat = polygons[0].bounds
-		feature_objects = []
-		for i in range(len(polygons)):
-			feature_objects.append(gjson.Feature(geometry=polygons[i], properties={"pickup_count": 0}))
-			min_lon_temp, min_lat_temp, max_lon_temp, max_lat_temp = polygons[i].bounds
-			if min_lon_temp < min_lon:
-				min_lon = min_lon_temp
-			if min_lat_temp < min_lat:
-				min_lat = min_lat_temp
-			if max_lon_temp > max_lon:
-				max_lon = max_lon_temp
-			if max_lat_temp > max_lat:
-				max_lat = max_lat_temp
-
-		max_value = 1
-		for row in df.collect():
-			# geom = geojson.Feature(geometry=row['geometry'], properties={"pickup_count": row['aggregated_feature']}).geometry
-			feature_objects[row[col_id]] = gjson.Feature(geometry=polygons[row[col_id]],
-														 properties={"pickup_count": row[col_feature]})
-			if row[col_feature] > max_value:
-				max_value = row[col_feature]
-
-		feature_collection = gjson.FeatureCollection(feature_objects)
-		# Convert the FeatureCollection to a string in GeoJSON format
-		geojson_data = gjson.dumps(feature_collection, sort_keys=True)
-		geojson_data = json.loads(geojson_data)
-
-		LAND_COVER = [[min_lon, min_lat], [min_lon, max_lat], [max_lon, max_lat], [max_lon, min_lat]]
-
-		lat_mean = (min_lat + max_lat) / 2
-		lon_mean = (min_lon + max_lon) / 2
-
-		INITIAL_VIEW_STATE = pdk.ViewState(
-			longitude=lon_mean,
-			latitude=lat_mean,
-			zoom=9,
-			max_zoom=16,
-			pitch=45,
-			bearing=0
-		)
-
-		polygon = pdk.Layer(
-			'PolygonLayer',
-			LAND_COVER,
-			stroked=False,
-			# processes the data as a flat longitude-latitude pair
-			get_polygon='-',
-			get_fill_color=[0, 0, 0, 20]
-		)
-
-		geojson = pdk.Layer(
-			'GeoJsonLayer',
-			geojson_data,
-			opacity=0.2,
-			stroked=False,
-			filled=True,
-			extruded=True,
-			wireframe=True,
-			get_elevation='properties.pickup_count*75',
-			get_fill_color='[255, 255, properties.pickup_count*255/max_value]',
-			get_line_color=[255, 255, 255]
-		)
-
-		r = pdk.Deck(
-			layers=[polygon, geojson],
-			initial_view_state=INITIAL_VIEW_STATE)
-		return r
-
-	@classmethod
-	def get_cells_df(cls, vis_data, col_id, col_feature):
-		display_data = np.absolute(vis_data.cpu().data.numpy().astype(int).flatten()).tolist()
-
-		cell_id = [i for i in range(len(display_data))]
-		columns = [col_id, col_feature]
-
-		sedona = SedonaRegistration._get_sedona_context()
-		topPickupDf = sedona.createDataFrame(zip(cell_id, display_data), columns)
-		return topPickupDf
 
 
 	@classmethod
@@ -312,7 +80,7 @@ class STManager:
 		if upper_threshold == None and lower_threshold == None:
 			raise InvalidParametersException("Both upper_threshold and lower_threshold cannot be None")
 		else:
-			spark = SedonaRegistration._get_sedona_context()
+			spark = SparkRegistration._get_spark_session()
 			df.createOrReplaceTempView("dataset_timestamp")
 			if upper_threshold != None and lower_threshold != None:
 				return df.filter("{0} <= {1} and {0} >= {2}".format(target_column, upper_threshold, lower_threshold))
@@ -345,7 +113,7 @@ class STManager:
 			raise InvalidParametersException("Both upper_date and lower_date cannot be None")
 		else:
 			target_column_converted = target_column + "_converted"
-			spark = SedonaRegistration._get_sedona_context()
+			spark = SparkRegistration._get_spark_session()
 			df = df.withColumn(target_column_converted, unix_timestamp(target_column, date_format))
 			df.createOrReplaceTempView("dataset_timestamp")
 
@@ -489,7 +257,7 @@ class STManager:
 
 
 		# retrieve the SparkSession instance
-		spark = SedonaRegistration._get_sedona_context()
+		spark = SparkRegistration._get_spark_session()
 
 		select_expr = __get_columns_selection__()
 
@@ -552,7 +320,7 @@ class STManager:
 
 
 		# retrieve the SparkSession instance
-		spark = SedonaRegistration._get_sedona_context()
+		spark = SparkRegistration._get_spark_session()
 
 		select_expr = __get_columns_selection__()
 
@@ -749,7 +517,7 @@ class STManager:
 			return expr
 
 		# retrieve the SparkSession instance
-		spark = SedonaRegistration._get_sedona_context()
+		spark = SparkRegistration._get_spark_session()
 
 		geo_df.createOrReplaceTempView("geo_df")
 		boundary = \
@@ -833,7 +601,7 @@ class STManager:
 			return expr
 
 		# retrieve the SparkSession instance
-		spark = SedonaRegistration._get_sedona_context()
+		spark = SparkRegistration._get_spark_session()
 
 		geo_df.createOrReplaceTempView("geo_df")
 		boundary = \

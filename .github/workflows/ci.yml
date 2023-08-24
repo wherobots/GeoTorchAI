@@ -42,6 +42,7 @@ jobs:
         HADOOP_VERSION: ${{ matrix.hadoop }}
       run: tar -xzf spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz
     - run: sudo apt-get install -y python3-pip python3-dev libgeos-dev gdal-bin libgdal-dev
+    - run: export GDAL_CONFIG=/usr/bin/gdal-config
     - run: python3 -m pip install --upgrade pip
     - run: python3 -m pip install -U setuptools
     - run: python3 -m pip install -U wheel

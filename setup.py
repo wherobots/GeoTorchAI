@@ -39,7 +39,7 @@ setup(
     license='AGPL-3.0',
     install_requires=[
         'torch',
-        'rasterio <= 1.1.8',
+        'rasterio',
         'scikit-image >= 0.19.0',
         'numpy',
         'pandas',

@@ -18,15 +18,6 @@ GeoTorchAI contains various modules for deep learning and data preprocessing in 
 * Preprocessing: Supports preprocessing of raster imagery and spatiotemporal non-imagery datasets in a scalable setting on top of Apache Spark and Apache Sedona. 
 
 
-## GeoTorchAI Design Principles
-
-GeoTorchAI is designed in such a way that it has the necessary building blocks for developing raster and spatiotemporal DL applications within the PyTorch ecosystem. Various functionalities available in GeoTorch deep learning module are compatible with PyTorch core units such as neural network layers, datasets, and transformations. We make the deep learning module of GeoTorch GPU compatible so that PyTorch-provided scalability and parallelism on GPU can be achieved with GPU configured devices.
-
-Although the data preprocessing module has dependencies on external big data processing libraries such as Apache Sedona, the deep learning module only depends on PyTorch. Since the datasets component of the deep learning module provides preprocessed and trainable state-of-the-art benchmark datasets, designing applications with such benchmark datasets can be completed without requiring big data-related dependencies. Furthermore, to help machine learning practitioners build raster and spatiotemporal applications with their preferred raw datasets, our preprocessing module enables raster and spatiotemporal data processing in a pure Pythonic way without requiring the coding knowledge of Apache Spark, Apache Sedona, and other big data processing libraries while providing the scalability of Apache Spark at the same time.
-
-GeoTorchAI preprocessing module minimizes the number of methods and classes in the API. Users can perform end-to-end spatiotemporal data preprocessing, which starts by loading raw datasets and ends by generating a trainable Tensor-shaped array, with a minimum number of method calls. It helps the users understand the API fast and reduces their confusion.
-
-
 ## Documentation
 Details documentation on installation, API, and programming guide is available on [GeoTorchAI Website](https://kanchanchy.github.io/geotorchai/).
 
